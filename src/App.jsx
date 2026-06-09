@@ -15,6 +15,45 @@ import PuzzleWorld from './pages/PuzzleWorld';
 import NumberAdventure from './pages/NumberAdventure';
 import LogicIsland from './pages/LogicIsland';
 import AdminPanel from './pages/AdminPanel';
+import { useUser } from './context/UserContext';
+import { getUserRole } from './firebase/services';
+import { useEffect, useState } from 'react';
+
+/**
+ * Protects the /admin route — only accessible if the user has role === 'admin'
+ * in the user_accounts collection (managed by Gyanendra's auth module).
+ * When his login page merges, it will redirect admins here directly.
+ */
+function AdminRoute() {
+  const { user } = useUser();
+  const [role, setRole] = useState(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    if (!user) { setChecking(false); return; }
+    getUserRole(user.uid).then(r => { setRole(r); setChecking(false); });
+  }, [user]);
+
+  if (checking) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <p style={{ color: 'var(--text-muted)' }}>Checking permissions…</p>
+    </div>
+  );
+
+  if (role !== 'admin') return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <span className="text-6xl">🔒</span>
+      <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
+        Admin Access Only
+      </h2>
+      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+        This page is accessible to administrators only via the login portal.
+      </p>
+    </div>
+  );
+
+  return <AdminPanel />;
+}
 
 export default function App() {
   return (
@@ -35,7 +74,8 @@ export default function App() {
               <Route path="puzzle-world"      element={<PuzzleWorld />} />
               <Route path="number-adventure"  element={<NumberAdventure />} />
               <Route path="logic-island"      element={<LogicIsland />} />
-              <Route path="admin"             element={<AdminPanel />} />
+              {/* Admin panel — role-guarded, navigated to via login page */}
+              <Route path="admin" element={<AdminRoute />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -18,7 +18,6 @@ const NAV_ITEMS = [
   { path: '/awards',           label: 'AWARDS',   icon: HiOutlineTrophy },
   { path: '/avatar',           label: 'AVATAR',   icon: HiOutlineUser },
   { path: '/settings',         label: 'SETTINGS', icon: HiOutlineCog6Tooth },
-  { path: '/admin',            label: 'ADMIN',    icon: HiOutlineCog6Tooth },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {

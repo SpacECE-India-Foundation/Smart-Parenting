@@ -111,7 +111,7 @@ function getUserCollection() {
   if (role === 'child' || childId) {
     return 'child_profiles';
   }
-  return 'users';
+  return 'user_accounts';
 }
 
 /**
@@ -421,7 +421,7 @@ export async function checkAndUnlockAchievements(uid, profile) {
             updated_at: serverTimestamp(),
           });
         } else {
-          await updateDoc(doc(db, 'users', uid), {
+          await updateDoc(doc(db, 'user_accounts', uid), {
             badges: increment(1),
             updated_at: serverTimestamp(),
           });

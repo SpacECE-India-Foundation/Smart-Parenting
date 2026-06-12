@@ -236,17 +236,17 @@ export const saveLanguageScore = async (childId, activityId, scoreData) => {
 export const getAllScores = async () => {
   try {
     // Fetch from both collections and merge
-    const [legacySnap, newSnap, usersSnap] = await Promise.all([
+    const [legacySnap, newSnap, childProfilesSnap] = await Promise.all([
       getDocs(collection(db, "language_scores")),
       getDocs(collection(db, "activity_scores")),
-      getDocs(collection(db, "users")),
+      getDocs(collection(db, "child_profiles")),
     ]);
 
-    // Build uid -> username map from users collection
+    // Build uid -> username map from child_profiles collection
     const userMap = {};
-    usersSnap.docs.forEach(d => {
+    childProfilesSnap.docs.forEach(d => {
       const data = d.data();
-      userMap[d.id] = data.username || data.display_name || null;
+      userMap[d.id] = data.name || data.username || data.display_name || null;
     });
 
     const legacy = legacySnap.docs.map(d => ({ id: d.id, ...d.data(), _col: "language_scores" }));

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, TextField, Button, Alert, InputAdornment, LinearProgress, Divider,
@@ -39,7 +39,15 @@ const roleOptions = [
 
 const Register = () => {
   const navigate = useNavigate();
-  const { setupUserAccount } = useAuth();
+  const { setupUserAccount, isAuthenticated, userRole } = useAuth();
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated && userRole) {
+      navigate(`/${userRole}/dashboard`);
+    }
+  }, [isAuthenticated, userRole, navigate]);
+
   const [formData, setFormData] = useState({
     fullName: '', email: '', password: '', confirmPassword: '', role: 'parent',
   });

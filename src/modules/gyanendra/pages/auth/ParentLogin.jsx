@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, TextField, Button, FormControlLabel,
@@ -11,6 +11,7 @@ import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
 import SpacECELogo from '../../components/shared/SpacECELogo';
 import { loginWithEmail, loginWithGoogle } from '../../firebase/authService';
 import { getUserAccount, createUserAccount } from '../../firebase/firestoreService';
+import { useAuth } from '../../context/AuthContext';
 
 const ROLE_DASHBOARDS_MAP = {
   parent:  '/parent/dashboard',
@@ -20,8 +21,16 @@ const ROLE_DASHBOARDS_MAP = {
 
 const ParentLogin = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, userRole } = useAuth();
   const [email, setEmail]           = useState('');
   const [password, setPassword]     = useState('');
+
+  // Auto-redirect if already logged in as parent
+  useEffect(() => {
+    if (isAuthenticated && userRole === 'parent') {
+      navigate('/parent/dashboard');
+    }
+  }, [isAuthenticated, userRole, navigate]);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError]           = useState('');
   const [loading, setLoading]       = useState(false);

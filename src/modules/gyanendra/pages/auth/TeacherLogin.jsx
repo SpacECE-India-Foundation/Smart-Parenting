@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, TextField, Button, Paper, Divider, Alert, InputAdornment,
+  Box, Typography, TextField, Button, Divider, Alert, InputAdornment,
 } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -81,7 +81,9 @@ const TeacherLogin = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 440, width: '100%', animation: 'fadeIn 0.5s ease-out' }}>
+    <Box sx={{ maxWidth: 460, width: '100%', animation: 'fadeIn 0.5s ease-out' }}>
+
+      {/* ── Header ── */}
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
           <SpacECELogo variant="glass" width={115} />
@@ -94,56 +96,99 @@ const TeacherLogin = () => {
         </Typography>
       </Box>
 
-      <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'white' }}>
-        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+      {/* ── Login Card ── */}
+      <Box sx={{
+        p: { xs: 3, sm: 4 }, borderRadius: '28px',
+        background: 'rgba(255,255,255,0.82)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1.5px solid rgba(255,255,255,0.7)',
+        boxShadow: '0 8px 40px rgba(31,58,104,0.12)',
+      }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2.5, borderRadius: '14px' }}>{error}</Alert>
+        )}
 
         <form onSubmit={handleLogin}>
           <TextField
             fullWidth label="Email Address" type="email" value={email}
-            onChange={(e) => setEmail(e.target.value)} required sx={{ mb: 2 }}
+            onChange={(e) => setEmail(e.target.value)} required
+            sx={{ mb: 2 }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <EmailOutlinedIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                  <EmailOutlinedIcon sx={{ color: '#4299E1', fontSize: 20 }} />
                 </InputAdornment>
               ),
             }}
           />
-          <PasswordField value={password} onChange={(e) => setPassword(e.target.value)} required sx={{ mb: 1.5 }} />
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2.5 }}>
+          <PasswordField
+            value={password} onChange={(e) => setPassword(e.target.value)}
+            required sx={{ mb: 1.5 }}
+          />
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
             <Typography
               variant="body2"
-              sx={{ color: 'primary.main', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+              sx={{
+                color: '#FF9500', fontWeight: 800, cursor: 'pointer',
+                '&:hover': { textDecoration: 'underline' },
+              }}
               onClick={() => navigate('/forgot-password')}
             >
               Forgot Password?
             </Typography>
           </Box>
 
-          <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
-            sx={{ py: 1.4, fontWeight: 700, fontSize: '0.95rem', mb: 2 }}>
-            {loading ? 'Signing in...' : 'Sign In'}
+          <Button
+            type="submit" variant="contained" fullWidth size="large"
+            disabled={loading}
+            sx={{
+              py: 1.6, fontWeight: 900, fontSize: '1rem', mb: 2,
+              borderRadius: 50,
+              background: 'linear-gradient(135deg, #4299E1 0%, #63B3ED 100%)',
+              boxShadow: '0 6px 20px rgba(66,153,225,0.4)',
+              '&:hover': { boxShadow: '0 10px 28px rgba(66,153,225,0.55)' },
+            }}
+          >
+            {loading ? 'Signing in...' : 'Sign In 📚'}
           </Button>
         </form>
 
-        <Divider sx={{ my: 2 }}>
-          <Typography variant="caption" color="text.secondary">or</Typography>
+        <Divider sx={{ my: 2, '&::before, &::after': { borderColor: 'rgba(0,0,0,0.1)' } }}>
+          <Typography variant="caption" color="text.secondary" fontWeight={600}>or continue with</Typography>
         </Divider>
 
         <GoogleSignInButton onClick={handleGoogleLogin} disabled={loading} />
-      </Paper>
+      </Box>
 
-      <Box sx={{ textAlign: 'center', mt: 2.5 }}>
-        <Typography variant="body2" color="text.secondary">
+      {/* ── Footer ── */}
+      <Box sx={{ textAlign: 'center', mt: 3 }}>
+        <Typography variant="body2" color="text.secondary" fontWeight={600}>
           Don't have an account?{' '}
           <Typography component="span" variant="body2"
-            sx={{ color: 'primary.main', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            sx={{
+              color: '#FF9500', fontWeight: 900, cursor: 'pointer',
+              bgcolor: 'rgba(255,149,0,0.1)', px: 1.5, py: 0.25, borderRadius: 10,
+              '&:hover': { bgcolor: 'rgba(255,149,0,0.2)' },
+            }}
             onClick={() => navigate('/register')}>
-            Register
+            Register Free →
           </Typography>
         </Typography>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/')} sx={{ mt: 1, color: 'text.secondary' }} size="small">
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/')}
+          sx={{
+            mt: 1.5, color: '#718096', fontWeight: 700,
+            bgcolor: 'rgba(255,255,255,0.6)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: 50, px: 2.5,
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.85)' },
+          }}
+          size="small"
+        >
           Back to Role Selection
         </Button>
       </Box>

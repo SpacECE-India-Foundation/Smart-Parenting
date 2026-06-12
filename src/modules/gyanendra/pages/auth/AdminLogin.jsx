@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, TextField, Button, Paper, Alert, InputAdornment,
+  Box, Typography, TextField, Button, Alert, InputAdornment,
 } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -69,7 +69,9 @@ const AdminLogin = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 420, width: '100%', animation: 'fadeIn 0.5s ease-out' }}>
+    <Box sx={{ maxWidth: 460, width: '100%', animation: 'fadeIn 0.5s ease-out' }}>
+
+      {/* ── Header ── */}
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
           <SpacECELogo variant="glass" width={105} />
@@ -82,49 +84,81 @@ const AdminLogin = () => {
         </Typography>
       </Box>
 
-      <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'white' }}>
-        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+      {/* ── Login Card ── */}
+      <Box sx={{
+        p: { xs: 3, sm: 4 }, borderRadius: '28px',
+        background: 'rgba(255,255,255,0.82)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1.5px solid rgba(255,255,255,0.7)',
+        boxShadow: '0 8px 40px rgba(31,58,104,0.12)',
+      }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2.5, borderRadius: '14px' }}>{error}</Alert>
+        )}
 
         <form onSubmit={handleLogin}>
           <TextField
             fullWidth label="Admin Email" type="email" value={email}
-            onChange={(e) => setEmail(e.target.value)} required sx={{ mb: 2 }}
+            onChange={(e) => setEmail(e.target.value)} required
+            sx={{ mb: 2 }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <EmailOutlinedIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                  <EmailOutlinedIcon sx={{ color: '#9F7AEA', fontSize: 20 }} />
                 </InputAdornment>
               ),
             }}
           />
-          <PasswordField label="Admin Password" value={password}
-            onChange={(e) => setPassword(e.target.value)} required sx={{ mb: 3 }} />
 
-          <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
+          <PasswordField
+            label="Admin Password" value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required sx={{ mb: 3 }}
+          />
+
+          <Button
+            type="submit" variant="contained" fullWidth size="large"
+            disabled={loading}
             sx={{
-              py: 1.4, fontWeight: 700, fontSize: '0.95rem',
-              background: 'linear-gradient(135deg, #F5A623 0%, #FFCC60 100%)',
-              color: '#111111',
-              '&:hover': { background: 'linear-gradient(135deg, #E09515 0%, #F5A623 100%)' },
-            }}>
-            {loading ? 'Authenticating...' : 'Sign In to Admin'}
+              py: 1.6, fontWeight: 900, fontSize: '1rem', mb: 2,
+              borderRadius: 50,
+              background: 'linear-gradient(135deg, #9F7AEA 0%, #C084FC 100%)',
+              boxShadow: '0 6px 20px rgba(159,122,234,0.4)',
+              '&:hover': { boxShadow: '0 10px 28px rgba(159,122,234,0.55)' },
+            }}
+          >
+            {loading ? 'Authenticating...' : 'Sign In to Admin 🔐'}
           </Button>
         </form>
-      </Paper>
+      </Box>
 
-      <Box sx={{ textAlign: 'center', mt: 2.5 }}>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/')} sx={{ color: 'text.secondary' }} size="small">
+      {/* ── Footer ── */}
+      <Box sx={{ textAlign: 'center', mt: 3 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: '#FF9500', fontWeight: 800, cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => navigate('/forgot-password')}
+        >
+          Forgot Password?
+        </Typography>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/')}
+          sx={{
+            mt: 1.5, color: '#718096', fontWeight: 700,
+            bgcolor: 'rgba(255,255,255,0.6)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: 50, px: 2.5,
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.85)' },
+          }}
+          size="small"
+        >
           Back to Role Selection
         </Button>
-        <Box sx={{ mt: 1 }}>
-          <Typography
-            component="span" variant="body2"
-            sx={{ color: 'primary.main', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-            onClick={() => navigate('/forgot-password')}
-          >
-            Forgot Password?
-          </Typography>
-        </Box>
       </Box>
     </Box>
   );

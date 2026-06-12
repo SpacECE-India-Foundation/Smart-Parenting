@@ -199,7 +199,7 @@ const RoleSelector = () => {
 
                 <Typography variant="caption" sx={{
                   color: role.accent, fontWeight: 800,
-                  display: 'block', mb: { xs: 0.25, sm: 0.5 },
+                  mb: { xs: 0.25, sm: 0.5 },
                   fontSize: '0.7rem',
                   bgcolor: role.badgeBg,
                   borderRadius: 10, px: 1.5, py: 0.25,

@@ -177,7 +177,7 @@ const ChildLogin = () => {
                     {profile.name}
                   </Typography>
                   <Typography variant="caption" fontWeight={800} sx={{
-                    color: ageData.accent, display: 'block', mb: 1,
+                    color: ageData.accent, mb: 1,
                     bgcolor: `${ageData.accent}15`, borderRadius: 10, px: 1.5, py: 0.25, display: 'inline-block',
                   }}>
                     {ageData.subtitle}

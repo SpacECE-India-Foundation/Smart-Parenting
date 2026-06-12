@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import theme from './modules/gyanendra/theme/theme';
 import { ThemeProvider } from './context/ThemeContext';
 import { UserProvider } from './context/UserContext';
 import Layout from './components/layout/Layout';
@@ -91,8 +93,9 @@ function ParentReportsView() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <ChildProfileProvider>
+      <MuiThemeProvider theme={theme}>
+        <AuthProvider>
+          <ChildProfileProvider>
           <NotificationProvider>
             <PlatformProvider>
               <UserProvider>
@@ -202,6 +205,7 @@ export default function App() {
           </NotificationProvider>
         </ChildProfileProvider>
       </AuthProvider>
+      </MuiThemeProvider>
     </ThemeProvider>
   );
 }

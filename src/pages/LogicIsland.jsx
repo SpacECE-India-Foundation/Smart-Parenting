@@ -11,12 +11,12 @@ import useGameState from '../hooks/useGameState';
 import { getLogicGames, saveNumeracyScore, awardProgress } from '../firebase/services';
 
 const FALLBACK_LOGIC_GAMES = [
-  { id: 'pattern-recognition', title: 'Pattern Spotter',  description: 'Find the pattern and choose what comes next!', emoji: '🔍', ageRange: '4–6', difficulty: 'Medium', gradient: 'bg-gradient-to-br from-[#7C4DFF] to-[#FF6B9D]' },
-  { id: 'sequence-complete',   title: 'Sequence Builder', description: 'Complete the number sequence correctly!',        emoji: '🧬', ageRange: '7–10', difficulty: 'Hard',  gradient: 'bg-gradient-to-br from-[#FF9A56] via-[#F5A623] to-[#FFCC02]' },
-  { id: 'maze-challenge',      title: 'Maze Runner',      description: 'Navigate through tricky mazes!',                emoji: '🏃', ageRange: '4–6', difficulty: 'Medium', gradient: 'bg-gradient-to-br from-[#2EC4B6] to-[#4FC3F7]' },
-  { id: 'multiplication-quest',title: 'Multiply Quest',   description: 'Master multiplication through epic quests!',    emoji: '⚔️', ageRange: '7–10', difficulty: 'Hard',  gradient: 'bg-gradient-to-br from-[#FF6B9D] via-[#F5A623] to-[#FFD180]' },
-  { id: 'word-problems',       title: 'Story Problems',   description: 'Solve real-world math problems in stories!',    emoji: '📖', ageRange: '7–10', difficulty: 'Hard',  gradient: 'bg-gradient-to-br from-[#66BB6A] to-[#2EC4B6]' },
-  { id: 'odd-one-out',         title: 'Odd One Out',      description: 'Find the item that doesn\'t belong!',          emoji: '🎭', ageRange: '1–3', difficulty: 'Easy',   gradient: 'bg-gradient-to-br from-[#4FC3F7] to-[#7C4DFF]' },
+  { id: 'odd-one-out',         title: 'Odd One Out',       description: 'Find the item that doesn\'t belong in the group!', emoji: '🎭', ageRange: '1–3', difficulty: 'Easy',   gradient: 'bg-gradient-to-br from-[#4FC3F7] to-[#7C4DFF]' },
+  { id: 'pattern-recognition', title: 'Pattern Spotter',   description: 'Find the pattern and choose what comes next!',   emoji: '🔍', ageRange: '4–6', difficulty: 'Medium', gradient: 'bg-gradient-to-br from-[#7C4DFF] to-[#FF6B9D]' },
+  { id: 'maze-challenge',      title: 'Maze Runner',       description: 'Navigate through tricky mazes!',                 emoji: '🏃', ageRange: '4–6', difficulty: 'Medium', gradient: 'bg-gradient-to-br from-[#2EC4B6] to-[#4FC3F7]' },
+  { id: 'sequence-complete',   title: 'Sequence Builder',  description: 'Complete the number sequence correctly!',         emoji: '🧬', ageRange: '7–10', difficulty: 'Hard',  gradient: 'bg-gradient-to-br from-[#FF9A56] via-[#F5A623] to-[#FFCC02]' },
+  { id: 'word-problems',       title: 'Word Problems',     description: 'Solve illustrated real-world logic problems!',    emoji: '📖', ageRange: '7–10', difficulty: 'Hard',  gradient: 'bg-gradient-to-br from-[#66BB6A] to-[#2EC4B6]' },
+  { id: 'multiplication-quest',title: 'Multiply Quest',    description: 'Master multiplication through epic quests!',     emoji: '⚔️', ageRange: '7–10', difficulty: 'Hard',  gradient: 'bg-gradient-to-br from-[#FF6B9D] via-[#F5A623] to-[#FFD180]' },
 ];
 
 /* ─── Maze Game ─── */
@@ -250,7 +250,181 @@ function PatternGame({ onBack }) {
   );
 }
 
+/* ══════════════════════════════════════════════════════════════
+   ODD ONE OUT GAME (Age 1–3)
+══════════════════════════════════════════════════════════════ */
+const ODD_ONE_OUT_ROUNDS = [
+  { items: ['🍎','🍊','🍋','🚗'], odd: '🚗', hint: "Vehicles don't belong with fruits!" },
+  { items: ['🐶','🐱','🐰','🌸'], odd: '🌸', hint: "A flower doesn't belong with animals!" },
+  { items: ['📚','✏️','🎒','🍕'], odd: '🍕', hint: "Food doesn't belong with school things!" },
+  { items: ['🔵','🔴','🟡','⭐'], odd: '⭐', hint: "A star isn't a colour circle!" },
+  { items: ['🚌','🚗','✈️','🍌'], odd: '🍌', hint: "A banana doesn't belong with vehicles!" },
+  { items: ['🎸','🎺','🥁','🍔'], odd: '🍔', hint: "Food doesn't belong with musical instruments!" },
+  { items: ['🌧️','☀️','⛅','🐊'], odd: '🐊', hint: "A crocodile isn't weather!" },
+  { items: ['🍕','🍔','🌮','🏀'], odd: '🏀', hint: "A ball doesn't belong with food!" },
+];
+
+function OddOneOutGame({ onBack }) {
+  const gameState = useGameState({ maxLives: 3, pointsPerCorrect: 20 });
+  const [round, setRound] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const [showHint, setShowHint] = useState(false);
+  const { user, refreshProfile } = useUser();
+  const hasSaved = useRef(false);
+  const data = ODD_ONE_OUT_ROUNDS[round % ODD_ONE_OUT_ROUNDS.length];
+  // shuffle each round — derive from round index so useMemo dep is stable
+  const shuffled = useMemo(() => [...data.items].sort(() => Math.random() - 0.5), [round]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handle = (item) => {
+    if (feedback) return;
+    if (item === data.odd) { setFeedback('correct'); gameState.onCorrectAnswer(); }
+    else { setFeedback('wrong'); gameState.onWrongAnswer(); setShowHint(true); }
+    setTimeout(() => { setFeedback(null); setShowHint(false); setRound(r => r + 1); }, 1400);
+  };
+
+  useEffect(() => {
+    if (gameState.isComplete && user && !hasSaved.current) {
+      hasSaved.current = true;
+      saveNumeracyScore({ child_id: user.uid, game_id: 'odd-one-out', score: gameState.score, level: gameState.level, time_taken: 0 });
+      awardProgress(user.uid, { xp: Math.floor(gameState.score / 2), stars: gameState.stars, coins: 5, module: 'logicIsland' }).then(() => refreshProfile());
+    }
+  }, [gameState.isComplete, gameState.score, gameState.level, gameState.stars, user, refreshProfile]);
+
+  if (gameState.isComplete) return (
+    <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <ConfettiEffect active />
+      <span className="text-7xl mb-4">🎭</span>
+      <h2 className="text-3xl font-bold mb-2" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>Sharp Eye!</h2>
+      <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>Score: <strong>{gameState.score}</strong></p>
+      <div className="flex gap-3">
+        <motion.button whileHover={{ scale: 1.05 }} onClick={gameState.resetGame} className="btn-orange">Play Again 🔄</motion.button>
+        <motion.button whileHover={{ scale: 1.05 }} onClick={onBack} className="btn-ghost">Back</motion.button>
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className="max-w-lg mx-auto px-4 py-6">
+      <ConfettiEffect active={gameState.showConfetti} />
+      <StarAnimation show={gameState.showStarAnimation} />
+      <ScoreDisplay score={gameState.score} level={gameState.level} lives={gameState.lives} streak={gameState.streak} className="mb-6" />
+      <motion.div key={round} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="card p-6 mb-4 text-center">
+        <p className="text-lg font-semibold mb-6" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-secondary)' }}>
+          🔍 Which one does <strong style={{ color: 'var(--text-primary)' }}>NOT</strong> belong?
+        </p>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {shuffled.map((item) => (
+            <motion.button key={item} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              onClick={() => handle(item)} disabled={!!feedback}
+              className="rounded-2xl py-6 text-6xl shadow-md"
+              style={{ background: feedback && item === data.odd ? '#4CAF50' : (feedback && item !== data.odd ? '#FFCDD2' : 'var(--bg-accent)') }}>
+              {item}
+            </motion.button>
+          ))}
+        </div>
+        <AnimatePresence>
+          {showHint && (
+            <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="text-sm font-semibold rounded-xl p-3 mt-2" style={{ background: 'rgba(245,166,35,0.12)', color: '#B7791F' }}>
+              💡 {data.hint}
+            </motion.p>
+          )}
+        </AnimatePresence>
+        {feedback && <p className="mt-3 font-bold text-lg" style={{ color: feedback === 'correct' ? '#4CAF50' : '#F44336' }}>{feedback === 'correct' ? '🎉 Correct!' : `❌ The odd one was ${data.odd}!`}</p>}
+      </motion.div>
+      <motion.button whileHover={{ scale: 1.05 }} onClick={onBack} className="btn-ghost w-full py-3">← Back to Logic Island</motion.button>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WORD PROBLEMS GAME (Age 7–10)
+══════════════════════════════════════════════════════════════ */
+const WORD_PROBLEMS = [
+  { scene: '🏪', problem: 'A shop has 24 pencils. A teacher buys 8. A student buys 7. How many pencils are left?', answer: 9, options: [7, 8, 9, 10], explanation: '24 − 8 − 7 = 9' },
+  { scene: '🚌', problem: 'A bus had 35 passengers. At the first stop, 12 got off and 8 got on. How many are on the bus now?', answer: 31, options: [29, 30, 31, 32], explanation: '35 − 12 + 8 = 31' },
+  { scene: '🍰', problem: 'A baker makes 5 cakes, each cut into 6 pieces. If 14 pieces are eaten, how many are left?', answer: 16, options: [14, 15, 16, 17], explanation: '5 × 6 − 14 = 16' },
+  { scene: '📦', problem: 'Reema has 48 stickers. She gives equal shares to 6 friends. How many does each friend get?', answer: 8, options: [6, 7, 8, 9], explanation: '48 ÷ 6 = 8' },
+  { scene: '🌳', problem: 'Ravi plants 7 rows with 9 trees each, then plants 15 more. How many trees in total?', answer: 78, options: [63, 72, 78, 84], explanation: '7 × 9 + 15 = 78' },
+  { scene: '🐄', problem: 'A farm has 4 cows, each giving 12 litres of milk per day. How many litres in 3 days?', answer: 144, options: [120, 132, 144, 156], explanation: '4 × 12 × 3 = 144' },
+];
+
+function WordProblemsGame({ onBack }) {
+  const gameState = useGameState({ maxLives: 3, pointsPerCorrect: 30 });
+  const [round, setRound] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const { user, refreshProfile } = useUser();
+  const hasSaved = useRef(false);
+  const q = WORD_PROBLEMS[round % WORD_PROBLEMS.length];
+
+  const handle = (opt) => {
+    if (feedback) return;
+    const correct = opt === q.answer;
+    if (correct) { setFeedback('correct'); gameState.onCorrectAnswer(); }
+    else { setFeedback('wrong'); gameState.onWrongAnswer(); setShowExplanation(true); }
+    setTimeout(() => { setFeedback(null); setShowExplanation(false); setRound(r => r + 1); if ((round + 1) % 3 === 0) gameState.levelUp(); }, 2000);
+  };
+
+  useEffect(() => {
+    if (gameState.isComplete && user && !hasSaved.current) {
+      hasSaved.current = true;
+      saveNumeracyScore({ child_id: user.uid, game_id: 'word-problems', score: gameState.score, level: gameState.level, time_taken: 0 });
+      awardProgress(user.uid, { xp: Math.floor(gameState.score / 2), stars: gameState.stars, coins: 12, module: 'logicIsland' }).then(() => refreshProfile());
+    }
+  }, [gameState.isComplete, gameState.score, gameState.level, gameState.stars, user, refreshProfile]);
+
+  if (gameState.isComplete) return (
+    <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <ConfettiEffect active />
+      <span className="text-7xl mb-4">📖</span>
+      <h2 className="text-3xl font-bold mb-2" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>Problem Solver!</h2>
+      <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>Score: <strong>{gameState.score}</strong></p>
+      <div className="flex gap-3">
+        <motion.button whileHover={{ scale: 1.05 }} onClick={gameState.resetGame} className="btn-orange">Play Again 🔄</motion.button>
+        <motion.button whileHover={{ scale: 1.05 }} onClick={onBack} className="btn-ghost">Back</motion.button>
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className="max-w-lg mx-auto px-4 py-6">
+      <ConfettiEffect active={gameState.showConfetti} />
+      <StarAnimation show={gameState.showStarAnimation} />
+      <ScoreDisplay score={gameState.score} level={gameState.level} lives={gameState.lives} streak={gameState.streak} className="mb-6" />
+      <motion.div key={round} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} className="card p-6 mb-4">
+        <div className="text-center text-6xl mb-4">{q.scene}</div>
+        <div className="rounded-2xl p-4 mb-5" style={{ background: 'rgba(124,77,255,0.07)', border: '1.5px solid rgba(124,77,255,0.18)' }}>
+          <p className="text-base font-semibold text-center leading-relaxed" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
+            🧩 {q.problem}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {q.options.map(opt => (
+            <motion.button key={opt} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }} onClick={() => handle(opt)} disabled={!!feedback}
+              className="font-black text-2xl rounded-2xl py-4 shadow-md"
+              style={{ background: feedback && opt === q.answer ? '#4CAF50' : 'var(--bg-accent)', color: feedback && opt === q.answer ? 'white' : 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+              {opt}
+            </motion.button>
+          ))}
+        </div>
+        <AnimatePresence>
+          {showExplanation && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="mt-3 rounded-xl p-3 text-center" style={{ background: 'rgba(76,175,80,0.1)', border: '1px solid rgba(76,175,80,0.3)' }}>
+              <p className="text-sm font-bold" style={{ color: '#2E7D32' }}>💡 Solution: {q.explanation}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {feedback && <p className="mt-3 text-center font-bold text-lg" style={{ color: feedback === 'correct' ? '#4CAF50' : '#F44336' }}>{feedback === 'correct' ? '🎉 Excellent Logic!' : '❌ Not quite!'}</p>}
+      </motion.div>
+      <motion.button whileHover={{ scale: 1.05 }} onClick={onBack} className="btn-ghost w-full py-3">← Back to Logic Island</motion.button>
+    </div>
+  );
+}
+
 export default function LogicIsland() {
+
   const [activeGame, setActiveGame] = useState(null); // 'pattern' | 'multiplication'
 
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
@@ -266,6 +440,8 @@ export default function LogicIsland() {
 
   if (activeGame === 'multiplication-quest') return <MultiplicationQuestGame onBack={() => setActiveGame(null)} onScoreUpdate={(s, l) => console.log('mult score:', s, l)} />;
   if (activeGame === 'maze-challenge' || activeGame === 'sequence-complete') return <MazeGame onBack={() => setActiveGame(null)} />;
+  if (activeGame === 'odd-one-out') return <OddOneOutGame onBack={() => setActiveGame(null)} />;
+  if (activeGame === 'word-problems') return <WordProblemsGame onBack={() => setActiveGame(null)} />;
   if (activeGame) return <PatternGame onBack={() => setActiveGame(null)} />;
 
   return (

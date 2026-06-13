@@ -4,7 +4,7 @@
  * Integrated SpacECE Learning Platform containing:
  * 1. Auth & Profiles Module (Gyanendra) — Parent, Child, Teacher, Admin portals
  * 2. Numeracy Module (Ayush) — Math World, Puzzle World, Number Adventure, Logic Island
- * 3. Literacy & Phonics Module (Harshika) — Reading World, Story World, Vocabulary, Challenges
+ * 3. Literacy & Phonics Module (Harsh) — Reading World, Story World, Vocabulary, Challenges
  * 4. Cognitive & Creativity Module (Yogashwar) — Brain World, Creativity World, Emotion World
  * 5. Parent Analytics & Reports (Aditya) — Linked dashboard views under Parent Analytics
  */
@@ -69,11 +69,11 @@ import NumberAdventure from './pages/NumberAdventure';
 import LogicIsland from './pages/LogicIsland';
 import AdminPanel from './pages/AdminPanel';
 
-// Language Child Pages (Harshika's module)
-import ReadingWorldPage from './modules/harshika/pages/ReadingWorldPage';
-import StoryWorldPage from './modules/harshika/pages/StoryWorldPage';
-import VocabularyZonePage from './modules/harshika/pages/VocabularyZonePage';
-import LanguageChallengesPage from './modules/harshika/pages/LanguageChallengesPage';
+// Language Child Pages (Harsh's module)
+import ReadingWorldPage from './modules/harsh/pages/ReadingWorldPage';
+import StoryWorldPage from './modules/harsh/pages/StoryWorldPage';
+import VocabularyZonePage from './modules/harsh/pages/VocabularyZonePage';
+import LanguageChallengesPage from './modules/harsh/pages/LanguageChallengesPage';
 
 // Cognitive, Creativity & Emotional Worlds (Yogashwar's module)
 import YogashwarBrainWorldPage from './modules/yogashwar/pages/BrainWorldPage';

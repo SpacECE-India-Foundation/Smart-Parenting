@@ -46,7 +46,7 @@ This repository consolidates and integrates multiple workspaces built by the Spa
 │   ├── modules/                   # Intern-specific modules
 │   │   ├── aditya/                # Parent Dashboard views & Reports pages
 │   │   ├── gyanendra/             # Multi-role Auth, Switch Child & Admin consoles
-│   │   ├── harshika/              # Phonics, stories, and Language Challenges
+│   │   ├── harsh/                 # Phonics, stories, and Language Challenges (Harsh)
 │   │   ├── pratiush/              # Achievements, themes, Hindi translations & components
 │   │   └── yogashwar/             # Brain, Emotions, Creativity, and Story Choice games
 │   ├── pages/                     # Child numeracy pages (Home, MathWorld, LogicIsland, etc.)

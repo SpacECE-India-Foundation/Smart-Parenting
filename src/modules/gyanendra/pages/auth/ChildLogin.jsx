@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, Grid, CircularProgress } from '@mui/material';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Box, Typography, Button, Grid, CircularProgress, Link } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -244,6 +244,18 @@ const ChildLogin = () => {
       >
         Back to Role Selection
       </Button>
+
+      {/* 🛡️ Privacy Reassurance */}
+      <Box sx={{ mt: 3, px: 2, textAlign: 'center', opacity: 0.85 }}>
+        <Typography variant="caption" sx={{ color: '#1F3A68', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <span>🛡️ <strong>Safe Space:</strong> We do not track children, show advertisements, or collect contact details.</span>
+          <span>Learn more in our{' '}
+          <Link component={RouterLink} to="/privacy" sx={{ color: '#FF9500', fontWeight: 900, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+            Privacy Policy
+          </Link>
+          .</span>
+        </Typography>
+      </Box>
     </Box>
   );
 };

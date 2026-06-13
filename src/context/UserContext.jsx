@@ -1,3 +1,11 @@
+/**
+ * UserContext.jsx - Unified Child Portal State Context
+ *
+ * Serves as the central state engine for children, bridging:
+ * - Active Firebase Auth state & sessions
+ * - Syncs Gyanendra's local child login selections and profile data
+ * - Manages session streaks, badge rewards, stars, and XP counters
+ */
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   onAuthChange,

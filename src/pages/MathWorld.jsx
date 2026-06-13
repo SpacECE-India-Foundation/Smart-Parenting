@@ -217,7 +217,15 @@ function SizeCompareGame({ onBack }) {
   const { user, refreshProfile } = useUser();
   const hasSaved = useRef(false);
   const data = SIZE_ROUNDS[round % SIZE_ROUNDS.length];
-  const shuffled = useMemo(() => [...data.items].sort(() => Math.random() - 0.5), [round]); // eslint-disable-line react-hooks/exhaustive-deps
+  const shuffled = useMemo(() => {
+    const arr = [...data.items];
+    let s = round + 1;
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor((Math.abs(Math.sin(s++)) * 1000) % (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [data.items, round]);
 
   const handleTap = (item) => {
     if (feedback) return;
@@ -652,7 +660,7 @@ function TimesTablesGame({ onBack }) {
   // Countdown timer
   useEffect(() => {
     if (gameState.isComplete || feedback) return;
-    setTimeLeft(TIMER_SECONDS);
+    Promise.resolve().then(() => setTimeLeft(TIMER_SECONDS));
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) {

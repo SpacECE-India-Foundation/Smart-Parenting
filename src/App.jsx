@@ -1,3 +1,13 @@
+/**
+ * App.jsx - Root Application Component & Router
+ *
+ * Integrated SpacECE Learning Platform containing:
+ * 1. Auth & Profiles Module (Gyanendra) — Parent, Child, Teacher, Admin portals
+ * 2. Numeracy Module (Ayush) — Math World, Puzzle World, Number Adventure, Logic Island
+ * 3. Literacy & Phonics Module (Harshika) — Reading World, Story World, Vocabulary, Challenges
+ * 4. Cognitive & Creativity Module (Yogashwar) — Brain World, Creativity World, Emotion World
+ * 5. Parent Analytics & Reports (Aditya) — Linked dashboard views under Parent Analytics
+ */
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import theme from './modules/gyanendra/theme/theme';
@@ -20,6 +30,8 @@ import TeacherLogin from './modules/gyanendra/pages/auth/TeacherLogin';
 import AdminLogin from './modules/gyanendra/pages/auth/AdminLogin';
 import Register from './modules/gyanendra/pages/auth/Register';
 import ForgotPassword from './modules/gyanendra/pages/auth/ForgotPassword';
+import PrivacyPolicy from './modules/gyanendra/pages/auth/PrivacyPolicy';
+import TermsOfService from './modules/gyanendra/pages/auth/TermsOfService';
 
 // Layout guards (Gyanendra)
 import ProtectedRoute from './modules/gyanendra/routes/ProtectedRoute';
@@ -62,6 +74,12 @@ import ReadingWorldPage from './modules/harshika/pages/ReadingWorldPage';
 import StoryWorldPage from './modules/harshika/pages/StoryWorldPage';
 import VocabularyZonePage from './modules/harshika/pages/VocabularyZonePage';
 import LanguageChallengesPage from './modules/harshika/pages/LanguageChallengesPage';
+
+// Cognitive, Creativity & Emotional Worlds (Yogashwar's module)
+import YogashwarBrainWorldPage from './modules/yogashwar/pages/BrainWorldPage';
+import YogashwarCreativityWorldPage from './modules/yogashwar/pages/CreativityWorldPage';
+import YogashwarEmotionWorldPage from './modules/yogashwar/pages/EmotionWorldPage';
+import YogashwarStoryWorldPage from './modules/yogashwar/pages/StoryWorldPage';
 
 // Helper controller views to safely map Aditya's child-specific parent views
 function ParentAnalyticsView() {
@@ -110,6 +128,8 @@ export default function App() {
                       <Route path="/login/admin"   element={<AdminLogin />} />
                       <Route path="/register"        element={<Register />} />
                       <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/privacy"         element={<PrivacyPolicy />} />
+                      <Route path="/terms"           element={<TermsOfService />} />
                     </Route>
 
                     {/* Protected Parent Routes */}
@@ -191,6 +211,12 @@ export default function App() {
                       <Route path="/child/story-world"          element={<StoryWorldPage />} />
                       <Route path="/child/vocabulary-zone"      element={<VocabularyZonePage />} />
                       <Route path="/child/language-challenges"  element={<LanguageChallengesPage />} />
+
+                      {/* Cognitive, Creativity & Emotional Worlds (Yogashwar) */}
+                      <Route path="/child/brain-world/*"       element={<YogashwarBrainWorldPage />} />
+                      <Route path="/child/creativity-world/*"  element={<YogashwarCreativityWorldPage />} />
+                      <Route path="/child/emotion-world/*"     element={<YogashwarEmotionWorldPage />} />
+                      <Route path="/child/story-choice-world/*" element={<YogashwarStoryWorldPage />} />
 
                       {/* Admin panel inside child portal */}
                       <Route path="/admin" element={<AdminPanel />} />

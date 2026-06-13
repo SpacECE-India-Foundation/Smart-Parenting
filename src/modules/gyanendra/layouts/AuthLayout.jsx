@@ -1,5 +1,5 @@
-import { Outlet } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import { Outlet, Link as RouterLink } from 'react-router-dom';
+import { Box, Typography, Link } from '@mui/material';
 
 /* Cloud shape builder */
 const CloudGroup = ({ sx, scale = 1 }) => (
@@ -178,10 +178,19 @@ const AuthLayout = () => {
       </Box>
 
       {/* ── Footer ── */}
-      <Box sx={{ textAlign: 'center', py: 2, position: 'relative', zIndex: 1 }}>
+      <Box sx={{ textAlign: 'center', py: 2, position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
         <Typography variant="caption" sx={{ color: 'rgba(31,58,104,0.55)', fontWeight: 700 }}>
           © {new Date().getFullYear()} SpacECE India Foundation · Learning Adventures Await! 🚀
         </Typography>
+        <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+          <Link component={RouterLink} to="/privacy" sx={{ color: 'rgba(31,58,104,0.6)', fontWeight: 700, fontSize: '0.72rem', textDecoration: 'none', '&:hover': { textDecoration: 'underline', color: '#FF9500' } }}>
+            Privacy Policy
+          </Link>
+          <Typography variant="caption" sx={{ color: 'rgba(31,58,104,0.4)', fontWeight: 700, fontSize: '0.72rem' }}>•</Typography>
+          <Link component={RouterLink} to="/terms" sx={{ color: 'rgba(31,58,104,0.6)', fontWeight: 700, fontSize: '0.72rem', textDecoration: 'none', '&:hover': { textDecoration: 'underline', color: '#FF9500' } }}>
+            Terms of Service
+          </Link>
+        </Box>
       </Box>
     </Box>
   );

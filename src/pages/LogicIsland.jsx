@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../context/UserContext';
 import GameCard from '../components/common/GameCard';
@@ -273,7 +273,15 @@ function OddOneOutGame({ onBack }) {
   const hasSaved = useRef(false);
   const data = ODD_ONE_OUT_ROUNDS[round % ODD_ONE_OUT_ROUNDS.length];
   // shuffle each round — derive from round index so useMemo dep is stable
-  const shuffled = useMemo(() => [...data.items].sort(() => Math.random() - 0.5), [round]); // eslint-disable-line react-hooks/exhaustive-deps
+  const shuffled = useMemo(() => {
+    const arr = [...data.items];
+    let s = round + 1;
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor((Math.abs(Math.sin(s++)) * 1000) % (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [data.items, round]);
 
   const handle = (item) => {
     if (feedback) return;

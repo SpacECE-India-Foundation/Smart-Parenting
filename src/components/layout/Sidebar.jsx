@@ -1,15 +1,26 @@
+/**
+ * Sidebar.jsx - Navigation Sidebar Layout for Child Portal
+ *
+ * Implements the child navigation panel:
+ * - Direct jumping to dashboards, Explore maps, and specific integrated games (Brain, Emotions, Creativity, Stories)
+ * - Renders active profile metadata like coins and stars balance dynamically from the global state
+ */
 import { NavLink, Link } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import logoImg from '../../assets/logo.jpeg';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
-  { path: '/child/dashboard',     label: 'Home',     icon: '🏠' },
-  { path: '/child/explore',       label: 'Explore',  icon: '🗺️' },
-  { path: '/child/reading-world', label: 'Language', icon: '📖' },
-  { path: '/child/awards',        label: 'Awards',   icon: '🏆' },
-  { path: '/child/avatar',        label: 'Avatar',   icon: '👤' },
-  { path: '/child/settings',      label: 'Settings', icon: '⚙️' },
+  { path: '/child/dashboard',          label: 'Home',       icon: '🏠' },
+  { path: '/child/explore',            label: 'Explore',    icon: '🗺️' },
+  { path: '/child/reading-world',      label: 'Language',   icon: '📖' },
+  { path: '/child/brain-world',        label: 'Brain',      icon: '🧠' },
+  { path: '/child/emotion-world',      label: 'Emotions',   icon: '❤️' },
+  { path: '/child/creativity-world',   label: 'Creativity', icon: '🎨' },
+  { path: '/child/story-choice-world', label: 'Stories',    icon: '🎭' },
+  { path: '/child/awards',             label: 'Awards',     icon: '🏆' },
+  { path: '/child/avatar',             label: 'Avatar',     icon: '👤' },
+  { path: '/child/settings',           label: 'Settings',   icon: '⚙️' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {

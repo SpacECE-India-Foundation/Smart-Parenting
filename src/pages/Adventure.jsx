@@ -1,3 +1,11 @@
+/**
+ * Adventure.jsx - Explore Adventure Island Map
+ *
+ * Implements the responsive kid-friendly learning zones explorer map:
+ * - Visually plots zones (Literacy, Math, Emotions, Brain, Creativity) on an SVG/HTML5 Island map
+ * - Limits zone accessibility based on the child's active XP level
+ * - Redirects children to corresponding learning worlds (MathWorld, reading-world, etc.) upon unlock
+ */
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../context/UserContext';
@@ -12,7 +20,7 @@ const ZONES = [
     color: '#4CAF50',
     gradient: 'from-[#66BB6A] to-[#2EC4B6]',
     done: 2, total: 8,
-    path: '/puzzle-world',
+    path: '/child/reading-world',
     xpRequired: 0,
   },
   {
@@ -34,7 +42,7 @@ const ZONES = [
     color: '#FF6B9D',
     gradient: 'from-[#FF6B9D] to-[#F5A623]',
     done: 0, total: 6,
-    path: '/logic-island',
+    path: '/child/emotion-world',
     xpRequired: 50,
   },
   {
@@ -45,7 +53,7 @@ const ZONES = [
     color: '#7C4DFF',
     gradient: 'from-[#7C4DFF] to-[#FF6B9D]',
     done: 0, total: 6,
-    path: '/puzzle-world',
+    path: '/child/brain-world',
     xpRequired: 120,
   },
   {
@@ -56,7 +64,7 @@ const ZONES = [
     color: '#4FC3F7',
     gradient: 'from-[#4FC3F7] to-[#7C4DFF]',
     done: 0, total: 6,
-    path: '/number-adventure',
+    path: '/child/creativity-world',
     xpRequired: 200,
   },
 ];

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Box, Typography, TextField, Button, Alert, InputAdornment, LinearProgress, Divider,
+  FormControlLabel, Checkbox, Link,
 } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
@@ -56,6 +57,7 @@ const Register = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [success, setSuccess]   = useState(false);
   const [successEmail, setSuccessEmail] = useState('');
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   const passwordStrength = getPasswordStrength(formData.password);
   const strengthColors   = ['#E53E3E', '#FC8181', '#FFC107', '#48BB78', '#38A169'];
@@ -221,10 +223,39 @@ const Register = () => {
             </Box>
           </Box>
 
+          {/* Mandatory Terms & Privacy Notice Consent */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={agreeToTerms}
+                onChange={(e) => setAgreeToTerms(e.target.checked)}
+                size="small"
+                sx={{
+                  color: '#FF9500',
+                  '&.Mui-checked': { color: '#FF9500' },
+                }}
+              />
+            }
+            label={
+              <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ lineHeight: 1.4, display: 'block', textAlign: 'left' }}>
+                I agree to the{' '}
+                <Link component={RouterLink} to="/terms" sx={{ color: '#FF9500', fontWeight: 800, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link component={RouterLink} to="/privacy" sx={{ color: '#FF9500', fontWeight: 800, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                  Privacy Policy
+                </Link>
+                . I confirm that I am the parent or legal guardian of any child profiles registered under this account.
+              </Typography>
+            }
+            sx={{ mb: 2, alignItems: 'flex-start' }}
+          />
+
           {/* Google Sign-Up */}
           <GoogleSignInButton
             onClick={handleGoogleSignUp}
-            disabled={googleLoading}
+            disabled={googleLoading || !agreeToTerms}
           />
 
           <Divider sx={{ my: 2.5 }}>
@@ -294,13 +325,15 @@ const Register = () => {
 
           <Button
             type="submit" variant="contained" fullWidth size="large"
-            disabled={loading}
+            disabled={loading || !agreeToTerms}
             sx={{
               py: 1.6, fontWeight: 900, fontSize: '1rem',
               borderRadius: 50,
-              background: 'linear-gradient(135deg, #FF9500 0%, #FFC107 100%)',
-              boxShadow: '0 6px 20px rgba(255,149,0,0.4)',
-              '&:hover': { boxShadow: '0 10px 28px rgba(255,149,0,0.55)' },
+              background: agreeToTerms
+                ? 'linear-gradient(135deg, #FF9500 0%, #FFC107 100%)'
+                : 'rgba(0,0,0,0.06)',
+              boxShadow: agreeToTerms ? '0 6px 20px rgba(255,149,0,0.4)' : 'none',
+              '&:hover': { boxShadow: agreeToTerms ? '0 10px 28px rgba(255,149,0,0.55)' : 'none' },
             }}
           >
             {loading ? 'Creating Account...' : 'Create Account 🚀'}

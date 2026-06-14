@@ -39,5 +39,10 @@
     "globals": "^17.6.0",
     "tailwindcss": "^4.3.0",
     "vite": "^8.0.12"
+  },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom",
+    "three": "$three"
   }
 }

@@ -7,4 +7,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      'react-three-fiber': '@react-three/fiber'
+    },
+    dedupe: ['react', 'react-dom', 'three', '@emotion/react', '@emotion/styled']
+  }
 })

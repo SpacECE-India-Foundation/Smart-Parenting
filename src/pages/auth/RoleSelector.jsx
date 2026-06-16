@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import SpacECELogo from '../../components/shared/SpacECELogo';
+import logoImg from '../../assets/spaceece-logo.png';
 
 const roles = [
   {
@@ -119,7 +120,18 @@ const RoleSelector = () => {
               animation: 'pulse 3s ease-in-out infinite',
               zIndex: -1,
             }} />
-            <Box sx={{ fontSize: '4.5rem', animation: 'bounce 2.5s ease-in-out infinite' }}>🚀</Box>
+            <Box
+              component="img"
+              src={logoImg}
+              alt="SpacECE Logo"
+              sx={{
+                width: 120,
+                height: 120,
+                objectFit: 'contain',
+                animation: 'bounce 2.5s ease-in-out infinite',
+                borderRadius: '16px',
+              }}
+            />
           </Box>
 
           <Typography variant="h3" fontWeight={950} sx={{ mb: 1, color: '#111111', fontFamily: '"Outfit", sans-serif', letterSpacing: '-0.02em' }}>

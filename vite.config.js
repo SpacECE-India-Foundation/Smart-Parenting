@@ -12,6 +12,18 @@ export default defineConfig({
       'Cache-Control': 'no-store',
     }
   },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      '@emotion/react',
+      '@emotion/styled',
+      'three'
+    ]
+  },
   resolve: {
     alias: {
       'react-three-fiber': '@react-three/fiber'

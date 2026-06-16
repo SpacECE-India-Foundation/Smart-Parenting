@@ -109,7 +109,7 @@ export default function Home() {
   }, [profile?.progress]);
 
   const recommendation = useMemo(() => {
-    if (!profile) return { title: 'Numeracy World', subtitle: 'Start your math journey!', path: '/adventure', emoji: '🔢' };
+    if (!profile) return { title: 'Logic Island', subtitle: 'Sharpen your brain with logic challenges!', path: '/logic-island', emoji: '🧠' };
     const prog = profile.progress || {};
     const mw = prog.mathWorld ?? 0;
     const pw = prog.puzzleWorld ?? 0;
@@ -117,14 +117,14 @@ export default function Home() {
     const li = prog.logicIsland ?? 0;
 
     const minVal = Math.min(mw, pw, na, li);
-    if (minVal === mw) {
-      return { title: 'Math World', subtitle: 'Learn numbers & simple counting!', path: '/math-world', emoji: '🔢' };
+    if (minVal === li || minVal === mw) {
+      return { title: 'Logic Island', subtitle: 'Sharpen your brain with logic challenges!', path: '/logic-island', emoji: '🧠' };
     } else if (minVal === pw) {
       return { title: 'Puzzle World', subtitle: 'Train your brain with 3D shapes!', path: '/puzzle-world', emoji: '🧩' };
     } else if (minVal === na) {
       return { title: 'Number Adventure', subtitle: 'Explore the map of numbers!', path: '/number-adventure', emoji: '🗺️' };
     } else {
-      return { title: 'Logic Island', subtitle: 'Solve patterns and multiplication quests!', path: '/logic-island', emoji: '🧠' };
+      return { title: 'Math World', subtitle: 'Learn numbers & simple counting!', path: '/math-world', emoji: '🔢' };
     }
   }, [profile]);
 

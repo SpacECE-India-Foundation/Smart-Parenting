@@ -454,9 +454,9 @@ export default function LogicIsland() {
   if (activeGame) return <PatternGame onBack={() => setActiveGame(null)} />;
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative" style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' }}>
       <FloatingElements count={4} />
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-6">
+      <div className="relative z-10 w-full px-8 md:px-12 lg:px-16 py-8" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <motion.section initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <motion.span className="text-6xl inline-block mb-3" animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity }}>🧠</motion.span>
           <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#FF6B9D] via-[#F5A623] to-[#FFD180] bg-clip-text text-transparent" style={{ fontFamily: 'var(--font-display)' }}>
@@ -466,7 +466,7 @@ export default function LogicIsland() {
         </motion.section>
 
         {/* Difficulty filter */}
-        <div className="flex justify-center gap-2 mb-8 flex-wrap">
+        <div className="flex justify-center gap-3 mb-8 flex-wrap">
           {difficulties.map((diff) => (
             <motion.button key={diff} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedDifficulty(diff)}
@@ -478,15 +478,21 @@ export default function LogicIsland() {
         </div>
 
         {/* Difficulty progression */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card p-5 mb-8">
-          <h3 className="font-bold mb-3" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>🏆 Difficulty Progression</h3>
-          <div className="flex items-center gap-2">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="card mb-8" style={{ padding: '20px 28px' }}
+        >
+          <h3 className="font-bold mb-4" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)', fontSize: '1rem' }}>🏆 Difficulty Progression</h3>
+          <div className="flex items-center gap-3">
             {['Beginner', 'Explorer', 'Thinker', 'Master', 'Genius'].map((level, i) => (
               <motion.div key={level} whileHover={{ y: -3 }}
-                className="flex-1 text-center py-2 rounded-xl text-xs font-semibold"
+                className="flex-1 text-center rounded-xl font-semibold"
                 style={{
-                  background: i <= 2 ? 'linear-gradient(90deg, #66BB6A, #2EC4B6)' : 'var(--bg-accent)',
+                  padding: '10px 8px',
+                  fontSize: '0.8rem',
+                  background: i <= 2 ? 'linear-gradient(135deg, #66BB6A, #2EC4B6)' : 'var(--bg-accent)',
                   color: i <= 2 ? 'white' : 'var(--text-muted)',
+                  boxShadow: i <= 2 ? '0 3px 12px rgba(102,187,106,0.25)' : 'none',
+                  transition: 'all 0.3s ease',
                 }}
               >
                 {level}
@@ -496,9 +502,9 @@ export default function LogicIsland() {
         </motion.div>
 
         {loading ? (
-          <div className="text-center py-12" style={{ color: 'var(--text-muted)' }}>Loading games…</div>
+          <div className="text-center py-12" style={{ color: 'var(--text-muted)', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading games…</div>
         ) : (
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7" style={{ flex: 1 }}>
             <AnimatePresence mode="popLayout">
               {filteredGames.map((game, i) => (
                 <GameCard key={game.id} title={game.title} description={game.description} emoji={game.emoji}

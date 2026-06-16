@@ -30,11 +30,12 @@ export default function GameCard({
       className={`relative overflow-hidden rounded-3xl cursor-pointer group ${
         locked ? 'opacity-60 cursor-not-allowed' : ''
       }`}
+      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
     >
       {/* Gradient background */}
-      <div className={`${gradient} p-5 pb-6 relative`}>
+      <div className={`${gradient} relative`} style={{ padding: '24px 24px 28px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Floating emoji illustration */}
-        <div className="absolute -top-2 -right-2 text-6xl opacity-20 group-hover:opacity-30 transition-opacity animate-float select-none pointer-events-none">
+        <div className="absolute -top-2 -right-2 text-7xl opacity-20 group-hover:opacity-30 transition-opacity animate-float select-none pointer-events-none">
           {emoji}
         </div>
 
@@ -46,7 +47,7 @@ export default function GameCard({
         )}
 
         {/* Content */}
-        <div className="relative z-[5]">
+        <div className="relative z-[5]" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {/* Age Range Badge */}
           {ageRange && (
             <span className="inline-block bg-white/25 backdrop-blur-sm text-white text-xs font-bold rounded-full px-3 py-1 mb-3">
@@ -55,21 +56,21 @@ export default function GameCard({
           )}
 
           {/* Emoji & Title */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-3xl drop-shadow-lg">{emoji}</span>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-4xl drop-shadow-lg">{emoji}</span>
             <h3
-              className="text-white text-lg font-bold leading-tight drop-shadow"
-              style={{ fontFamily: 'var(--font-display)' }}
+              className="text-white font-bold leading-tight drop-shadow"
+              style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem' }}
             >
               {title}
             </h3>
           </div>
 
           {/* Description */}
-          <p className="text-white/85 text-sm leading-relaxed mb-3">{description}</p>
+          <p className="text-white/85 leading-relaxed" style={{ fontSize: '0.9rem', marginBottom: '16px', flex: 1 }}>{description}</p>
 
           {/* Bottom row: stars + difficulty */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between" style={{ marginTop: 'auto' }}>
             {/* Stars */}
             <div className="flex gap-0.5">
               {Array.from({ length: maxStars }).map((_, i) => (

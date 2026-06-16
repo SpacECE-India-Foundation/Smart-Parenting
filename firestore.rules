@@ -8,7 +8,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // ── GAME CONTENT (Ayush owns) ──────────────────────
+    // ── GAME CONTENT ───────────────────────────────────
     // Publicly readable, only admin can write
     match /math_games/{doc} {
       allow read: if true;

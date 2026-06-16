@@ -1,7 +1,7 @@
 /**
  * Firebase Service Layer — SpacECE
  * ──────────────────────────────────
- * All Firestore CRUD + Auth operations for Ayush's Numeracy module.
+ * All Firestore CRUD + Auth operations for Numeracy module.
  *
  * Collections owned by this module:
  *   ✅ math_games       — game content (read)
@@ -53,7 +53,7 @@ import { db, auth } from './config';
 
 // ─── Local Mock Profile Fallback (Offline / Restricted Environment Mode) ───
 let mockProfile = {
-  name: 'Ayush (Local Mode)',
+  name: 'Guest (Local Mode)',
   avatar: 'Alex',
   coins: 120,
   xp: 350,
@@ -93,7 +93,7 @@ export async function registerEmail(email, password, displayName) {
 
 export async function loginAnonymous() {
   const cred = await signInAnonymously(auth);
-  await initUserProfile(cred.user.uid, 'Ayush');
+  await initUserProfile(cred.user.uid, 'Guest');
   return cred.user;
 }
 
@@ -117,7 +117,7 @@ function getUserCollection() {
 /**
  * Create a default user profile document if it doesn't exist.
  */
-export async function initUserProfile(uid, name = 'Ayush') {
+export async function initUserProfile(uid, name = 'Guest') {
   const collName = getUserCollection();
   const ref = doc(db, collName, uid);
   const snap = await getDoc(ref);

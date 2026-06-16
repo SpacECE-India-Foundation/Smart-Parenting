@@ -56,7 +56,7 @@ export default function Home() {
   const [animateStars, setAnimateStars] = useState(0);
   const [animateXP, setAnimateXP] = useState(0);
 
-  const name = profile?.name ?? 'Ayush';
+  const name = profile?.name ?? 'Explorer';
   const greeting = getGreeting();
   const dayStreak = profile?.dayStreak ?? 0;
   const badgeCount = profile?.badges ?? 0;

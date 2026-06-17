@@ -1,10 +1,3 @@
-/**
- * Sidebar.jsx - Navigation Sidebar Layout for Child Portal
- *
- * Implements the child navigation panel:
- * - Direct jumping to dashboards, Explore maps, and specific integrated games (Brain, Emotions, Creativity, Stories)
- * - Renders active profile metadata like coins and stars balance dynamically from the global state
- */
 import { NavLink, Link } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import { logout } from '../../firebase/services';
@@ -14,7 +7,10 @@ import './Sidebar.css';
 const NAV_ITEMS = [
   { path: '/child/dashboard',          label: 'Home',       icon: '🏠' },
   { path: '/child/explore',            label: 'Explore',    icon: '🗺️' },
-  { path: '/child/reading-world',      label: 'Language',   icon: '📖' },
+  { path: '/child/reading-world',      label: 'Reading',    icon: '📖' },
+  { path: '/child/story-world',        label: 'Stories',    icon: '🌟' },
+  { path: '/child/vocabulary-zone',    label: 'Vocabulary', icon: '🔤' },
+  { path: '/child/language-challenges',label: 'Challenges', icon: '🎯' },
   { path: '/child/brain-world',        label: 'Brain',      icon: '🧠' },
   { path: '/child/emotion-world',      label: 'Emotions',   icon: '❤️' },
   { path: '/child/creativity-world',   label: 'Creativity', icon: '🎨' },
@@ -39,10 +35,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
   return (
     <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div className="sidebar-mobile-overlay" onClick={onClose} />
-      )}
+      {isOpen && <div className="sidebar-mobile-overlay" onClick={onClose} />}
 
       <nav className={`navbar ${isOpen ? 'open' : ''}`} id="main-navbar">
         <div className="navbar-header">
@@ -79,7 +72,6 @@ export default function Sidebar({ isOpen, onClose }) {
               to={tab.path}
               end={tab.path === '/child/dashboard'}
               className={({ isActive }) => `navbar-tab ${isActive ? 'active' : ''}`}
-              id={`nav-${tab.path.slice(1) || 'home'}`}
               onClick={onClose}
             >
               <span className="tab-icon">{tab.icon}</span>

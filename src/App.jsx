@@ -56,8 +56,9 @@ import UserManagement from './pages/admin/UserManagement';
 import SessionManagement from './pages/admin/SessionManagement';
 import NotificationManager from './pages/admin/NotificationManager';
 import FeatureFlags from './pages/admin/FeatureFlags';
+import LiteracyPanelPage from './pages/admin/LiteracyPanelPage';
 
-// Numeracy Child Pages (Our module)
+// Numeracy Child Pages
 import Home from './pages/child/Home';
 import Adventure from './pages/child/Adventure';
 import Awards from './pages/child/Awards';
@@ -68,6 +69,7 @@ import PuzzleWorld from './pages/numeracy/PuzzleWorld';
 import NumberAdventure from './pages/numeracy/NumberAdventure';
 import LogicIsland from './pages/numeracy/LogicIsland';
 import AdminPanel from './pages/numeracy/AdminPanel';
+import LiteracyAdminPanel from './pages/literacy/admin/AdminPanel';
 
 // Language Child Pages
 import ReadingWorldPage from './pages/literacy/ReadingWorldPage';
@@ -81,7 +83,6 @@ import CreativityWorldPage from './pages/cognitive-sel/CreativityWorldPage';
 import EmotionWorldPage from './pages/cognitive-sel/EmotionWorldPage';
 import CognitiveStoryWorldPage from './pages/cognitive-sel/StoryWorldPage';
 
-// Helper controller views to safely map child-specific parent views
 function ParentAnalyticsView() {
   const { activeChild, refreshProfiles } = useChildProfile();
   if (!activeChild) {
@@ -114,123 +115,90 @@ export default function App() {
       <MuiThemeProvider theme={theme}>
         <AuthProvider>
           <ChildProfileProvider>
-          <NotificationProvider>
-            <PlatformProvider>
-              <UserProvider>
-                <BrowserRouter>
-                  <Routes>
-                    {/* Public Auth Routes */}
-                    <Route element={<AuthLayout />}>
-                      <Route path="/" element={<RoleSelector />} />
-                      <Route path="/login/child"   element={<ChildLogin />} />
-                      <Route path="/login/parent"  element={<ParentLogin />} />
-                      <Route path="/login/teacher" element={<TeacherLogin />} />
-                      <Route path="/login/admin"   element={<AdminLogin />} />
-                      <Route path="/register"        element={<Register />} />
-                      <Route path="/forgot-password" element={<ForgotPassword />} />
-                      <Route path="/privacy"         element={<PrivacyPolicy />} />
-                      <Route path="/terms"           element={<TermsOfService />} />
-                    </Route>
+            <NotificationProvider>
+              <PlatformProvider>
+                <UserProvider>
+                  <BrowserRouter>
+                    <Routes>
+                      {/* Public Auth Routes */}
+                      <Route element={<AuthLayout />}>
+                        <Route path="/" element={<RoleSelector />} />
+                        <Route path="/login/child"      element={<ChildLogin />} />
+                        <Route path="/login/parent"     element={<ParentLogin />} />
+                        <Route path="/login/teacher"    element={<TeacherLogin />} />
+                        <Route path="/login/admin"      element={<AdminLogin />} />
+                        <Route path="/register"         element={<Register />} />
+                        <Route path="/forgot-password"  element={<ForgotPassword />} />
+                        <Route path="/privacy"          element={<PrivacyPolicy />} />
+                        <Route path="/terms"            element={<TermsOfService />} />
+                      </Route>
 
-                    {/* Protected Parent Routes */}
-                    <Route
-                      element={
-                        <ProtectedRoute>
-                          <RoleRoute allowedRoles={['parent']}>
-                            <MainLayout />
-                          </RoleRoute>
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route path="/parent/dashboard"         element={<ParentDashboard />} />
-                      <Route path="/parent/children"          element={<ChildProfileManager />} />
-                      <Route path="/parent/children/switch"   element={<SwitchChild />} />
-                      <Route path="/parent/settings"          element={<AccountSettings />} />
-                      <Route path="/parent/analytics"         element={<ParentAnalyticsView />} />
-                      <Route path="/parent/reports"           element={<ParentReportsView />} />
-                    </Route>
+                      {/* Protected Parent Routes */}
+                      <Route element={<ProtectedRoute><RoleRoute allowedRoles={['parent']}><MainLayout /></RoleRoute></ProtectedRoute>}>
+                        <Route path="/parent/dashboard"       element={<ParentDashboard />} />
+                        <Route path="/parent/children"        element={<ChildProfileManager />} />
+                        <Route path="/parent/children/switch" element={<SwitchChild />} />
+                        <Route path="/parent/settings"        element={<AccountSettings />} />
+                        <Route path="/parent/analytics"       element={<ParentAnalyticsView />} />
+                        <Route path="/parent/reports"         element={<ParentReportsView />} />
+                      </Route>
 
-                    {/* Protected Teacher Routes */}
-                    <Route
-                      element={
-                        <ProtectedRoute>
-                          <RoleRoute allowedRoles={['teacher']}>
-                            <MainLayout />
-                          </RoleRoute>
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-                      <Route path="/teacher/profile"   element={<TeacherProfile />} />
-                      <Route path="/teacher/settings"  element={<AccountSettings />} />
-                    </Route>
+                      {/* Protected Teacher Routes */}
+                      <Route element={<ProtectedRoute><RoleRoute allowedRoles={['teacher']}><MainLayout /></RoleRoute></ProtectedRoute>}>
+                        <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+                        <Route path="/teacher/profile"   element={<TeacherProfile />} />
+                        <Route path="/teacher/settings"  element={<AccountSettings />} />
+                      </Route>
 
-                    {/* Protected Admin Routes */}
-                    <Route
-                      element={
-                        <ProtectedRoute>
-                          <RoleRoute allowedRoles={['admin']}>
-                            <MainLayout />
-                          </RoleRoute>
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route path="/admin/dashboard"     element={<AdminDashboard />} />
-                      <Route path="/admin/users"         element={<UserManagement />} />
-                      <Route path="/admin/sessions"      element={<SessionManagement />} />
-                      <Route path="/admin/notifications" element={<NotificationManager />} />
-                      <Route path="/admin/features"      element={<FeatureFlags />} />
-                      <Route path="/admin/settings"      element={<AccountSettings />} />
-                    </Route>
+                      {/* Protected Admin Routes */}
+                      <Route element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><MainLayout /></RoleRoute></ProtectedRoute>}>
+                        <Route path="/admin/dashboard"     element={<AdminDashboard />} />
+                        <Route path="/admin/users"         element={<UserManagement />} />
+                        <Route path="/admin/sessions"      element={<SessionManagement />} />
+                        <Route path="/admin/notifications" element={<NotificationManager />} />
+                        <Route path="/admin/features"      element={<FeatureFlags />} />
+                        <Route path="/admin/literacy"      element={<LiteracyPanelPage />} />
+                        <Route path="/admin/settings"      element={<AccountSettings />} />
+                      </Route>
 
-                    {/* Protected Child Routes */}
-                    <Route
-                      element={
-                        <ProtectedRoute>
-                          <RoleRoute allowedRoles={['child']}>
-                            <Layout />
-                          </RoleRoute>
-                        </ProtectedRoute>
-                      }
-                    >
-                      {/* Numeracy & Exploration */}
-                      <Route path="/child/dashboard"        element={<Home />} />
-                      <Route path="/child/explore"          element={<Adventure />} />
-                      <Route path="/child/awards"           element={<Awards />} />
-                      <Route path="/child/avatar"           element={<AvatarPage />} />
-                      <Route path="/child/settings"         element={<Settings />} />
-                      
-                      {/* Game Worlds */}
-                      <Route path="/math-world"        element={<MathWorld />} />
-                      <Route path="/puzzle-world"      element={<PuzzleWorld />} />
-                      <Route path="/number-adventure"  element={<NumberAdventure />} />
-                      <Route path="/logic-island"      element={<LogicIsland />} />
+                      {/* Protected Child Routes */}
+                      <Route element={<ProtectedRoute><RoleRoute allowedRoles={['child']}><Layout /></RoleRoute></ProtectedRoute>}>
+                        <Route path="/child/dashboard"   element={<Home />} />
+                        <Route path="/child/explore"     element={<Adventure />} />
+                        <Route path="/child/awards"      element={<Awards />} />
+                        <Route path="/child/avatar"      element={<AvatarPage />} />
+                        <Route path="/child/settings"    element={<Settings />} />
 
-                      {/* Language & Vocabulary World */}
-                      <Route path="/child/reading-world"        element={<ReadingWorldPage />} />
-                      <Route path="/child/story-world"          element={<StoryWorldPage />} />
-                      <Route path="/child/vocabulary-zone"      element={<VocabularyZonePage />} />
-                      <Route path="/child/language-challenges"  element={<LanguageChallengesPage />} />
+                        <Route path="/math-world"       element={<MathWorld />} />
+                        <Route path="/puzzle-world"     element={<PuzzleWorld />} />
+                        <Route path="/number-adventure" element={<NumberAdventure />} />
+                        <Route path="/logic-island"     element={<LogicIsland />} />
 
-                      {/* Cognitive, Creativity & Emotional Worlds */}
-                      <Route path="/child/brain-world/*"       element={<BrainWorldPage />} />
-                      <Route path="/child/creativity-world/*"  element={<CreativityWorldPage />} />
-                      <Route path="/child/emotion-world/*"     element={<EmotionWorldPage />} />
-                      <Route path="/child/story-choice-world/*" element={<CognitiveStoryWorldPage />} />
+                        <Route path="/child/reading-world"       element={<ReadingWorldPage />} />
+                        <Route path="/child/story-world"         element={<StoryWorldPage />} />
+                        <Route path="/child/vocabulary-zone"     element={<VocabularyZonePage />} />
+                        <Route path="/child/language-challenges" element={<LanguageChallengesPage />} />
 
-                      {/* Admin panel inside child portal */}
-                      <Route path="/admin" element={<AdminPanel />} />
-                    </Route>
+                        <Route path="/child/brain-world/*"        element={<BrainWorldPage />} />
+                        <Route path="/child/creativity-world/*"   element={<CreativityWorldPage />} />
+                        <Route path="/child/emotion-world/*"      element={<EmotionWorldPage />} />
+                        <Route path="/child/story-choice-world/*" element={<CognitiveStoryWorldPage />} />
 
-                    {/* Fallback Catch-all redirects to selector */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </BrowserRouter>
-              </UserProvider>
-            </PlatformProvider>
-          </NotificationProvider>
-        </ChildProfileProvider>
-      </AuthProvider>
+                        <Route path="/admin" element={<AdminPanel />} />
+                      </Route>
+
+                      {/* Literacy Admin — standalone, no Firebase auth required */}
+                      <Route path="/literacy-admin" element={<LiteracyAdminPanel />} />
+
+                      {/* Fallback */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </BrowserRouter>
+                </UserProvider>
+              </PlatformProvider>
+            </NotificationProvider>
+          </ChildProfileProvider>
+        </AuthProvider>
       </MuiThemeProvider>
     </ThemeProvider>
   );

@@ -1,29 +1,27 @@
-// src/components/Navbar.jsx
+// src/components/layout/LiteracyNavbar.jsx
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import s from "./Navbar.module.css";
+import { useAuth } from "../../context/AuthContext";
+import s from "./LiteracyNavbar.module.css";
 
 const LINKS = [
-  { to:"/reading",    label:"📖 Reading World" },
-  { to:"/story",      label:"🌟 Story World" },
-  { to:"/vocabulary", label:"🔤 Vocabulary Zone" },
-  { to:"/challenges", label:"🎯 Challenges" },
+  { to: "/child/reading-world",       label: "📖 Reading World"    },
+  { to: "/child/story-world",         label: "🌟 Story World"      },
+  { to: "/child/vocabulary-zone",     label: "🔤 Vocabulary Zone"  },
+  { to: "/child/language-challenges", label: "🎯 Challenges"       },
 ];
 
-export default function Navbar({ onToggleTheme, isDark }) {
+export default function LiteracyNavbar({ onToggleTheme, isDark }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const handleLogout = async () => { await logout(); navigate("/login"); };
+  const handleLogout = async () => { await logout(); navigate("/"); };
 
   return (
     <nav className={s.nav}>
-      {/* Logo — replace /logo.png with your actual logo file in /public */}
-      <div className={s.logoWrap} onClick={() => navigate("/reading")}>
-        <img src="/logo.png" alt="SpacECE" className={s.logoImg}
-          onError={e => { e.target.style.display="none"; }} />
+      <div className={s.logoWrap} onClick={() => navigate("/child/reading-world")}>
+        <img src="/logo.png" alt="SpacECE" className={s.logoImg} onError={e => { e.target.style.display = "none"; }} />
         <span className={s.logoText}>SpacECE</span>
       </div>
 
@@ -39,7 +37,7 @@ export default function Navbar({ onToggleTheme, isDark }) {
 
       <div className={s.right}>
         {user && (
-          <NavLink to="/admin" className={s.adminBtn} onClick={() => setOpen(false)}>
+          <NavLink to="/literacy-admin" className={s.adminBtn} onClick={() => setOpen(false)}>
             ⚙️ Admin
           </NavLink>
         )}

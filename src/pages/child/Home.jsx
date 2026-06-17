@@ -1,12 +1,5 @@
 /**
  * Home.jsx - Child Dashboard Homepage
- *
- * Provides a dashboard for logged-in children, displaying:
- * - Active Streak, Badges, Stars, and XP counters
- * - Smart learning recommendation banners
- * - Visual "Learning Journey" path
- * - Daily game missions and XP goals
- * - Grid of active world maps (Math, Reading, Brain, Emotions, Creativity, Stories)
  */
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -69,10 +62,7 @@ export default function Home() {
     const step = Math.max(1, Math.floor(target / 30));
     const timer = setInterval(() => {
       current += step;
-      if (current >= target) {
-        current = target;
-        clearInterval(timer);
-      }
+      if (current >= target) { current = target; clearInterval(timer); }
       setAnimateStars(current);
     }, 30);
 
@@ -81,30 +71,28 @@ export default function Home() {
     const xpStep = Math.max(1, Math.floor(xpTarget / 35));
     const xpTimer = setInterval(() => {
       xpCurrent += xpStep;
-      if (xpCurrent >= xpTarget) {
-        xpCurrent = xpTarget;
-        clearInterval(xpTimer);
-      }
+      if (xpCurrent >= xpTarget) { xpCurrent = xpTarget; clearInterval(xpTimer); }
       setAnimateXP(xpCurrent);
     }, 30);
 
-    return () => {
-      clearInterval(timer);
-      clearInterval(xpTimer);
-    };
+    return () => { clearInterval(timer); clearInterval(xpTimer); };
   }, [profile]);
 
   const MODULES = useMemo(() => {
     return [
-      { id: 'math-world', title: 'Math World', path: '/math-world', emoji: '🔢', progress: Math.min(100, Math.floor((profile?.progress?.mathWorld ?? 0) / 3)), total: 8, done: Math.min(8, Math.floor((profile?.progress?.mathWorld ?? 0) / 40)) },
-      { id: 'puzzle-world', title: 'Puzzle World', path: '/puzzle-world', emoji: '🧩', progress: Math.min(100, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 3)), total: 8, done: Math.min(8, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 40)) },
-      { id: 'number-adventure', title: 'Number Adventure', path: '/number-adventure', emoji: '🗺️', progress: Math.min(100, Math.floor((profile?.progress?.numberAdventure ?? 0) / 3)), total: 6, done: Math.min(6, Math.floor((profile?.progress?.numberAdventure ?? 0) / 50)) },
-      { id: 'logic-island', title: 'Logic Island', path: '/logic-island', emoji: '🧠', progress: Math.min(100, Math.floor((profile?.progress?.logicIsland ?? 0) / 3)), total: 6, done: Math.min(6, Math.floor((profile?.progress?.logicIsland ?? 0) / 50)) },
-      { id: 'reading-world', title: 'Reading World', path: '/child/reading-world', emoji: '📖', progress: Math.min(100, Math.floor((profile?.progress?.readingWorld ?? 0) / 3)), total: 8, done: Math.min(8, Math.floor((profile?.progress?.readingWorld ?? 0) / 40)) },
-      { id: 'brain-world', title: 'Brain World', path: '/child/brain-world', emoji: '🧠', progress: 25, total: 4, done: 1 },
-      { id: 'emotion-world', title: 'Emotion World', path: '/child/emotion-world', emoji: '❤️', progress: 20, total: 5, done: 1 },
-      { id: 'creativity-world', title: 'Creativity World', path: '/child/creativity-world', emoji: '🎨', progress: 0, total: 4, done: 0 },
-      { id: 'story-choice-world', title: 'Story Choice', path: '/child/story-choice-world', emoji: '🎭', progress: 50, total: 2, done: 1 },
+      { id: 'math-world',           title: 'Math World',           path: '/math-world',                  emoji: '🔢', progress: Math.min(100, Math.floor((profile?.progress?.mathWorld ?? 0) / 3)),           total: 8, done: Math.min(8, Math.floor((profile?.progress?.mathWorld ?? 0) / 40)) },
+      { id: 'puzzle-world',         title: 'Puzzle World',         path: '/puzzle-world',                emoji: '🧩', progress: Math.min(100, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 3)),         total: 8, done: Math.min(8, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 40)) },
+      { id: 'number-adventure',     title: 'Number Adventure',     path: '/number-adventure',            emoji: '🗺️', progress: Math.min(100, Math.floor((profile?.progress?.numberAdventure ?? 0) / 3)),     total: 6, done: Math.min(6, Math.floor((profile?.progress?.numberAdventure ?? 0) / 50)) },
+      { id: 'logic-island',         title: 'Logic Island',         path: '/logic-island',                emoji: '🧠', progress: Math.min(100, Math.floor((profile?.progress?.logicIsland ?? 0) / 3)),         total: 6, done: Math.min(6, Math.floor((profile?.progress?.logicIsland ?? 0) / 50)) },
+      { id: 'reading-world',        title: 'Reading World',        path: '/child/reading-world',         emoji: '📖', progress: Math.min(100, Math.floor((profile?.progress?.readingWorld ?? 0) / 3)),        total: 8, done: Math.min(8, Math.floor((profile?.progress?.readingWorld ?? 0) / 40)) },
+      // ✅ BUG 2 FIX: Added Story World, Vocabulary Zone, Language Challenges cards
+      { id: 'story-world',          title: 'Story World',          path: '/child/story-world',           emoji: '🌟', progress: Math.min(100, Math.floor((profile?.progress?.storyWorld ?? 0) / 3)),          total: 6, done: Math.min(6, Math.floor((profile?.progress?.storyWorld ?? 0) / 50)) },
+      { id: 'vocabulary-zone',      title: 'Vocabulary Zone',      path: '/child/vocabulary-zone',       emoji: '🔤', progress: Math.min(100, Math.floor((profile?.progress?.vocabularyZone ?? 0) / 3)),      total: 8, done: Math.min(8, Math.floor((profile?.progress?.vocabularyZone ?? 0) / 40)) },
+      { id: 'language-challenges',  title: 'Language Challenges',  path: '/child/language-challenges',   emoji: '🎯', progress: Math.min(100, Math.floor((profile?.progress?.languageChallenges ?? 0) / 3)),  total: 6, done: Math.min(6, Math.floor((profile?.progress?.languageChallenges ?? 0) / 50)) },
+      { id: 'brain-world',          title: 'Brain World',          path: '/child/brain-world',           emoji: '🧠', progress: 25, total: 4, done: 1 },
+      { id: 'emotion-world',        title: 'Emotion World',        path: '/child/emotion-world',         emoji: '❤️', progress: 20, total: 5, done: 1 },
+      { id: 'creativity-world',     title: 'Creativity World',     path: '/child/creativity-world',      emoji: '🎨', progress: 0,  total: 4, done: 0 },
+      { id: 'story-choice-world',   title: 'Story Choice',         path: '/child/story-choice-world',    emoji: '🎭', progress: 50, total: 2, done: 1 },
     ];
   }, [profile?.progress]);
 
@@ -117,14 +105,14 @@ export default function Home() {
     const li = prog.logicIsland ?? 0;
 
     const minVal = Math.min(mw, pw, na, li);
-    if (minVal === li || minVal === mw) {
-      return { title: 'Logic Island', subtitle: 'Sharpen your brain with logic challenges!', path: '/logic-island', emoji: '🧠' };
+    if (minVal === mw) {
+      return { title: 'Math World', subtitle: 'Learn numbers & simple counting!', path: '/math-world', emoji: '🔢' };
     } else if (minVal === pw) {
       return { title: 'Puzzle World', subtitle: 'Train your brain with 3D shapes!', path: '/puzzle-world', emoji: '🧩' };
     } else if (minVal === na) {
       return { title: 'Number Adventure', subtitle: 'Explore the map of numbers!', path: '/number-adventure', emoji: '🗺️' };
     } else {
-      return { title: 'Math World', subtitle: 'Learn numbers & simple counting!', path: '/math-world', emoji: '🔢' };
+      return { title: 'Logic Island', subtitle: 'Solve patterns and multiplication quests!', path: '/logic-island', emoji: '🧠' };
     }
   }, [profile]);
 

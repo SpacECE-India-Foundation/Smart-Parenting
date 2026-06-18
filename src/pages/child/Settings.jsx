@@ -7,7 +7,7 @@ import { logout } from '../../firebase/services';
 
 const LANGUAGES = [
   { code: 'GB', label: 'English', script: 'EN' },
-  { code: 'IN', label: 'हिन्दी',  script: 'हि' },
+  { code: 'IN', label: 'हिंदी',   script: 'हि' },
   { code: 'IN', label: 'मराठी',   script: 'मर' },
 ];
 

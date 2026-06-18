@@ -5,6 +5,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import SpacECELogo from '../../components/shared/SpacECELogo';
 import logoImg from '../../assets/spaceece-logo.png';
+import LoadingScreen from './LoadingScreen';
 
 const roles = [
   {
@@ -74,10 +75,15 @@ const RoleSelector = () => {
   const [selected, setSelected] = useState(null);
   const [hovering, setHovering] = useState(null);
   const [started, setStarted] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
 
   const handleContinue = () => {
     if (selected) navigate(selected.path);
   };
+
+  if (showLoading) {
+    return <LoadingScreen onComplete={() => setShowLoading(false)} />;
+  }
 
   return (
     <Box sx={{

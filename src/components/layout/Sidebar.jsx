@@ -1,6 +1,6 @@
 import { NavLink, Link } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
-import { logout } from '../../firebase/services';
+import { logout, updateUserProfile } from '../../firebase/services';
 import logoImg from '../../assets/logo.jpeg';
 import './Sidebar.css';
 
@@ -21,7 +21,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { profile, markLoggedOut } = useUser();
+  const { profile, user, refreshProfile, markLoggedOut } = useUser();
 
   const handleLogout = async () => {
     try {
@@ -30,6 +30,18 @@ export default function Sidebar({ isOpen, onClose }) {
       window.location.href = '/';
     } catch (e) {
       console.error('Logout failed:', e);
+    }
+  };
+
+  const currentLang = profile?.language || 'English';
+
+  const handleLanguageChange = async (langLabel) => {
+    if (!user) return;
+    try {
+      await updateUserProfile(user.uid, { language: langLabel });
+      await refreshProfile();
+    } catch (e) {
+      console.error('Failed to update language:', e);
     }
   };
 
@@ -58,9 +70,24 @@ export default function Sidebar({ isOpen, onClose }) {
               <span className="action-icon">🔍</span>
             </button>
             <div className="lang-switcher">
-              <span className="lang-active">EN</span>
-              <span className="lang-option">हि</span>
-              <span className="lang-option">मर</span>
+              <span
+                className={currentLang === 'English' ? 'lang-active' : 'lang-option'}
+                onClick={() => handleLanguageChange('English')}
+              >
+                EN
+              </span>
+              <span
+                className={currentLang === 'हिंदी' ? 'lang-active' : 'lang-option'}
+                onClick={() => handleLanguageChange('हिंदी')}
+              >
+                हि
+              </span>
+              <span
+                className={currentLang === 'मराठी' ? 'lang-active' : 'lang-option'}
+                onClick={() => handleLanguageChange('मराठी')}
+              >
+                मर
+              </span>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import StoryReader from '../../components/literacy/StoryReader';
 import { getStories } from '../../firebase/literacyService';
 import { storiesData as defaultStories } from '../../data/storiesData';
 import { useStreak }   from '../../hooks/useStreak';
+import { useUser }     from '../../context/UserContext';
 import s from "./ReadingWorldPage.module.css";
 
 const AGE_FILTERS  = ["All","1-3","4-6","7-10"];
@@ -13,16 +14,23 @@ const TOPIC_FILTERS= ["All","Courage","Nature","Bedtime","Adventure","Kindness",
 const DAY_LABELS   = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 export default function ReadingWorldPage() {
+  const { profile } = useUser();
   const [stories, setStories]     = useState([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState("");
   const [ageFilter, setAgeFilter] = useState("All");
-  const [langFilter, setLangFilter] = useState("All");
+  const [langFilter, setLangFilter] = useState(profile?.language || "English");
   const [topicFilter, setTopicFilter] = useState("All");
   const [active, setActive]       = useState(null);
   const [bookmarks, setBookmarks] = useState(() => {
     try { return JSON.parse(localStorage.getItem("bookmarks")||"[]"); } catch { return []; }
   });
+
+  useEffect(() => {
+    if (profile?.language) {
+      setLangFilter(profile.language);
+    }
+  }, [profile?.language]);
   const { streakDays, streakCount, loading: streakLoading } = useStreak();
 
   const todayIdx = (new Date().getDay() + 6) % 7;

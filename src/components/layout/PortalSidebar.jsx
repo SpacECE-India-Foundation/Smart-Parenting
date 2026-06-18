@@ -9,7 +9,7 @@ import {
   SwapHoriz as SwapIcon, Settings as SettingsIcon, Person as PersonIcon,
   People as PeopleIcon, History as HistoryIcon, Notifications as NotificationsIcon,
   ToggleOn as ToggleIcon, Logout as LogoutIcon, ChevronLeft as ChevronLeftIcon,
-  MonetizationOn as CoinIcon, MenuBook as MenuBookIcon,
+  MonetizationOn as CoinIcon, MenuBook as MenuBookIcon, Calculate as CalculateIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { useChildProfile } from '../../context/ChildProfileContext';
@@ -24,7 +24,7 @@ const iconMap = {
   Dashboard: DashboardIcon, ChildCare: ChildCareIcon, SwapHoriz: SwapIcon,
   Settings: SettingsIcon, Person: PersonIcon, People: PeopleIcon,
   History: HistoryIcon, Notifications: NotificationsIcon, ToggleOn: ToggleIcon,
-  MenuBook: MenuBookIcon,
+  MenuBook: MenuBookIcon, Calculate: CalculateIcon,
 };
 
 const EMOJI_ICONS = {

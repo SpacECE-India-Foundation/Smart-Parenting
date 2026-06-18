@@ -57,6 +57,7 @@ import SessionManagement from './pages/admin/SessionManagement';
 import NotificationManager from './pages/admin/NotificationManager';
 import FeatureFlags from './pages/admin/FeatureFlags';
 import LiteracyPanelPage from './pages/admin/LiteracyPanelPage';
+import NumeracyPanelPage from './pages/admin/NumeracyPanelPage';
 
 // Numeracy Child Pages
 import Home from './pages/child/Home';
@@ -158,6 +159,7 @@ export default function App() {
                         <Route path="/admin/notifications" element={<NotificationManager />} />
                         <Route path="/admin/features"      element={<FeatureFlags />} />
                         <Route path="/admin/literacy"      element={<LiteracyPanelPage />} />
+                        <Route path="/admin/numeracy"      element={<NumeracyPanelPage />} />
                         <Route path="/admin/settings"      element={<AccountSettings />} />
                       </Route>
 

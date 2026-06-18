@@ -76,6 +76,7 @@ export const NAV_MENUS = {
     { label: 'Notifications', path: ROUTES.ADMIN_NOTIFICATIONS, icon: 'Notifications' },
     { label: 'Features',      path: ROUTES.ADMIN_FEATURES,      icon: 'ToggleOn'      },
     { label: 'Literacy Panel',path: '/admin/literacy',          icon: 'MenuBook'      },
+    { label: 'Numeracy Panel',path: '/admin/numeracy',          icon: 'Calculate'     },
     { label: 'Settings',      path: ROUTES.ADMIN_SETTINGS,      icon: 'Settings'      },
   ],
 };

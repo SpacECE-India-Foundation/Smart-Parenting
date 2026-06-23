@@ -8,7 +8,7 @@
  * 4. Cognitive & Creativity — Brain World, Creativity World, Emotion World
  * 5. Parent Analytics & Reports — Linked dashboard views under Parent Analytics
  */
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import theme from './theme/theme';
 import { ThemeProvider } from './context/ThemeContext';
@@ -65,6 +65,7 @@ import Adventure from './pages/child/Adventure';
 import Awards from './pages/child/Awards';
 import AvatarPage from './pages/child/AvatarPage';
 import Settings from './pages/child/Settings';
+import AssessmentModule from './pages/child/AssessmentModule';
 import MathWorld from './pages/numeracy/MathWorld';
 import PuzzleWorld from './pages/numeracy/PuzzleWorld';
 import NumberAdventure from './pages/numeracy/NumberAdventure';
@@ -161,6 +162,11 @@ export default function App() {
                         <Route path="/admin/literacy"      element={<LiteracyPanelPage />} />
                         <Route path="/admin/numeracy"      element={<NumeracyPanelPage />} />
                         <Route path="/admin/settings"      element={<AccountSettings />} />
+                      </Route>
+
+                      {/* Protected Child Assessment (standalone, no Layout shell) */}
+                      <Route element={<ProtectedRoute><RoleRoute allowedRoles={['child']}><Outlet /></RoleRoute></ProtectedRoute>}>
+                        <Route path="/child/assessment" element={<AssessmentModule />} />
                       </Route>
 
                       {/* Protected Child Routes */}

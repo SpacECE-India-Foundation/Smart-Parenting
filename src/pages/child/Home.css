@@ -24,7 +24,47 @@
   z-index: 100;
   animation: slide-up 0.5s var(--ease-spring);
 }
-.topnav-left { flex: 1; }
+.topnav-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.dashboard-assessment-btn {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s var(--ease-bounce);
+  animation: pulse-ring-glow 2.5s infinite;
+}
+.dashboard-assessment-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 18px rgba(255, 107, 107, 0.5);
+}
+.dashboard-assessment-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+@keyframes pulse-ring-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 107, 107, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+  }
+}
 .topnav-greeting h2 {
   font-family: var(--font-display);
   font-size: 1.65rem;
@@ -521,4 +561,102 @@
 }
 [data-theme="dark"] .stat-box:hover {
   border-color: var(--color-primary-light);
+}
+
+/* ---- Welcome Assessment Modal ---- */
+.assessment-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fade-in 0.3s ease-out;
+}
+
+.assessment-modal-card {
+  background: radial-gradient(circle at top, #FFFFFF 0%, #FFFDF5 100%);
+  border-radius: var(--radius-2xl);
+  border: 3.5px solid var(--color-primary-light);
+  padding: var(--space-8);
+  width: 90%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(244, 163, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  animation: scale-up 0.4s var(--ease-spring);
+}
+
+.assessment-modal-decor {
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
+}
+
+.assessment-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.assessment-modal-text {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-6);
+}
+
+.assessment-modal-btn {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  transition: all 0.3s var(--ease-bounce);
+  animation: pulse-ring-glow 2.5s infinite;
+}
+
+.assessment-modal-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.6);
+}
+
+.assessment-modal-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-up {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+[data-theme="dark"] .assessment-modal-card {
+  background: radial-gradient(circle at top, #1E293B 0%, #0F172A 100%);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+[data-theme="dark"] .assessment-modal-title {
+  color: #FFFFFF;
+}
+[data-theme="dark"] .assessment-modal-text {
+  color: #94A3B8;
 }

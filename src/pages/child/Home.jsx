@@ -48,6 +48,16 @@ export default function Home() {
   const { profile } = useUser();
   const [animateStars, setAnimateStars] = useState(0);
   const [animateXP, setAnimateXP] = useState(0);
+  const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+
+  // ── First-time onboarding: show welcome modal popup if not completed ──
+  useEffect(() => {
+    if (profile && !profile.assessmentCompleted) {
+      setShowAssessmentModal(true);
+    } else {
+      setShowAssessmentModal(false);
+    }
+  }, [profile]);
 
   const name = profile?.name ?? 'Explorer';
   const greeting = getGreeting();
@@ -80,6 +90,7 @@ export default function Home() {
 
   const MODULES = useMemo(() => {
     return [
+      { id: 'assessment-module',    title: 'Skill Assessment',     path: '/child/assessment?start=true', emoji: '🎯', progress: profile?.assessmentCompleted ? 100 : 0, total: 3, done: profile?.assessmentCompleted ? 3 : 0 },
       { id: 'math-world',           title: 'Math World',           path: '/math-world',                  emoji: '🔢', progress: Math.min(100, Math.floor((profile?.progress?.mathWorld ?? 0) / 3)),           total: 8, done: Math.min(8, Math.floor((profile?.progress?.mathWorld ?? 0) / 40)) },
       { id: 'puzzle-world',         title: 'Puzzle World',         path: '/puzzle-world',                emoji: '🧩', progress: Math.min(100, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 3)),         total: 8, done: Math.min(8, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 40)) },
       { id: 'number-adventure',     title: 'Number Adventure',     path: '/number-adventure',            emoji: '🗺️', progress: Math.min(100, Math.floor((profile?.progress?.numberAdventure ?? 0) / 3)),     total: 6, done: Math.min(6, Math.floor((profile?.progress?.numberAdventure ?? 0) / 50)) },
@@ -94,7 +105,7 @@ export default function Home() {
       { id: 'creativity-world',     title: 'Creativity World',     path: '/child/creativity-world',      emoji: '🎨', progress: 0,  total: 4, done: 0 },
       { id: 'story-choice-world',   title: 'Story Choice',         path: '/child/story-choice-world',    emoji: '🎭', progress: 50, total: 2, done: 1 },
     ];
-  }, [profile?.progress]);
+  }, [profile?.progress, profile?.assessmentCompleted]);
 
   const recommendation = useMemo(() => {
     if (!profile) return { title: 'Logic Island', subtitle: 'Sharpen your brain with logic challenges!', path: '/logic-island', emoji: '🧠' };
@@ -124,6 +135,9 @@ export default function Home() {
           <div className="topnav-greeting">
             <h2>{greeting}, {name} 👋</h2>
           </div>
+          <button className="dashboard-assessment-btn" onClick={() => navigate('/child/assessment?start=true')}>
+            🎯 Assessment
+          </button>
         </div>
         <div className="topnav-right">
           <div className="topnav-stat" title="Daily Streak">
@@ -277,6 +291,28 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Assessment Welcome Modal Popup */}
+      {showAssessmentModal && (
+        <div className="assessment-modal-overlay">
+          <div className="assessment-modal-card">
+            <span className="assessment-modal-decor">🧑‍🚀</span>
+            <h2 className="assessment-modal-title">Welcome, Explorer!</h2>
+            <p className="assessment-modal-text">
+              Before we begin our learning journey, let's complete a quick and fun skill assessment!
+            </p>
+            <button
+              className="assessment-modal-btn"
+              onClick={() => {
+                setShowAssessmentModal(false);
+                navigate('/child/assessment?start=true');
+              }}
+            >
+              🚀 Start Assessment
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

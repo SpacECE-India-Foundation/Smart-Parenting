@@ -80,48 +80,69 @@ router.post('/login', async (req, res) => {
 // Request body: { idToken: "<google id token>", role: "parent" | "teacher" }
 router.post('/google', async (req, res) => {
   try {
-    const { idToken, role = 'parent' } = req.body;
+    const { idToken, code, role = 'parent' } = req.body;
 
-    if (!idToken)
-      return res.status(400).json({ error: 'Google ID token is required' });
-
-    // ── Verify the Google token ────────────────────────────────────────────
-    let ticket;
-    try {
-      ticket = await googleClient.verifyIdToken({
-        idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-    } catch {
-      return res.status(401).json({ error: 'Invalid Google token. Please try again.' });
+    if (!idToken && !code) {
+      return res.status(400).json({ error: 'Google token or code is required' });
     }
 
-    const payload     = ticket.getPayload();
-    const googleEmail = payload.email;
-    const googleName  = payload.name || '';
-    const googlePic   = payload.picture || '';
+    let googleEmail, googleName, googlePic;
 
-    // ── Find or create user ────────────────────────────────────────────────
+    if (idToken) {
+      // ── Flow 1: ID Token (production / mobile) ──────────────────────────
+      let ticket;
+      try {
+        ticket = await googleClient.verifyIdToken({
+          idToken,
+          audience: process.env.GOOGLE_CLIENT_ID,
+        });
+      } catch {
+        return res.status(401).json({ error: 'Invalid Google token. Please try again.' });
+      }
+      const payload = ticket.getPayload();
+      googleEmail   = payload.email;
+      googleName    = payload.name  || '';
+      googlePic     = payload.picture || '';
+
+    } else {
+      // ── Flow 2: Auth Code (popup flow — works on localhost) ─────────────
+      try {
+        const { tokens } = await googleClient.getToken({
+          code,
+          redirect_uri: 'postmessage', // required for popup/code flow
+        });
+        googleClient.setCredentials(tokens);
+        const ticket = await googleClient.verifyIdToken({
+          idToken:  tokens.id_token,
+          audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        googleEmail   = payload.email;
+        googleName    = payload.name    || '';
+        googlePic     = payload.picture || '';
+      } catch (err) {
+        console.error('Google code exchange error:', err.message);
+        return res.status(401).json({ error: 'Google Sign-In failed. Please try again.' });
+      }
+    }
+
+    // ── Find or create user ──────────────────────────────────────────────
     let user = await User.findOne({ email: googleEmail });
-
     if (!user) {
-      // New user — create with a random unguessable password (they won't use it)
       const randomPassword = require('crypto').randomBytes(32).toString('hex');
       user = await User.create({
         email:       googleEmail,
         password:    randomPassword,
         displayName: googleName,
         role,
-        avatar_url:  googlePic,
-        auth_provider: 'google',
+        is_active:   true,
       });
     } else if (!user.is_active) {
       return res.status(403).json({ error: 'This account has been disabled.' });
     }
 
-    // Issue our JWT
     const token = signToken({ userId: user._id, email: user.email, role: user.role });
-    res.json({ token, user: user.toPublic(), isNewUser: !user.created_at });
+    res.json({ token, user: user.toPublic() });
 
   } catch (err) {
     res.status(500).json({ error: err.message });

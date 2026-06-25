@@ -1,8 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import {
   getChildProfiles,
-  getChildProfile,
   createChildProfile as createProfile,
   updateChildProfile as updateProfile,
   deleteChildProfile as deleteProfile,
@@ -11,150 +10,120 @@ import {
 const ChildProfileContext = createContext(null);
 
 export const useChildProfile = () => {
-  const context = useContext(ChildProfileContext);
-  if (!context) {
-    throw new Error('useChildProfile must be used within a ChildProfileProvider');
-  }
-  return context;
+  const ctx = useContext(ChildProfileContext);
+  if (!ctx) throw new Error('useChildProfile must be used within ChildProfileProvider');
+  return ctx;
 };
 
 export const ChildProfileProvider = ({ children }) => {
-  const { currentUser, userRole } = useAuth();
-  const [childProfiles, setChildProfiles] = useState([]);
-  const [activeChild, setActiveChild] = useState(null);
-  const [loading, setLoading] = useState(false);
+  // Use stable uid string — NOT the whole currentUser object
+  const { uid, userRole } = useAuth();
 
-  // Load child profiles when parent logs in
-  const loadProfiles = useCallback(async () => {
-    if (!currentUser || userRole !== 'parent') return;
+  const [childProfiles, setChildProfiles] = useState([]);
+  const [activeChild, setActiveChild]     = useState(null);
+  const [loading, setLoading]             = useState(false);
+  const fetchedUid = useRef(null);
+
+  const loadProfiles = useCallback(async (forceUid) => {
+    const targetUid = forceUid || uid;
+    if (!targetUid || userRole !== 'parent') return;
+
+    // Prevent duplicate fetches for same user
+    if (fetchedUid.current === targetUid) return;
+    fetchedUid.current = targetUid;
 
     setLoading(true);
     try {
-      const { data, error } = await getChildProfiles(currentUser.uid);
+      const { data, error } = await getChildProfiles(targetUid);
       if (!error && data) {
         setChildProfiles(data);
 
-        // Restore active child from localStorage
-        const savedChildId = localStorage.getItem('spaceece_active_child');
-        if (savedChildId) {
-          const saved = data.find((p) => p.id === savedChildId);
+        const savedId = localStorage.getItem('spaceece_active_child');
+        if (savedId) {
+          const saved = data.find(p => (p._id || p.id) === savedId);
           if (saved) setActiveChild(saved);
-        } else if (data.length > 0) {
-          setActiveChild(data[0]);
         }
       }
-    } catch (err) {
-      console.error('[ChildProfileContext] loadProfiles error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentUser, userRole]);
+    } catch {}
+    setLoading(false);
+  }, [uid, userRole]);
 
+  // Only re-run when uid STRING changes — not on every render
   useEffect(() => {
-    loadProfiles();
-  }, [loadProfiles]);
-
-  /**
-   * Restore the active child profile for a child session (e.g. after page refresh).
-   * When userRole === 'child', the child's profile ID is stored in localStorage
-   * under 'spaceece_child_id'. We fetch that profile from Firestore and set it
-   * as the active child so the session persists across reloads.
-   */
-  useEffect(() => {
-    if (userRole !== 'child') return;
-    if (activeChild) return; // already restored
-
-    const savedChildId = localStorage.getItem('spaceece_child_id');
-    if (!savedChildId) return;
-
-    setLoading(true);
-    getChildProfile(savedChildId)
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setActiveChild(data);
-        }
-      })
-      .catch((err) => {
-        console.error('[ChildProfileContext] Restore session error:', err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [userRole, activeChild]);
-
-  /**
-   * Switch to a different child profile
-   */
-  const switchChild = (profileId) => {
-    const profile = childProfiles.find((p) => p.id === profileId);
-    if (profile) {
-      setActiveChild(profile);
-      localStorage.setItem('spaceece_active_child', profileId);
+    if (uid && userRole === 'parent') {
+      loadProfiles(uid);
+    } else if (!uid) {
+      // Logout — reset everything
+      setChildProfiles([]);
+      setActiveChild(null);
+      fetchedUid.current = null;
     }
-  };
+  }, [uid, userRole]); // uid is a string — stable reference
 
-  /**
-   * Create a new child profile
-   */
-  const createChildProfile = async (data) => {
-    if (!currentUser) return { error: 'Not authenticated' };
+  // Child role — set active child from token
+  useEffect(() => {
+    if (userRole === 'child' && uid) {
+      const u = JSON.parse(localStorage.getItem('user') || 'null');
+      if (u) setActiveChild(u);
+    }
+  }, [userRole, uid]);
 
-    const result = await createProfile(currentUser.uid, data);
+  const selectChild = useCallback((child) => {
+    setActiveChild(child);
+    if (child) {
+      localStorage.setItem('spaceece_active_child', child._id || child.id);
+    } else {
+      localStorage.removeItem('spaceece_active_child');
+    }
+  }, []);
+
+  const createChildProfile = useCallback(async (data) => {
+    if (!uid) return { error: 'Not authenticated' };
+    const result = await createProfile(uid, data);
     if (!result.error) {
-      await loadProfiles();
+      fetchedUid.current = null;
+      await loadProfiles(uid);
     }
     return result;
-  };
+  }, [uid, loadProfiles]);
 
-  /**
-   * Update an existing child profile
-   */
-  const updateChildProfile = async (profileId, data) => {
+  const updateChildProfile = useCallback(async (profileId, data) => {
     const result = await updateProfile(profileId, data);
     if (!result.error) {
-      await loadProfiles();
-      // Update active child if it's the one being edited
-      if (activeChild?.id === profileId) {
-        setActiveChild((prev) => ({ ...prev, ...data }));
+      setChildProfiles(prev =>
+        prev.map(p => ((p._id || p.id) === profileId ? { ...p, ...result.data } : p))
+      );
+      if (activeChild && (activeChild._id || activeChild.id) === profileId) {
+        setActiveChild(prev => ({ ...prev, ...result.data }));
       }
     }
     return result;
-  };
+  }, [activeChild]);
 
-  /**
-   * Delete a child profile
-   */
-  const deleteChildProfile = async (profileId) => {
+  const deleteChildProfile = useCallback(async (profileId) => {
     const result = await deleteProfile(profileId);
     if (!result.error) {
-      if (activeChild?.id === profileId) {
+      setChildProfiles(prev => prev.filter(p => (p._id || p.id) !== profileId));
+      if (activeChild && (activeChild._id || activeChild.id) === profileId) {
         setActiveChild(null);
         localStorage.removeItem('spaceece_active_child');
       }
-      await loadProfiles();
     }
     return result;
-  };
-
-  const coinCount = activeChild?.coin_count || 0;
-
-  const value = {
-    childProfiles,
-    activeChild,
-    coinCount,
-    loading,
-    switchChild,
-    createChildProfile,
-    updateChildProfile,
-    deleteChildProfile,
-    refreshProfiles: loadProfiles,
-  };
+  }, [activeChild]);
 
   return (
-    <ChildProfileContext.Provider value={value}>
+    <ChildProfileContext.Provider value={{
+      childProfiles,
+      activeChild,
+      loading,
+      selectChild,
+      loadProfiles,
+      createChildProfile,
+      updateChildProfile,
+      deleteChildProfile,
+    }}>
       {children}
     </ChildProfileContext.Provider>
   );
 };
-
-export default ChildProfileContext;

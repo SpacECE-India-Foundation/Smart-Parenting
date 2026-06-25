@@ -35,14 +35,14 @@ const ageGroupData = {
 
 const ChildLogin = () => {
   const navigate = useNavigate();
-  const { loginAsChild } = useAuth();
+  const { loginChild } = useAuth();
   const { childProfiles, loading } = useChildProfile();
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [hoveredAge, setHoveredAge] = useState(null);
 
-  const handleContinue = () => {
+   const handleContinue = () => {
     if (selectedProfile) {
-      loginAsChild(selectedProfile);
+       loginChild(selectedProfile._id || selectedProfile.id);
       navigate('/child/dashboard');
     }
   };

@@ -141,10 +141,7 @@ export const onAuthChange = (callback) => {
 };
 
 export const getUserProfile = async (uid) => {
-  try {
-    const { data } = await client.get(`/children/${uid}`);
-    if (data?.data) return data.data;
-  } catch {}
+  // Only try users endpoint — children are fetched separately
   try {
     const { data } = await client.get(`/users/${uid}`);
     return data?.data || null;

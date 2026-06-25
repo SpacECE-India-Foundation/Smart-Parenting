@@ -146,7 +146,12 @@ export const getNotifications = async () => ({ data: [], error: null });
 export const getParentNotifications = async () => ({ data: [], error: null });
 export const markNotificationAsRead = async () => ({ error: null });
 export const getUnreadCount = async () => ({ count: 0, error: null });
-export const subscribeToNotifications = (userId, callback) => { callback([]); return () => {}; };
+export const subscribeToNotifications = (userId, callback) => {
+  if (typeof callback === 'function') {
+    setTimeout(() => callback([]), 0);
+  }
+  return () => {};
+};
 export const getNotificationTemplates = async () => ({ data: [], error: null });
 export const saveNotificationTemplate = async (data) => ({ data, error: null });
 export const deleteNotificationTemplate = async () => ({ error: null });

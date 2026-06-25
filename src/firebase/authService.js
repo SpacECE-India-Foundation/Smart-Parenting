@@ -51,49 +51,51 @@ export const loginWithGoogle = (role = 'parent') => {
       return;
     }
 
-    const initGoogle = () => {
-      // Guard: prevent multiple initialize() calls
-      if (!window._googleInitialized) {
-        window._googleInitialized = true;
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async (response) => {
-            try {
-              const { data } = await client.post('/auth/google', {
-                idToken: response.credential,
-                role,
-              });
-              saveSession(data.token, data.user);
-              resolve({ user: data.user, error: null });
-            } catch (err) {
-              resolve({ user: null, error: err.response?.data?.error || err.message });
-            }
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
-      }
-
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          resolve({
-            user: null,
-            error: 'Google Sign-In was closed. Please try again.',
-          });
-        }
+    const doGoogleAuth = () => {
+      // Use OAuth2 popup flow — works on localhost without HTTPS
+      const oauth2 = window.google.accounts.oauth2.initCodeClient({
+        client_id: clientId,
+        scope: 'email profile openid',
+        ux_mode: 'popup',
+        callback: async (response) => {
+          if (response.error) {
+            resolve({ user: null, error: response.error });
+            return;
+          }
+          try {
+            // Send auth code to backend to exchange for user
+            const { data } = await client.post('/auth/google', {
+              code:     response.code,
+              role,
+            });
+            saveSession(data.token, data.user);
+            resolve({ user: data.user, error: null });
+          } catch (err) {
+            resolve({ user: null, error: err.response?.data?.error || err.message });
+          }
+        },
       });
+      oauth2.requestCode();
     };
 
-    if (window.google?.accounts?.id) {
-      initGoogle();
+    // Load GSI script if not already loaded
+    if (window.google?.accounts?.oauth2) {
+      doGoogleAuth();
     } else {
+      // Remove old script if exists
+      const old = document.querySelector('script[src*="accounts.google.com/gsi"]');
+      if (old) old.remove();
+      window._googleInitialized = false;
+
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
-      script.onload = initGoogle;
-      script.onerror = () =>
-        resolve({ user: null, error: 'Failed to load Google Sign-In. Check your internet connection.' });
+      script.onload  = doGoogleAuth;
+      script.onerror = () => resolve({
+        user: null,
+        error: 'Failed to load Google Sign-In. Check your internet connection.',
+      });
       document.head.appendChild(script);
     }
   });
@@ -103,8 +105,10 @@ export const loginWithGoogle = (role = 'parent') => {
 export const loginChild = async (profileId, pin = null) => {
   try {
     const { data } = await client.post('/auth/child-login', { profileId, pin });
-    saveSession(data.token, data.profile);
-    return { profile: data.profile, error: null };
+    // Save token — use profile as user object
+    const profile = { ...data.profile, role: 'child' };
+    saveSession(data.token, profile);
+    return { profile, error: null };
   } catch (err) {
     return { profile: null, error: err.response?.data?.error || err.message };
   }

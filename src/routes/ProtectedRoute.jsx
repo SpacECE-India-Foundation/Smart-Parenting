@@ -2,39 +2,36 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DEV MODE — bypass all auth checks when VITE_DEV_MODE=true
-// ─────────────────────────────────────────────────────────────────────────────
 const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
 
-/**
- * ProtectedRoute - Ensures user is authenticated
- * Redirects to home/login if not authenticated.
- * Waits for both Firebase auth AND Firestore role to be resolved before
- * rendering children or redirecting, preventing flicker redirects.
- *
- * In DEV_MODE (VITE_DEV_MODE=true) all access is automatically allowed.
- * The original Firebase auth flow is used when DEV_MODE is false.
- */
-const ProtectedRoute = ({ children }) => {
-  // Hooks must always be called unconditionally (React rules of hooks)
-  const { isAuthenticated, loading, isRoleReady } = useAuth();
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { currentUser, loading } = useAuth();
 
-  // DEV_MODE: always allow access, no Firebase calls needed
+  // DEV_MODE: bypass all auth
   if (DEV_MODE) return children;
 
-  // Wait for Firebase to resolve initial auth state
+  // Wait for auth to resolve
   if (loading) {
     return <LoadingSpinner fullScreen message="Verifying your session..." />;
   }
 
-  // Wait for Firestore role to be fetched after Firebase auth resolves
-  if (!isRoleReady) {
-    return <LoadingSpinner fullScreen message="Loading your profile..." />;
+  // Not logged in → redirect to home
+  if (!currentUser) {
+    return <Navigate to="/" replace />;
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+  // Role check — if allowedRoles specified, verify user has permission
+  if (allowedRoles && allowedRoles.length > 0) {
+    if (!allowedRoles.includes(currentUser.role)) {
+      // Redirect to their own dashboard
+      const dashboards = {
+        parent:  '/parent/dashboard',
+        teacher: '/teacher/dashboard',
+        admin:   '/admin/dashboard',
+        child:   '/child/dashboard',
+      };
+      return <Navigate to={dashboards[currentUser.role] || '/'} replace />;
+    }
   }
 
   return children;

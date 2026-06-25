@@ -1,10 +1,4 @@
-/**
- * src/firebase/services.js
- * Numeracy module service — Firebase replaced with axios calls.
- * All function signatures preserved.
- */
 import client from '../api/client';
-// import client from '../api/client';
 
 // ── Math Games ──────────────────────────────────────────────────────────────
 export const getMathGames = async (difficulty = null) => {
@@ -139,20 +133,13 @@ export const getNumeracyScores = async (childId) => {
   }
 };
 
-// ── UserContext compatibility functions ────────────────────────────────────
-// These replace the old Firebase Auth listener pattern
-
-// onAuthChange — replaces Firebase onAuthStateChanged
-// Calls callback once with current user from localStorage
+// ── Auth & Session ──────────────────────────────────────────────────────────
 export const onAuthChange = (callback) => {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
-  // Call async so components have time to mount
   setTimeout(() => callback(user), 0);
-  // Return unsubscribe function
   return () => {};
 };
 
-// getUserProfile — fetch child or user profile
 export const getUserProfile = async (uid) => {
   try {
     const { data } = await client.get(`/children/${uid}`);
@@ -166,12 +153,10 @@ export const getUserProfile = async (uid) => {
   }
 };
 
-// loginAnonymous — no anonymous auth in JWT, return a guest user object
 export const loginAnonymous = async () => {
   return { uid: 'guest', role: 'guest', displayName: 'Guest' };
 };
 
-// updateDayStreak — mark today active for a user
 export const updateDayStreak = async (userId) => {
   try {
     const { data } = await client.post(`/literacy/streaks/${userId}/mark-today`);
@@ -181,7 +166,6 @@ export const updateDayStreak = async (userId) => {
   }
 };
 
-// startSession — create a new session
 export const startSession = async (userId) => {
   try {
     const { data } = await client.post('/sessions');
@@ -191,7 +175,6 @@ export const startSession = async (userId) => {
   }
 };
 
-// endSession — end a session
 export const endSession = async (sessionId) => {
   if (!sessionId) return;
   try {
@@ -199,7 +182,52 @@ export const endSession = async (sessionId) => {
   } catch {}
 };
 
-// checkAndUnlockAchievements — stub, returns empty unlocks
 export const checkAndUnlockAchievements = async (userId, profile) => {
   return [];
+};
+
+// ── Child profile & user updates ────────────────────────────────────────────
+export const updateUserProfile = async (userId, updates) => {
+  try {
+    const { data } = await client.put(`/children/${userId}`, updates);
+    if (data?.data) return { data: data.data, error: null };
+  } catch {}
+  try {
+    const { data } = await client.put(`/users/${userId}`, updates);
+    return { data: data.data, error: null };
+  } catch (e) {
+    return { data: null, error: e.response?.data?.error || e.message };
+  }
+};
+
+export const logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/login';
+};
+
+export const awardProgress = async (userId, { xp = 0, stars = 0, coins = 0 } = {}) => {
+  try {
+    await client.put(`/children/${userId}`, { xp, stars, coins });
+    return { error: null };
+  } catch {
+    return { error: null };
+  }
+};
+
+export const getUnlockedAchievements = async (userId) => {
+  try {
+    const { data } = await client.get('/scores', { params: { childId: userId } });
+    const scores = data.data || [];
+    const achievements = [];
+    if (scores.length >= 1)  achievements.push({ id: 'first_game', title: 'First Game!',   icon: '🎮', unlocked: true });
+    if (scores.length >= 5)  achievements.push({ id: 'five_games', title: 'Playing Strong', icon: '⭐', unlocked: true });
+    if (scores.length >= 10) achievements.push({ id: 'ten_games',  title: 'Game Master',    icon: '🏆', unlocked: true });
+    const total = scores.reduce((s, a) => s + (a.score || 0), 0);
+    if (total >= 100) achievements.push({ id: 'score_100', title: 'Century!',     icon: '💯', unlocked: true });
+    if (total >= 500) achievements.push({ id: 'score_500', title: 'High Scorer',  icon: '🚀', unlocked: true });
+    return { data: achievements, error: null };
+  } catch {
+    return { data: [], error: null };
+  }
 };

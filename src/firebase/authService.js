@@ -1,13 +1,5 @@
-/**
- * src/firebase/authService.js
- *
- * JWT + Google OAuth auth service.
- * All function signatures preserved — no component changes needed.
- */
-
 import client from '../api/client';
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 const saveSession = (token, user) => {
   localStorage.setItem('token', token);
   localStorage.setItem('user', JSON.stringify(user));
@@ -29,7 +21,6 @@ export const registerUser = async (email, password, displayName = '', role = 'pa
   }
 };
 
-// Alias used by Register.jsx
 export const registerWithEmail = async (email, password, displayName) => {
   return registerUser(email, password, displayName, 'parent');
 };
@@ -45,12 +36,9 @@ export const loginUser = async (email, password) => {
   }
 };
 
-// Alias used by older login pages
 export const loginWithEmail = loginUser;
 
 // ── Google Sign-In ─────────────────────────────────────────────────────────
-// Loads Google's GSI (Google Sign-In) library, shows the popup,
-// gets an ID token, and sends it to our backend to verify + issue JWT.
 export const loginWithGoogle = (role = 'parent') => {
   return new Promise((resolve) => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -63,36 +51,35 @@ export const loginWithGoogle = (role = 'parent') => {
       return;
     }
 
-    // Load Google GSI script if not already loaded
     const initGoogle = () => {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: async (response) => {
-          try {
-            const { data } = await client.post('/auth/google', {
-              idToken: response.credential,
-              role,
-            });
-            saveSession(data.token, data.user);
-            resolve({ user: data.user, error: null });
-          } catch (err) {
-            resolve({ user: null, error: err.response?.data?.error || err.message });
-          }
-        },
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
+      // Guard: prevent multiple initialize() calls
+      if (!window._googleInitialized) {
+        window._googleInitialized = true;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response) => {
+            try {
+              const { data } = await client.post('/auth/google', {
+                idToken: response.credential,
+                role,
+              });
+              saveSession(data.token, data.user);
+              resolve({ user: data.user, error: null });
+            } catch (err) {
+              resolve({ user: null, error: err.response?.data?.error || err.message });
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+      }
 
-      // Show the One Tap popup
       window.google.accounts.id.prompt((notification) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fallback: open the full Google account chooser popup
-          window.google.accounts.oauth2.initTokenClient({
-            client_id: clientId,
-            scope: 'email profile',
-            callback: () => {},
+          resolve({
+            user: null,
+            error: 'Google Sign-In was closed. Please try again.',
           });
-          window.google.accounts.id.prompt();
         }
       });
     };
@@ -125,21 +112,19 @@ export const loginChild = async (profileId, pin = null) => {
 
 // ── Logout ─────────────────────────────────────────────────────────────────
 export const logoutUser = async () => {
-  // Sign out from Google too (so next login shows account picker)
   if (window.google?.accounts?.id) {
     window.google.accounts.id.disableAutoSelect();
+    window._googleInitialized = false;
   }
   try {
     await client.post('/auth/logout');
-  } catch {
-    // ignore — always clear local session
-  } finally {
+  } catch {}
+  finally {
     clearSession();
   }
   return { error: null };
 };
 
-// Alias
 export const logout = logoutUser;
 
 // ── Get current user ───────────────────────────────────────────────────────
@@ -164,7 +149,7 @@ export const fetchCurrentUser = async () => {
 
 export const isAuthenticated = () => !!localStorage.getItem('token');
 
-// ── Password helpers ───────────────────────────────────────────────────────
+// ── Password ───────────────────────────────────────────────────────────────
 export const sendPasswordReset = async (email) => {
   try {
     const { data } = await client.post('/auth/forgot-password', { email });
@@ -183,15 +168,7 @@ export const changePassword = async (currentPassword, newPassword) => {
   }
 };
 
-// ── Stubs for old Firebase-specific calls ─────────────────────────────────
-export const sendVerificationEmail = async () => ({
-  message: 'Email verification is managed server-side.',
-  error: null,
-});
-
-export const reloadUser = async () => ({ error: null });
-
-export const changeEmail = async () => ({
-  message: 'To change your email, please contact support.',
-  error: null,
-});
+// ── Stubs ──────────────────────────────────────────────────────────────────
+export const sendVerificationEmail = async () => ({ message: 'Managed server-side.', error: null });
+export const reloadUser            = async () => ({ error: null });
+export const changeEmail           = async () => ({ message: 'Contact support to change email.', error: null });

@@ -1,18 +1,3 @@
-/**
- * src/firebase/childProfileService.js
- *
- * Drop-in replacement for the Firebase Firestore child profile service.
- * All function signatures are preserved.
- *
- * Firebase method                     →  This service method
- * ─────────────────────────────────────────────────────────
- * getChildProfiles(parentUid)         →  getChildProfiles(parentUid)
- * getChildProfile(profileId)          →  getChildProfile(profileId)
- * createChildProfile(parentUid, data) →  createChildProfile(parentUid, data)
- * updateChildProfile(id, data)        →  updateChildProfile(id, data)
- * deleteChildProfile(id)              →  deleteChildProfile(id)
- */
-
 import client from '../api/client';
 
 export const getChildProfiles = async (parentUid) => {
@@ -59,3 +44,25 @@ export const deleteChildProfile = async (profileId) => {
     return { error: e.response?.data?.error || e.message };
   }
 };
+
+export const AVATARS = [
+  { id: 'avatar1',  emoji: '🧒', label: 'Kid'       },
+  { id: 'avatar2',  emoji: '👦', label: 'Boy'       },
+  { id: 'avatar3',  emoji: '👧', label: 'Girl'      },
+  { id: 'avatar4',  emoji: '🧑', label: 'Child'     },
+  { id: 'avatar5',  emoji: '👶', label: 'Baby'      },
+  { id: 'avatar6',  emoji: '🦸', label: 'Hero'      },
+  { id: 'avatar7',  emoji: '🧙', label: 'Wizard'    },
+  { id: 'avatar8',  emoji: '🦊', label: 'Fox'       },
+  { id: 'avatar9',  emoji: '🐼', label: 'Panda'     },
+  { id: 'avatar10', emoji: '🦁', label: 'Lion'      },
+  { id: 'avatar11', emoji: '🐸', label: 'Frog'      },
+  { id: 'avatar12', emoji: '🚀', label: 'Astronaut' },
+];
+
+export const AGE_GROUPS = [
+  { id: 'group1', label: '3-4 years', min: 3, max: 4 },
+  { id: 'group2', label: '4-5 years', min: 4, max: 5 },
+  { id: 'group3', label: '5-6 years', min: 5, max: 6 },
+  { id: 'group4', label: '6-8 years', min: 6, max: 8 },
+];

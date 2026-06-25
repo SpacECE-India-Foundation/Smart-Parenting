@@ -40,9 +40,8 @@ const roleOptions = [
 
 const Register = () => {
   const navigate = useNavigate();
-  const { setupUserAccount, isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, userRole } = useAuth();
 
-  // Auto-redirect if already logged in
   useEffect(() => {
     if (isAuthenticated && userRole) {
       navigate(`/${userRole}/dashboard`);
@@ -71,13 +70,25 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (formData.password !== formData.confirmPassword) { setError('Passwords do not match.'); return; }
-    if (formData.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
     setLoading(true);
-    const result = await registerWithEmail(formData.email, formData.password, formData.fullName);
-    if (result.error) { setError(result.error); setLoading(false); }
-    else {
-      await setupUserAccount(result.user, formData.role, formData.fullName);
+    const result = await registerWithEmail(
+      formData.email,
+      formData.password,
+      formData.fullName,
+      formData.role || 'parent'
+    );
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+    } else {
       setSuccessEmail(formData.email);
       setSuccess(true);
       setLoading(false);
@@ -88,11 +99,11 @@ const Register = () => {
     setError('');
     setGoogleLoading(true);
     const result = await loginWithGoogle(formData.role || 'parent');
+    setGoogleLoading(false);
     if (result.error) { setError(result.error); return; }
     navigate('/parent/dashboard');
   };
 
-  /* ── Success State ── */
   if (success) {
     return (
       <Box sx={{ maxWidth: 460, width: '100%', textAlign: 'center', animation: 'bounceIn 0.6s ease-out' }}>
@@ -109,22 +120,18 @@ const Register = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             mx: 'auto', mb: 3,
             boxShadow: '0 8px 28px rgba(59,183,126,0.35)',
-            animation: 'celebrationPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)',
             fontSize: '3rem',
           }}>
             🎉
           </Box>
           <Typography variant="h4" fontWeight={900} sx={{ mb: 1, color: '#1F3A68' }}>
-            You're In! 🎊
+            Account Created! 🎊
           </Typography>
           <Typography variant="body1" color="text.secondary" fontWeight={600} sx={{ mb: 1 }}>
-            A verification email has been sent to
+            Welcome to SpacECE! You can now sign in with:
           </Typography>
           <Typography variant="body1" fontWeight={900} sx={{ color: '#3BB77E', mb: 3 }}>
             {successEmail}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontWeight: 600 }}>
-            Please verify your email before signing in to start your adventure! 🚀
           </Typography>
           <Button
             variant="contained"
@@ -147,7 +154,6 @@ const Register = () => {
   return (
     <Box sx={{ maxWidth: 480, width: '100%', animation: 'fadeIn 0.5s ease-out' }}>
 
-      {/* ── Header ── */}
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
           <SpacECELogo variant="glass" width={120} />
@@ -160,7 +166,6 @@ const Register = () => {
         </Typography>
       </Box>
 
-      {/* ── Card ── */}
       <Box sx={{
         p: { xs: 3, sm: 4 }, borderRadius: '28px',
         background: 'rgba(255,255,255,0.82)',
@@ -172,7 +177,6 @@ const Register = () => {
 
         <form onSubmit={handleSubmit}>
 
-          {/* Role Toggle — as illustrated cards */}
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" fontWeight={800} sx={{ mb: 1.5, color: '#1F3A68' }}>
               I am a:
@@ -200,7 +204,6 @@ const Register = () => {
                         position: 'absolute', top: 6, right: 6,
                         fontSize: 18, color: opt.accent,
                         bgcolor: 'white', borderRadius: '50%',
-                        animation: 'scaleIn 0.25s ease-out',
                       }} />
                     )}
                     <Typography sx={{ fontSize: '1.8rem', mb: 0.5 }}>{opt.emoji}</Typography>
@@ -216,39 +219,36 @@ const Register = () => {
             </Box>
           </Box>
 
-          {/* Mandatory Terms & Privacy Notice Consent */}
           <FormControlLabel
             control={
               <Checkbox
                 checked={agreeToTerms}
                 onChange={(e) => setAgreeToTerms(e.target.checked)}
                 size="small"
-                sx={{
-                  color: '#FF9500',
-                  '&.Mui-checked': { color: '#FF9500' },
-                }}
+                sx={{ color: '#FF9500', '&.Mui-checked': { color: '#FF9500' } }}
               />
             }
             label={
               <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ lineHeight: 1.4, display: 'block', textAlign: 'left' }}>
                 I agree to the{' '}
-                <Link component={RouterLink} to="/terms" sx={{ color: '#FF9500', fontWeight: 800, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                <Link component={RouterLink} to="/terms" sx={{ color: '#FF9500', fontWeight: 800, textDecoration: 'none' }}>
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link component={RouterLink} to="/privacy" sx={{ color: '#FF9500', fontWeight: 800, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                <Link component={RouterLink} to="/privacy" sx={{ color: '#FF9500', fontWeight: 800, textDecoration: 'none' }}>
                   Privacy Policy
                 </Link>
-                . I confirm that I am the parent or legal guardian of any child profiles registered under this account.
+                . I confirm that I am the parent or legal guardian of any child profiles registered.
               </Typography>
             }
             sx={{ mb: 2, alignItems: 'flex-start' }}
           />
 
-          {/* Google Sign-Up */}
           <GoogleSignInButton
-            onClick={handleGoogleSignUp}
-            disabled={googleLoading || !agreeToTerms}
+            role={formData.role}
+            onSuccess={(user) => navigate(`/${user?.role || formData.role}/dashboard`)}
+            onError={(msg) => { setError(msg); setGoogleLoading(false); }}
+            label="Sign up with Google"
           />
 
           <Divider sx={{ my: 2.5 }}>
@@ -260,23 +260,27 @@ const Register = () => {
           <TextField
             fullWidth label="Full Name" value={formData.fullName}
             onChange={handleChange('fullName')} required sx={{ mb: 2 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
           <TextField
             fullWidth label="Email Address" type="email" value={formData.email}
             onChange={handleChange('email')} required sx={{ mb: 2 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
           <PasswordField
@@ -284,7 +288,6 @@ const Register = () => {
             required sx={{ mb: 0.5 }}
           />
 
-          {/* Password strength */}
           {formData.password && (
             <Box sx={{ mb: 2 }}>
               <LinearProgress
@@ -296,7 +299,6 @@ const Register = () => {
                   '& .MuiLinearProgress-bar': {
                     bgcolor: strengthColors[passwordStrength.score - 1] || '#E53E3E',
                     borderRadius: 100,
-                    transition: 'all 0.4s ease',
                   },
                 }}
               />
@@ -326,7 +328,6 @@ const Register = () => {
                 ? 'linear-gradient(135deg, #FF9500 0%, #FFC107 100%)'
                 : 'rgba(0,0,0,0.06)',
               boxShadow: agreeToTerms ? '0 6px 20px rgba(255,149,0,0.4)' : 'none',
-              '&:hover': { boxShadow: agreeToTerms ? '0 10px 28px rgba(255,149,0,0.55)' : 'none' },
             }}
           >
             {loading ? 'Creating Account...' : 'Create Account 🚀'}
@@ -334,7 +335,6 @@ const Register = () => {
         </form>
       </Box>
 
-      {/* ── Footer ── */}
       <Box sx={{ textAlign: 'center', mt: 3 }}>
         <Typography variant="body2" color="text.secondary" fontWeight={600}>
           Already have an account?{' '}
@@ -342,7 +342,6 @@ const Register = () => {
             sx={{
               color: '#FF9500', fontWeight: 900, cursor: 'pointer',
               bgcolor: 'rgba(255,149,0,0.1)', px: 1.5, py: 0.25, borderRadius: 10,
-              '&:hover': { bgcolor: 'rgba(255,149,0,0.2)' },
             }}
             onClick={() => navigate('/')}>
             Sign In →
@@ -354,9 +353,7 @@ const Register = () => {
           sx={{
             mt: 1.5, color: '#718096', fontWeight: 700,
             bgcolor: 'rgba(255,255,255,0.6)',
-            backdropFilter: 'blur(8px)',
             borderRadius: 50, px: 2.5,
-            '&:hover': { bgcolor: 'rgba(255,255,255,0.85)' },
           }}
           size="small"
         >

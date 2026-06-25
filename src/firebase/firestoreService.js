@@ -1,24 +1,6 @@
-/**
- * src/firebase/firestoreService.js
- *
- * Drop-in replacement for the Firebase Firestore general service.
- * Covers: user_accounts, activity_scores, sessions.
- *
- * Firebase method                 →  This service method
- * ────────────────────────────────────────────────────────
- * getUserAccount(uid)             →  getUserAccount(uid)
- * updateUserAccount(uid, data)    →  updateUserAccount(uid, data)
- * createSession(uid)              →  createSession(uid)
- * endSession(sessionId)           →  endSession(sessionId)
- * saveActivityScore(data)         →  saveActivityScore(data)
- * getActivityScores(childId)      →  getActivityScores(childId)
- * getLeaderboard()                →  getLeaderboard()
- * getChildSummary(childId)        →  getChildSummary(childId)
- */
-
 import client from '../api/client';
 
-// ── Users ──────────────────────────────────────────────────────────────────
+// ── Users ───────────────────────────────────────────────────────────────────
 export const getUserAccount = async (uid) => {
   try {
     const { data } = await client.get(`/users/${uid}`);
@@ -46,6 +28,15 @@ export const getAllUsers = async (filters = {}) => {
   }
 };
 
+export const createUserAccount = async (uid, userData) => {
+  try {
+    const result = await client.put(`/users/${uid}`, userData);
+    return { data: result.data?.data, error: null };
+  } catch {
+    return { data: null, error: null };
+  }
+};
+
 export const deactivateUser = async (uid) => {
   try {
     await client.delete(`/users/${uid}`);
@@ -55,7 +46,25 @@ export const deactivateUser = async (uid) => {
   }
 };
 
-// ── Sessions ───────────────────────────────────────────────────────────────
+export const activateUser = async (uid) => {
+  try {
+    const { data } = await client.put(`/users/${uid}`, { is_active: true });
+    return { data: data.data, error: null };
+  } catch (e) {
+    return { data: null, error: e.response?.data?.error || e.message };
+  }
+};
+
+export const changeUserRole = async (uid, role) => {
+  try {
+    const { data } = await client.put(`/users/${uid}`, { role });
+    return { data: data.data, error: null };
+  } catch (e) {
+    return { data: null, error: e.response?.data?.error || e.message };
+  }
+};
+
+// ── Sessions ─────────────────────────────────────────────────────────────────
 export const createSession = async () => {
   try {
     const { data } = await client.post('/sessions');
@@ -74,7 +83,26 @@ export const endSession = async (sessionId) => {
   }
 };
 
-// ── Activity Scores ────────────────────────────────────────────────────────
+export const getActiveSessions = async () => {
+  try {
+    const { data } = await client.get('/sessions');
+    const active = (data.data || []).filter(s => s.is_active);
+    return { data: active, error: null };
+  } catch (e) {
+    return { data: [], error: e.response?.data?.error || e.message };
+  }
+};
+
+export const getUserSessions = async (userId) => {
+  try {
+    const { data } = await client.get('/sessions', { params: { userId } });
+    return { data: data.data || [], error: null };
+  } catch (e) {
+    return { data: [], error: e.response?.data?.error || e.message };
+  }
+};
+
+// ── Scores ───────────────────────────────────────────────────────────────────
 export const saveActivityScore = async (scoreData) => {
   try {
     const { data } = await client.post('/scores', scoreData);
@@ -113,101 +141,18 @@ export const getChildSummary = async (childId) => {
   }
 };
 
-// ── Extra functions used by pages (aliases & additions) ────────────────────
+// ── Notifications (stubs) ─────────────────────────────────────────────────────
+export const getNotifications = async () => ({ data: [], error: null });
+export const getParentNotifications = async () => ({ data: [], error: null });
+export const markNotificationAsRead = async () => ({ error: null });
+export const getUnreadCount = async () => ({ count: 0, error: null });
+export const subscribeToNotifications = (userId, callback) => { callback([]); return () => {}; };
+export const getNotificationTemplates = async () => ({ data: [], error: null });
+export const saveNotificationTemplate = async (data) => ({ data, error: null });
+export const deleteNotificationTemplate = async () => ({ error: null });
+export const toggleNotificationTemplate = async () => ({ error: null });
 
-// createUserAccount — called by login pages after first sign-in
-// In JWT flow, user is already created on register. This is a no-op / update.
-export const createUserAccount = async (uid, data) => {
-  try {
-    const result = await client.put(`/users/${uid}`, data);
-    return { data: result.data?.data, error: null };
-  } catch (e) {
-    // If user doesn't exist yet, silently ignore (JWT register already created them)
-    return { data: null, error: null };
-  }
-};
-
-// activateUser — re-enable a deactivated user
-export const activateUser = async (uid) => {
-  try {
-    const { data } = await client.put(`/users/${uid}`, { is_active: true });
-    return { data: data.data, error: null };
-  } catch (e) {
-    return { data: null, error: e.response?.data?.error || e.message };
-  }
-};
-
-// changeUserRole — update a user's role (admin only)
-export const changeUserRole = async (uid, role) => {
-  try {
-    const { data } = await client.put(`/users/${uid}`, { role });
-    return { data: data.data, error: null };
-  } catch (e) {
-    return { data: null, error: e.response?.data?.error || e.message };
-  }
-};
-
-// getActiveSessions — sessions that are currently active
-export const getActiveSessions = async () => {
-  try {
-    const { data } = await client.get('/sessions');
-    const active = (data.data || []).filter(s => s.is_active);
-    return { data: active, error: null };
-  } catch (e) {
-    return { data: [], error: e.response?.data?.error || e.message };
-  }
-};
-
-// getUserSessions — all sessions for a specific user
-export const getUserSessions = async (userId) => {
-  try {
-    const { data } = await client.get('/sessions', { params: { userId } });
-    return { data: data.data || [], error: null };
-  } catch (e) {
-    return { data: [], error: e.response?.data?.error || e.message };
-  }
-};
-
-// Notifications — stored in MongoDB via scores/activity endpoint for now
-// These are stub implementations that won't crash the app
-export const getNotifications = async (userId) => {
-  return { data: [], error: null };
-};
-
-export const getParentNotifications = async (userId) => {
-  return { data: [], error: null };
-};
-
-export const markNotificationAsRead = async (notifId) => {
-  return { error: null };
-};
-
-export const getUnreadCount = async (userId) => {
-  return { count: 0, error: null };
-};
-
-export const subscribeToNotifications = (userId, callback) => {
-  callback([]);
-  return () => {}; // unsubscribe noop
-};
-
-export const getNotificationTemplates = async () => {
-  return { data: [], error: null };
-};
-
-export const saveNotificationTemplate = async (data) => {
-  return { data, error: null };
-};
-
-export const deleteNotificationTemplate = async (id) => {
-  return { error: null };
-};
-
-export const toggleNotificationTemplate = async (id, enabled) => {
-  return { error: null };
-};
-
-// Feature flags — simple localStorage based (no backend needed)
+// ── Feature Flags ─────────────────────────────────────────────────────────────
 export const subscribeToFeatureFlags = (callback) => {
   const flags = JSON.parse(localStorage.getItem('featureFlags') || '{}');
   callback(flags);
@@ -217,4 +162,55 @@ export const subscribeToFeatureFlags = (callback) => {
 export const saveFeatureFlags = async (flags) => {
   localStorage.setItem('featureFlags', JSON.stringify(flags));
   return { error: null };
+};
+
+// ── Utility helpers ───────────────────────────────────────────────────────────
+export const formatDate = (dateStr) => {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+export const formatDateTime = (dateStr) => {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+export const getInitials = (name = '') => {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '??';
+};
+
+// ── Auth aliases ──────────────────────────────────────────────────────────────
+export const loginWithEmail = async (email, password) => {
+  try {
+    const { data } = await client.post('/auth/login', { email, password });
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    return { user: data.user, error: null };
+  } catch (e) {
+    return { user: null, error: e.response?.data?.error || e.message };
+  }
+};
+
+export const logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/login';
+};
+
+export const sendPasswordReset = async (email) => {
+  try {
+    const { data } = await client.post('/auth/forgot-password', { email });
+    return { message: data.message, error: null };
+  } catch (e) {
+    return { message: null, error: e.response?.data?.error || e.message };
+  }
+};
+
+export const changePassword = async (currentPassword, newPassword) => {
+  try {
+    const { data } = await client.put('/auth/change-password', { currentPassword, newPassword });
+    return { message: data.message, error: null };
+  } catch (e) {
+    return { message: null, error: e.response?.data?.error || e.message };
+  }
 };

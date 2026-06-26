@@ -19,6 +19,33 @@ const AGE_COLORS = {
   '7-10': { color: '#3B82F6', bg: '#EFF6FF' },
 };
 
+// ── Milestone helpers (Age 1–3 only) ─────────────────────────────────────
+/**
+ * Calculates the child's age in whole months from their date of birth,
+ * then maps it to a milestone level (1–6) matching milestones_0_3.json.
+ *
+ * Level 1 → 0–6 months   | Level 4 → 1.5–2 years
+ * Level 2 → 6–12 months  | Level 5 → 2–2.5 years
+ * Level 3 → 1–1.5 years  | Level 6 → 2.5–3 years
+ */
+const getMilestoneInfo = (dateOfBirth) => {
+  if (!dateOfBirth) return null;
+  const dob = new Date(dateOfBirth);
+  const now = new Date();
+  const ageMonths =
+    (now.getFullYear() - dob.getFullYear()) * 12 +
+    (now.getMonth() - dob.getMonth());
+  let milestoneLevel;
+  if      (ageMonths < 6)  milestoneLevel = 1;
+  else if (ageMonths < 12) milestoneLevel = 2;
+  else if (ageMonths < 18) milestoneLevel = 3;
+  else if (ageMonths < 24) milestoneLevel = 4;
+  else if (ageMonths < 30) milestoneLevel = 5;
+  else                     milestoneLevel = 6;
+  return { ageMonths, milestoneLevel };
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const ChildProfileManager = () => {
   const { childProfiles, loading: profilesLoading, createChildProfile, updateChildProfile, deleteChildProfile } = useChildProfile();
   const [dialogOpen,       setDialogOpen]       = useState(false);
@@ -27,7 +54,7 @@ const ChildProfileManager = () => {
   const [deleteTarget,     setDeleteTarget]     = useState(null);
   const [error,            setError]            = useState('');
   const [loading,          setLoading]          = useState(false);
-  const [formData,         setFormData]         = useState({ name: '', avatar: 'avatar1', age_group: '4-6' });
+  const [formData,         setFormData]         = useState({ name: '', avatar: 'avatar1', age_group: '4-6', date_of_birth: '' });
 
   // Always use real Firestore profiles — never fall back to fake IDs.
   // The placeholder fallback (id: '1', '2', '3') was the root cause of
@@ -42,28 +69,62 @@ const ChildProfileManager = () => {
 
   const handleOpenCreate = () => {
     setEditingProfile(null);
-    setFormData({ name: '', avatar: 'avatar1', age_group: '4-6' });
+    setFormData({ name: '', avatar: 'avatar1', age_group: '4-6', date_of_birth: '' });
     setError(''); setDialogOpen(true);
   };
 
   const handleOpenEdit = (profile) => {
     console.log('[ChildProfileManager] Edit clicked — Firestore document ID used for update:', profile.id, '| Profile:', profile.name);
     setEditingProfile(profile);
-    setFormData({ name: profile.name, avatar: profile.avatar, age_group: profile.age_group });
+    setFormData({
+      name: profile.name,
+      avatar: profile.avatar,
+      age_group: profile.age_group,
+      date_of_birth: profile.date_of_birth || '',
+    });
     setError(''); setDialogOpen(true);
   };
 
   const handleSave = async () => {
     if (!formData.name.trim()) { setError('Please enter a name.'); return; }
+
+    // ── Age 1–3: validate DOB and derive milestone fields ─────────
+    if (formData.age_group === '1-3') {
+      if (!formData.date_of_birth) {
+        setError('Please enter the date of birth for children in the 1–3 age group.');
+        return;
+      }
+      const dob = new Date(formData.date_of_birth);
+      if (dob > new Date()) {
+        setError('Date of birth cannot be in the future.');
+        return;
+      }
+      const check = getMilestoneInfo(formData.date_of_birth);
+      if (!check || check.ageMonths > 36) {
+        setError('Date of birth indicates the child is older than 3 years. Please select the correct age group.');
+        return;
+      }
+    }
+
+    // ── Build Firestore payload ────────────────────────────────────
+    let payload;
+    if (formData.age_group === '1-3' && formData.date_of_birth) {
+      const { ageMonths, milestoneLevel } = getMilestoneInfo(formData.date_of_birth);
+      payload = { ...formData, age_months: ageMonths, milestone_level: milestoneLevel };
+    } else {
+      // Ensure milestone fields are explicitly cleared for other age groups
+      payload = { ...formData, date_of_birth: null, age_months: null, milestone_level: null };
+    }
+
     setLoading(true); setError('');
     if (editingProfile) {
-      console.log('[ChildProfileManager] Calling updateChildProfile with Firestore doc ID:', editingProfile.id, '| Data:', formData);
+      console.log('[ChildProfileManager] Calling updateChildProfile with Firestore doc ID:', editingProfile.id, '| Data:', payload);
     } else {
-      console.log('[ChildProfileManager] Calling createChildProfile with data:', formData);
+      console.log('[ChildProfileManager] Calling createChildProfile with data:', payload);
     }
     const result = editingProfile
-      ? await updateChildProfile(editingProfile.id, formData)
-      : await createChildProfile(formData);
+      ? await updateChildProfile(editingProfile.id, payload)
+      : await createChildProfile(payload);
     if (result.error) {
       console.error('[ChildProfileManager] Save failed:', result.error);
       setError(result.error);
@@ -253,7 +314,12 @@ const ChildProfileManager = () => {
             {AGE_GROUPS.map((ag) => (
               <Box
                 key={ag.value}
-                onClick={() => setFormData((p) => ({ ...p, age_group: ag.value }))}
+                onClick={() => setFormData((p) => ({
+                  ...p,
+                  age_group: ag.value,
+                  // Clear DOB when switching away from Age 1-3 so stale data never persists
+                  ...(ag.value !== '1-3' && { date_of_birth: '' }),
+                }))}
                 sx={{
                   flex: 1, py: 1.25, borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
                   bgcolor: formData.age_group === ag.value ? ag.color : '#F9FAFB',
@@ -268,6 +334,29 @@ const ChildProfileManager = () => {
               </Box>
             ))}
           </Box>
+
+          {/* Date of Birth — only shown for Age 1–3 */}
+          {formData.age_group === '1-3' && (
+            <>
+              <Typography
+                variant="caption" fontWeight={900}
+                sx={{ mt: 2.5, mb: 1.25, display: 'block', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}
+              >
+                Date of Birth
+              </Typography>
+              <TextField
+                fullWidth
+                type="date"
+                value={formData.date_of_birth}
+                onChange={(e) => setFormData((p) => ({ ...p, date_of_birth: e.target.value }))}
+                inputProps={{
+                  max: new Date().toISOString().split('T')[0],
+                  min: new Date(new Date().setFullYear(new Date().getFullYear() - 3)).toISOString().split('T')[0],
+                }}
+                helperText="Used to auto-calculate the child's milestone level (1–6)"
+              />
+            </>
+          )}
         </DialogContent>
         <DialogActions sx={{ p: 2.5, gap: 1 }}>
           <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>

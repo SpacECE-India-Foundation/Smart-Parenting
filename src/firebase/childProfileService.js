@@ -70,6 +70,10 @@ export const createChildProfile = async (parentUid, data) => {
       avatar: data.avatar || 'avatar1',
       age_group: data.age_group || '4-6',
       date_of_birth: data.date_of_birth || null,
+      // Milestone fields (populated for Age 1–3 only; null for other groups)
+      age_months: data.age_months ?? null,
+      milestone_level: data.milestone_level ?? null,
+      age_calculated_at: data.age_months != null ? serverTimestamp() : null,
       coin_count: 0,
       xp: 0,
       level: 1,
@@ -93,6 +97,8 @@ export const updateChildProfile = async (profileId, data) => {
     const docRef = doc(db, CHILD_PROFILES_COLLECTION, profileId);
     await updateDoc(docRef, {
       ...data,
+      // Refresh the calculation timestamp whenever age_months is present
+      age_calculated_at: data.age_months != null ? serverTimestamp() : null,
       updated_at: serverTimestamp(),
     });
     return { error: null };

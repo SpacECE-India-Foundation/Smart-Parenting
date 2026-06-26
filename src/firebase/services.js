@@ -609,3 +609,49 @@ export async function getUnlockedAchievements(uid) {
     return [];
   }
 }
+
+/* ══════════════════════════════════════════
+   MILESTONE ASSESSMENTS  →  collection: milestone_assessments
+   Writes ONE document per completed assessment session.
+   Per-question data is stored in the `responses` array inside that document.
+══════════════════════════════════════════ */
+
+/**
+ * Saves the full result of one milestone assessment session as a single
+ * Firestore document. Called once in AssessmentModule.handleFinish.
+ *
+ * Document shape:
+ *   childId         — child's Firestore profile ID
+ *   milestone_level — level 1–6 derived from date_of_birth
+ *   totalScore      — weighted percentage (0–100)
+ *   maxPossible     — TOTAL_QUESTIONS × 2
+ *   domainScores    — { [domain]: { earned, maxPossible, percentage } }
+ *   responses[]     — [{ questionId, selectedAnswer, score }, ...]
+ *   completedAt     — server timestamp
+ *   created_at      — server timestamp
+ *
+ * @param {{ childId: string, milestone_level: number, totalScore: number,
+ *           maxPossible: number,
+ *           domainScores: Record<string,{earned:number,maxPossible:number,percentage:number}>,
+ *           responses: Array<{questionId, selectedAnswer, score}> }} resultData
+ */
+export async function saveMilestoneAssessmentResult(resultData) {
+  try {
+    const ref = collection(db, 'milestone_assessments');
+    await addDoc(ref, {
+      childId:         resultData.childId,
+      milestone_level: resultData.milestone_level,
+      totalScore:      resultData.totalScore,
+      maxPossible:     resultData.maxPossible,
+      domainScores:    resultData.domainScores,
+      responses:       resultData.responses,
+      completedAt:     serverTimestamp(),
+      created_at:      serverTimestamp(),
+    });
+    return { success: true };
+  } catch (e) {
+    console.error('saveMilestoneAssessmentResult:', e);
+    return { success: false, error: e.message };
+  }
+}
+

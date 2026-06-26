@@ -4,6 +4,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
+import { getUserSessions } from '../../firebase/firestoreService';
+import { checkAssessmentSchedule } from '../../utils/assessmentScheduler';
+import RecommendationPanel from '../../components/child/RecommendationPanel';
 import './Home.css';
 
 const LEARNING_PATH = [
@@ -45,19 +48,53 @@ function getGreeting() {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { profile } = useUser();
+  const { user, profile } = useUser();
   const [animateStars, setAnimateStars] = useState(0);
   const [animateXP, setAnimateXP] = useState(0);
-  const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+  // 'first-time' | 'weekly' | null
+  const [assessmentModalType, setAssessmentModalType] = useState(null);
+  const [learningTime, setLearningTime] = useState('0m');
 
-  // ── First-time onboarding: show welcome modal popup if not completed ──
+  // ── Assessment scheduling: show first-time or weekly popup via Firestore ──
   useEffect(() => {
-    if (profile && !profile.assessmentCompleted) {
-      setShowAssessmentModal(true);
-    } else {
-      setShowAssessmentModal(false);
-    }
-  }, [profile]);
+    if (!user?.uid) return;
+    checkAssessmentSchedule(user.uid).then(({ status }) => {
+      if (status === 'none') {
+        setAssessmentModalType('first-time');
+      } else if (status === 'due') {
+        setAssessmentModalType('weekly');
+      } else {
+        setAssessmentModalType(null);
+      }
+    });
+  }, [user?.uid]);
+
+  // ── Fetch real learning time from sessions collection ──
+  useEffect(() => {
+    if (!user?.uid) return;
+    getUserSessions(user.uid).then(({ data: sessions }) => {
+      if (!sessions || sessions.length === 0) return;
+      let totalMs = 0;
+      const now = Date.now();
+      for (const s of sessions) {
+        const login  = s.login_time?.toDate?.() ?? null;
+        const logout = s.logout_time?.toDate?.() ?? null;
+        if (login && logout) {
+          totalMs += logout - login;           // completed session
+        } else if (login && !logout) {
+          totalMs += now - login.getTime();    // current open session
+        }
+      }
+      const totalMin = Math.floor(totalMs / 60000);
+      if (totalMin < 60) {
+        setLearningTime(`${totalMin}m`);
+      } else {
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        setLearningTime(m > 0 ? `${h}h ${m}m` : `${h}h`);
+      }
+    }).catch(() => {});
+  }, [user?.uid]);
 
   const name = profile?.name ?? 'Explorer';
   const greeting = getGreeting();
@@ -201,6 +238,9 @@ export default function Home() {
           </div>
         </div>
 
+        {/* AI Activity Recommendations — shown after milestone assessment */}
+        <RecommendationPanel childId={user?.uid} />
+
         {/* Dashboard Grid */}
         <div className="dashboard-grid">
           {/* Learning Journey Map */}
@@ -270,46 +310,66 @@ export default function Home() {
               <div className="stat-box">
                 <div className="stat-icon-large">⏱️</div>
                 <div className="stat-label">Learning Time</div>
-                <div className="stat-value">2h 45m</div>
+                <div className="stat-value">{learningTime}</div>
               </div>
               <div className="stat-box">
                 <div className="stat-icon-large">📚</div>
                 <div className="stat-label">Lessons Done</div>
-                <div className="stat-value">{23 + (profile?.badges ?? 0) * 2}</div>
+                <div className="stat-value">{MODULES.reduce((sum, m) => sum + m.done, 0)}</div>
               </div>
               <div className="stat-box">
                 <div className="stat-icon-large">🎯</div>
                 <div className="stat-label">Current Level</div>
-                <div className="stat-value">Level {profile?.level ?? 1}</div>
+                <div className="stat-value">Level {profile?.milestone_level ?? profile?.level ?? 1}</div>
               </div>
               <div className="stat-box">
                 <div className="stat-icon-large">🧩</div>
                 <div className="stat-label">Puzzles Solved</div>
-                <div className="stat-value">{42 + (profile?.stars ?? 0)}</div>
+                <div className="stat-value">{Math.floor((profile?.progress?.puzzleWorld ?? 0) / 10)}</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Assessment Welcome Modal Popup */}
-      {showAssessmentModal && (
+      {/* Assessment Modal Popup — first-time or weekly */}
+      {assessmentModalType && (
         <div className="assessment-modal-overlay">
           <div className="assessment-modal-card">
-            <span className="assessment-modal-decor">🧑‍🚀</span>
-            <h2 className="assessment-modal-title">Welcome, Explorer!</h2>
-            <p className="assessment-modal-text">
-              Before we begin our learning journey, let's complete a quick and fun skill assessment!
-            </p>
+            {assessmentModalType === 'first-time' ? (
+              <>
+                <span className="assessment-modal-decor">🧑‍🚀</span>
+                <h2 className="assessment-modal-title">Welcome, Explorer!</h2>
+                <p className="assessment-modal-text">
+                  Before we begin our learning journey, let's complete a quick and fun skill assessment!
+                </p>
+              </>
+            ) : (
+              <>
+                <span className="assessment-modal-decor">📋</span>
+                <h2 className="assessment-modal-title">Time for Your Weekly Check-in!</h2>
+                <p className="assessment-modal-text">
+                  It's been a week! Take a short assessment to track your progress and unlock new activities.
+                </p>
+              </>
+            )}
             <button
               className="assessment-modal-btn"
               onClick={() => {
-                setShowAssessmentModal(false);
+                setAssessmentModalType(null);
                 navigate('/child/assessment?start=true');
               }}
             >
-              🚀 Start Assessment
+              {assessmentModalType === 'first-time' ? '🚀 Start Assessment' : '🎯 Take Weekly Assessment'}
             </button>
+            {assessmentModalType === 'weekly' && (
+              <button
+                className="assessment-modal-skip"
+                onClick={() => setAssessmentModalType(null)}
+              >
+                Maybe Later
+              </button>
+            )}
           </div>
         </div>
       )}

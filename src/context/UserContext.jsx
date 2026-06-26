@@ -63,7 +63,12 @@ export function UserProvider({ children }) {
       // Check local storage for active child session first
       const childId = localStorage.getItem('spaceece_child_id');
       const role = localStorage.getItem('spaceece_role');
-      if (role === 'child' && childId) {
+      // If a child session is active (childId in localStorage), always load
+      // that child's Firestore profile — regardless of role value, because the
+      // parent Firebase auth session can overwrite spaceece_role back to 'parent'
+      // before this handler fires, causing the && check to fail and falling
+      // through to loginAnonymous() → mock-user-123.
+      if (childId) {
         const prof = await getUserProfile(childId);
         setUser({ uid: childId, isAnonymous: false, displayName: prof?.name || 'Child' });
         setProfile(prof);

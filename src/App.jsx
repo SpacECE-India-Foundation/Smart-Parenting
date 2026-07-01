@@ -14,12 +14,16 @@ import theme from './theme/theme';
 import { ThemeProvider } from './context/ThemeContext';
 import { UserProvider } from './context/UserContext';
 import Layout from './components/layout/Layout';
+import MaintenancePage from './components/shared/MaintenancePage';
+import LoadingSpinner from './components/shared/LoadingSpinner';
 
 // Core contexts
 import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import { ChildProfileProvider, useChildProfile } from './context/ChildProfileContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { AppProvider as PlatformProvider } from './context/AppContext';
+import { useApp } from './context/AppContext';
 
 // Auth layouts & pages
 import AuthLayout from './components/layout/AuthLayout';
@@ -85,6 +89,30 @@ import CreativityWorldPage from './pages/cognitive-sel/CreativityWorldPage';
 import EmotionWorldPage from './pages/cognitive-sel/EmotionWorldPage';
 import CognitiveStoryWorldPage from './pages/cognitive-sel/StoryWorldPage';
 
+/**
+ * MaintenanceGate
+ * Must live INSIDE PlatformProvider so it can read useApp().
+ * Blocks all non-admin users when maintenanceMode is ON.
+ * While flags are still loading from Firestore, shows a spinner to
+ * prevent a flash of the maintenance page on first load.
+ */
+function MaintenanceGate({ children }) {
+  const { featureFlags, flagsLoaded } = useApp();
+  const { userRole } = useAuth();
+
+  // Still fetching flags — show a brief loader instead of wrong screen
+  if (!flagsLoaded) {
+    return <LoadingSpinner fullScreen message="Loading platform..." />;
+  }
+
+  // Maintenance is ON and the user is NOT an admin → show maintenance page
+  if (featureFlags.maintenanceMode && userRole !== 'admin') {
+    return <MaintenancePage />;
+  }
+
+  return children;
+}
+
 function ParentAnalyticsView() {
   const { activeChild, refreshProfiles } = useChildProfile();
   if (!activeChild) {
@@ -121,6 +149,7 @@ export default function App() {
               <PlatformProvider>
                 <UserProvider>
                   <BrowserRouter>
+                    <MaintenanceGate>
                     <Routes>
                       {/* Public Auth Routes */}
                       <Route element={<AuthLayout />}>
@@ -201,6 +230,7 @@ export default function App() {
                       {/* Fallback */}
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
+                    </MaintenanceGate>
                   </BrowserRouter>
                 </UserProvider>
               </PlatformProvider>

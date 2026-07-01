@@ -15,7 +15,7 @@ const FloatingStars = () => (
       { emoji: '🌟', top: '55%', right: '3%',  size: '0.95rem',delay: '0.8s', dur: '5s'   },
       { emoji: '💫', top: '78%', right: '5%',  size: '0.8rem', delay: '2.2s', dur: '3.8s' },
     ].map((star, i) => (
-      <Box key={i} sx={{
+      <Box key={i} className="floating-stars-container" data-portal-decoration sx={{
         position: 'fixed',
         fontSize: star.size,
         top: star.top, right: star.right,

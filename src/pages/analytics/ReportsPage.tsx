@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
   FileText, Printer, Download, Compass, Sparkles, AlertTriangle, History, Info,
-  ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, ClipboardList, Trash2,
+  ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, ClipboardList, Trash2, Copy, Users,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
@@ -9,6 +9,7 @@ import { db } from '../../firebase/config';
 import { getAssessments, getAiAnalysis, getChildren, NEP_MILESTONES, calculateSchoolReadinessScore } from '../../services/firebaseSimulator';
 import type { Assessment, AIAnalysis, Child } from '../../services/firebaseSimulator';
 import { generateRecommendations } from '../../data/activityRecommendations';
+import { DevelopmentalLearningCurves, getCompletedAtTime } from './DevelopmentalLearningCurves';
 
 // "?"?"? Milestone Assessment Types "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
 
@@ -292,10 +293,19 @@ const ReportCard: React.FC<{
 
 // "?"?"? Assessment History Section (Firestore) "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
 
-const AssessmentHistorySection: React.FC<{ selectedChild: { id: string; name: string } }> = ({ selectedChild }) => {
-  const childId = selectedChild.id;
-  const [milestoneAssessments, setMilestoneAssessments] = useState<MilestoneAssessment[]>([]);
-  const [maLoading, setMaLoading] = useState(true);
+interface AssessmentHistorySectionProps {
+  selectedChild: { id: string; name: string };
+  milestoneAssessments: MilestoneAssessment[];
+  maLoading: boolean;
+  setMilestoneAssessments: React.Dispatch<React.SetStateAction<MilestoneAssessment[]>>;
+}
+
+const AssessmentHistorySection: React.FC<AssessmentHistorySectionProps> = ({
+  selectedChild,
+  milestoneAssessments,
+  maLoading,
+  setMilestoneAssessments,
+}) => {
   const [clearing, setClearing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -314,42 +324,7 @@ const AssessmentHistorySection: React.FC<{ selectedChild: { id: string; name: st
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    setMaLoading(true);
-    setMilestoneAssessments([]);
-    console.log('[AssessmentHistory] Querying milestone_assessments for childId:', childId);
-    (async () => {
-      try {
-        // NOTE: orderBy removed ?" combining where + orderBy requires a composite index.
-        // Sorted client-side below (newest first).
-        const q = query(
-          collection(db, 'milestone_assessments'),
-          where('childId', '==', childId),
-        );
-        const snap = await getDocs(q);
-        console.log('[AssessmentHistory] Raw docs returned:', snap.size);
-        if (!cancelled) {
-          const docs = snap.docs
-            .map(d => ({ id: d.id, ...d.data() } as MilestoneAssessment))
-            .sort((a, b) => {
-              const ta = a.completedAt?.toDate?.()?.getTime?.() ?? 0;
-              const tb = b.completedAt?.toDate?.()?.getTime?.() ?? 0;
-              return tb - ta; // newest first
-            });
-          setMilestoneAssessments(docs);
-        }
-      } catch (e) {
-        console.error('[AssessmentHistory] Firestore error:', e);
-        if (!cancelled) setMilestoneAssessments([]);
-      } finally {
-        if (!cancelled) setMaLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [childId]);
-
-  // Timeline: oldest ?' newest (for the bar chart)
+  // Timeline: oldest -> newest (for the bar chart)
   const timeline = useMemo(() =>
     [...milestoneAssessments].reverse().map((a, i) => ({
       label: `#${i + 1}`,
@@ -437,7 +412,7 @@ const AssessmentHistorySection: React.FC<{ selectedChild: { id: string; name: st
 
       {/* Confirm Clear Modal */}
       {showClearConfirm && (
-        <div style={{
+        <div className="print-hide" style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(6px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
@@ -507,6 +482,7 @@ const AssessmentHistorySection: React.FC<{ selectedChild: { id: string; name: st
           </h3>
           {milestoneAssessments.length > 0 && (
             <button
+              className="print-hide"
               onClick={() => setShowClearConfirm(true)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
@@ -539,6 +515,225 @@ const AssessmentHistorySection: React.FC<{ selectedChild: { id: string; name: st
     </div>
   );
 };
+
+// ─── Domain-wise Assessment History Table ─────────────────────────────────────
+
+interface DomainWiseTableProps {
+  milestoneAssessments: MilestoneAssessment[];
+}
+
+const DomainWiseTable: React.FC<DomainWiseTableProps> = ({ milestoneAssessments }) => {
+  // Sort assessments chronologically (oldest = Assessment 1)
+  const chronologicalAssessments = useMemo(() => {
+    return [...milestoneAssessments].sort((a, b) => getCompletedAtTime(a.completedAt) - getCompletedAtTime(b.completedAt));
+  }, [milestoneAssessments]);
+
+  // Derive domains dynamically
+  const domains = useMemo(() => {
+    if (milestoneAssessments.length === 0) return [];
+    return Object.keys(milestoneAssessments[0]?.domainScores || {});
+  }, [milestoneAssessments]);
+
+  const handleCopySummary = () => {
+    const summaryText = domains.map(domain => {
+      const latestVal = chronologicalAssessments[chronologicalAssessments.length - 1]?.domainScores?.[domain]?.percentage;
+      const displayVal = latestVal !== undefined ? `${latestVal}%` : '—';
+      return `${domain}: ${displayVal}`;
+    }).join('\n');
+    navigator.clipboard.writeText(summaryText)
+      .then(() => alert('Summary copied to clipboard!'))
+      .catch(err => console.error('Failed to copy text: ', err));
+  };
+
+  if (milestoneAssessments.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No assessment history available.</p>
+      </div>
+    );
+  }
+
+  const isScrollable = chronologicalAssessments.length > 4;
+
+  return (
+    <>
+      <div style={{ overflowX: isScrollable ? 'auto' : 'visible', width: '100%' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isScrollable ? '650px' : '100%' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#F9F5EE', fontSize: '0.78rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+              <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #F0E8DA' }}>Domain</th>
+              {chronologicalAssessments.map((_, index) => (
+                <th key={index} className="hidden sm:table-cell" style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #F0E8DA' }}>
+                  Assessment {index + 1}
+                </th>
+              ))}
+              <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #F0E8DA' }}>Latest</th>
+              <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #F0E8DA', whiteSpace: 'nowrap' }}>
+                <span style={{ marginRight: '6px' }}>Avg Growth / Assessment</span>
+                <button 
+                  onClick={handleCopySummary}
+                  title="Copy Summary"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, verticalAlign: 'middle', color: 'var(--text-secondary)' }}
+                >
+                  <Copy size={14} />
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {domains.map((domain, rowIndex) => {
+              const rowBg = rowIndex % 2 === 0 ? '#FFFFFF' : '#FFF8EC';
+              
+              const latestVal = chronologicalAssessments[chronologicalAssessments.length - 1]?.domainScores?.[domain]?.percentage;
+              
+              const scores = chronologicalAssessments
+                .map(a => a.domainScores?.[domain]?.percentage)
+                .filter((val): val is number => val !== undefined);
+  
+              let avgGrowth: number | null = null;
+              if (scores.length >= 2) {
+                const firstScore = scores[0];
+                const latestScore = scores[scores.length - 1];
+                avgGrowth = Number(((latestScore - firstScore) / (scores.length - 1)).toFixed(1));
+              }
+  
+              return (
+                <tr key={domain} style={{ backgroundColor: rowBg, borderBottom: '1px solid #F0E8DA' }}>
+                  <td style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold', fontSize: '0.82rem', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                    <span style={{ marginRight: '8px' }}>{getDomainEmoji(domain)}</span>
+                    {domain}
+                  </td>
+                  {chronologicalAssessments.map((a, colIndex) => {
+                    const score = a.domainScores?.[domain]?.percentage;
+                    return (
+                      <td key={colIndex} className="hidden sm:table-cell" style={{ textAlign: 'center', padding: '12px', fontSize: '0.82rem', fontWeight: 'bold', color: score !== undefined ? scoreColor(score) : 'var(--text-muted)' }}>
+                        {score !== undefined ? `${score}%` : '—'}
+                      </td>
+                    );
+                  })}
+                  <td style={{ textAlign: 'center', padding: '12px', fontSize: '0.82rem', fontWeight: 'bold', color: latestVal !== undefined ? scoreColor(latestVal) : 'var(--text-muted)' }}>
+                    {latestVal !== undefined ? `${latestVal}%` : '—'}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '12px', fontSize: '0.82rem', fontWeight: 'bold' }}>
+                    {avgGrowth === null ? (
+                      <span style={{ color: 'var(--text-muted)' }}>—</span>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{
+                            display: 'inline-block',
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            backgroundColor: avgGrowth > 0 ? '#10B981' : avgGrowth < 0 ? '#EF4444' : '#8A8A8A'
+                          }} />
+                          <span style={{
+                            color: avgGrowth > 0 ? '#10B981' : avgGrowth < 0 ? '#EF4444' : 'var(--text-muted)',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {avgGrowth > 0 ? `+${avgGrowth}` : avgGrowth}% / assessment
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 500 }}>
+                          {avgGrowth > 0 ? '📈 Avg Increment' : avgGrowth < 0 ? '📉 Avg Decline' : '➡️ No Change'}
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div style={{
+        marginTop: '16px',
+        background: 'rgba(59, 130, 246, 0.06)',
+        border: '1px solid rgba(59, 130, 246, 0.15)',
+        borderRadius: '10px',
+        padding: '10px 14px',
+        fontSize: '0.78rem',
+        color: 'var(--color-text-secondary)',
+        lineHeight: '1.6'
+      }}>
+        <strong style={{ color: '#1A1A1A' }}>📘 Parent Guide:</strong> Avg Growth / Assessment indicates the average improvement in your child's performance across all completed assessments within each developmental domain. This helps you understand long-term learning progress instead of focusing on a single assessment result.
+      </div>
+    </>
+  );
+};
+
+// ─── Domain-wise Comparison Table Helpers ─────────────────────────────────────
+const getDomainVisualInfo = (domain: string) => {
+  switch (domain) {
+    case 'Literacy':
+      return {
+        bg: 'rgba(16,185,129,0.15)',
+        content: <span style={{ fontSize: '1rem' }}>📖</span>
+      };
+    case 'Numeracy':
+      return {
+        bg: 'rgba(99,102,241,0.15)',
+        content: <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#6366F1' }}>123</span>
+      };
+    case 'Cognitive':
+      return {
+        bg: 'rgba(139,92,246,0.15)',
+        content: <span style={{ fontSize: '1rem' }}>🧠</span>
+      };
+    case 'Creativity':
+      return {
+        bg: 'rgba(249,115,22,0.15)',
+        content: <span style={{ fontSize: '1rem' }}>🎨</span>
+      };
+    case 'Emotional':
+      return {
+        bg: 'rgba(239,68,68,0.15)',
+        content: <span style={{ fontSize: '1rem' }}>😊</span>
+      };
+    case 'physical':
+    case 'Physical Development':
+      return { bg: 'rgba(16,185,129,0.15)', content: <span style={{ fontSize: '1rem' }}>🏃</span> };
+    case 'cognitive':
+    case 'Cognitive Development':
+      return { bg: 'rgba(139,92,246,0.15)', content: <span style={{ fontSize: '1rem' }}>🧠</span> };
+    case 'emotional':
+    case 'Emotional Development':
+      return { bg: 'rgba(239,68,68,0.15)', content: <span style={{ fontSize: '1rem' }}>😊</span> };
+    case 'social':
+    case 'Social Development':
+      return { bg: 'rgba(99,102,241,0.15)', content: <span style={{ fontSize: '1rem' }}>🤝</span> };
+    case 'aesthetic':
+    case 'Aesthetic Development':
+      return { bg: 'rgba(249,115,22,0.15)', content: <span style={{ fontSize: '1rem' }}>🎨</span> };
+    default:
+      return {
+        bg: 'rgba(156,163,175,0.15)',
+        content: <span style={{ fontSize: '1rem' }}>📊</span>
+      };
+  }
+};
+
+const getDomainNote = (domain: string, status: 'above' | 'ontrack' | 'needs') => {
+  const notes: Record<string, Record<'above' | 'ontrack' | 'needs', string>> = {
+    Literacy: { above: 'Excellent!', ontrack: 'Keep practicing!', needs: 'Needs focus' },
+    Numeracy: { above: 'Great work!', ontrack: 'Keep practicing!', needs: 'Needs focus' },
+    Cognitive: { above: 'Great job!', ontrack: 'Keep practicing!', needs: 'Practice more!' },
+    Creativity: { above: 'Great job!', ontrack: 'Keep practicing!', needs: 'Needs focus' },
+    Emotional: { above: 'Excellent!', ontrack: 'Keep practicing!', needs: 'Focus area' },
+    'physical': { above: 'Great strength!', ontrack: 'Keep active!', needs: 'Needs focus' },
+    'cognitive': { above: 'Great job!', ontrack: 'Keep practicing!', needs: 'Practice more!' },
+    'emotional': { above: 'Excellent!', ontrack: 'Keep practicing!', needs: 'Focus area' },
+    'social': { above: 'Excellent!', ontrack: 'Keep interacting!', needs: 'Needs focus' },
+    'aesthetic': { above: 'Great creativity!', ontrack: 'Keep creating!', needs: 'Needs focus' },
+    'Physical Development': { above: 'Great strength!', ontrack: 'Keep active!', needs: 'Needs focus' },
+    'Cognitive Development': { above: 'Great job!', ontrack: 'Keep practicing!', needs: 'Practice more!' },
+    'Emotional Development': { above: 'Excellent!', ontrack: 'Keep practicing!', needs: 'Focus area' },
+    'Social Development': { above: 'Excellent!', ontrack: 'Keep interacting!', needs: 'Needs focus' },
+    'Aesthetic Development': { above: 'Great creativity!', ontrack: 'Keep creating!', needs: 'Needs focus' }
+  };
+  return notes[domain]?.[status] || '';
+};
+
 // "?"?"? ReportsPage (main export) "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
 
 // Use a broad interface so both the real Firestore activeChild and the simulator
@@ -574,24 +769,138 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ selectedChild }) => {
   const [cohortData, setCohortData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [milestoneAssessments, setMilestoneAssessments] = useState<MilestoneAssessment[]>([]);
+  const [maLoading, setMaLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setMaLoading(true);
+    setMilestoneAssessments([]);
+    console.log('[ReportsPage] Querying milestone_assessments for childId:', childId);
+    (async () => {
+      try {
+        const q = query(
+          collection(db, 'milestone_assessments'),
+          where('childId', '==', childId),
+        );
+        const snap = await getDocs(q);
+        if (!cancelled) {
+          const docs = snap.docs
+            .map(d => ({ id: d.id, ...d.data() } as MilestoneAssessment))
+            .sort((a, b) => {
+              const ta = a.completedAt?.toDate?.()?.getTime?.() ?? 0;
+              const tb = b.completedAt?.toDate?.()?.getTime?.() ?? 0;
+              return tb - ta; // newest first
+            });
+          setMilestoneAssessments(docs);
+        }
+      } catch (e) {
+        console.error('[ReportsPage] Firestore error:', e);
+        if (!cancelled) setMilestoneAssessments([]);
+      } finally {
+        if (!cancelled) setMaLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [childId]);
+
+  // Real child averages from Firestore milestone_assessments
+  const realChildAverages = useMemo(() => {
+    const result: Record<string, number> = {};
+    if (milestoneAssessments.length === 0) return result;
+    // Get all domain keys dynamically from the first assessment
+    const domainKeys = Object.keys(milestoneAssessments[0]?.domainScores ?? {});
+    domainKeys.forEach(domain => {
+      const allPercentages = milestoneAssessments
+        .map(a => a.domainScores?.[domain]?.percentage)
+        .filter((v): v is number => v !== undefined);
+      result[domain] = allPercentages.length > 0
+        ? Math.round(allPercentages.reduce((sum, v) => sum + v, 0) / allPercentages.length)
+        : 0;
+    });
+    return result;
+  }, [milestoneAssessments]);
+
+  // Age-Group Average from real Firestore data using 2-step formula
   useEffect(() => {
     setLoading(true);
-    Promise.all([getAssessments(childId), getAiAnalysis(childId), getChildren(), calculateSchoolReadinessScore(childId)]).then(async ([a, an, kids, r]) => {
+    Promise.all([
+      getAssessments(childId),
+      getAiAnalysis(childId),
+      calculateSchoolReadinessScore(childId),
+    ]).then(async ([a, an, r]) => {
       setAssessments(a); setAnalysis(an); setReadiness(r);
-      // Cohort comparison
-      const domains = ['Literacy', 'Numeracy', 'Cognitive', 'Creativity', 'Emotional'];
-      const childAvgs: Record<string, number> = {};
-      domains.forEach(d => { const list = a.filter(x => x.domain === d); childAvgs[d] = list.length > 0 ? list.reduce((acc, curr) => acc + curr.score, 0) / list.length : 0; });
-      const otherKids = kids.filter(c => c.id !== childId);
-      const cohortAvgs = await Promise.all(domains.map(async d => {
-        let sum = 0, count = 0;
-        await Promise.all(otherKids.map(async kid => { const list = (await getAssessments(kid.id)).filter(x => x.domain === d); if (list.length > 0) { sum += list.reduce((acc, curr) => acc + curr.score, 0) / list.length; count++; } }));
-        return count > 0 ? Math.round(sum / count) : 75;
-      }));
-      setCohortData(domains.map((domain, i) => ({ domain, Child: Math.round(childAvgs[domain] || 0), AgeGroupAverage: cohortAvgs[i] })));
+
+      const selectedAgeGroup: string =
+        (selectedChild as any).age_group ??
+        ((selectedChild.age ?? 5) <= 3 ? '1-3' : (selectedChild.age ?? 5) <= 6 ? '4-6' : '7-10');
+
+      console.log('[Cohort] selectedAgeGroup:', selectedAgeGroup);
+
+      // Fetch ALL milestone_assessments across all children in one query
+      const allSnap = await getDocs(collection(db, 'milestone_assessments'));
+      console.log('[Cohort] Total milestone_assessments in Firestore:', allSnap.docs.length);
+
+      // Group by childId, exclude current child
+      const byChild: Record<string, MilestoneAssessment[]> = {};
+      allSnap.docs.forEach(d => {
+        const data = { id: d.id, ...d.data() } as MilestoneAssessment;
+        if (data.childId === childId) return;
+        if (!byChild[data.childId]) byChild[data.childId] = [];
+        byChild[data.childId].push(data);
+      });
+      console.log('[Cohort] Other childIds with assessments:', Object.keys(byChild));
+
+      // Fetch child_profiles to filter by age group
+      const profilesSnap = await getDocs(collection(db, 'child_profiles'));
+      const childProfiles: Record<string, any> = {};
+      profilesSnap.docs.forEach(d => { childProfiles[d.id] = { id: d.id, ...d.data() }; });
+      console.log('[Cohort] child_profiles count:', profilesSnap.docs.length);
+
+      // Filter to same age group
+      const sameGroupChildIds = Object.keys(byChild).filter(cid => {
+        const profile = childProfiles[cid];
+        if (!profile) { console.log(`[Cohort] No profile for ${cid} — including`); return true; }
+        const ag = profile.age_group ??
+          ((profile.age ?? 5) <= 3 ? '1-3' : (profile.age ?? 5) <= 6 ? '4-6' : '7-10');
+        console.log(`[Cohort] Child ${cid} name:${profile.name} age_group:${ag}`);
+        return ag === selectedAgeGroup;
+      });
+      console.log('[Cohort] Same age group childIds:', sameGroupChildIds);
+
+      // Get domain keys dynamically from current child's assessments
+      const domainKeys = milestoneAssessments.length > 0
+        ? Object.keys(milestoneAssessments[0]?.domainScores ?? {})
+        : ['cognitive', 'emotional', 'physical', 'social', 'aesthetic'];
+
+      console.log('[Cohort] domainKeys:', domainKeys);
+
+      // Compute age-group average per domain
+      const cohortRows = domainKeys.map(domain => {
+        const kidAverages: number[] = [];
+        sameGroupChildIds.forEach(cid => {
+          const kidAssessments = byChild[cid] ?? [];
+          const percentages = kidAssessments
+            .map(a => a.domainScores?.[domain]?.percentage)
+            .filter((v): v is number => v !== undefined);
+          if (percentages.length > 0) {
+            const kidAvg = percentages.reduce((sum, v) => sum + v, 0) / percentages.length;
+            kidAverages.push(kidAvg);
+            console.log(`[Cohort] Child ${cid} domain "${domain}" avg: ${kidAvg}`);
+          }
+        });
+        const ageGroupAvg = kidAverages.length > 0
+          ? Math.round(kidAverages.reduce((sum, v) => sum + v, 0) / kidAverages.length)
+          : 75;
+        console.log(`[Cohort] Domain "${domain}" final avg: ${ageGroupAvg}`);
+        return { domain, Child: 0, AgeGroupAverage: ageGroupAvg };
+      });
+
+      console.log('[Cohort] Final cohortData:', cohortRows);
+      setCohortData(cohortRows);
       setLoading(false);
     });
-  }, [childId]);
+  }, [childId, milestoneAssessments, selectedChild]);
 
   const monthlyReports = useMemo(() => {
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -676,14 +985,45 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ selectedChild }) => {
   if (loading) return <div className="fade-in" style={{ padding: '40px', textAlign: 'center', fontSize: '1.2rem' }}> Loading reports...</div>;
 
   return (
-    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="fade-in print-report" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+      {/* ── Print-only report header ───────────────────────────────────────────
+           Hidden on screen via display:none (inline style).
+           Revealed by @media print: .print-report .print-only-header { display: flex !important }
+           Contains: SpacECE branding, report title, child name, generation date.
+           ──────────────────────────────────────────────────────────────────── */}
+      <div className="print-only-header" style={{ display: 'none' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          {/* SpacECE brand mark */}
+          <div>
+            <div style={{ fontSize: '22pt', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+              <span style={{ color: '#222222' }}>Space</span><span style={{ color: '#F4A300' }}>ECE</span>
+            </div>
+            <div style={{ fontSize: '7pt', fontWeight: 800, color: '#F4A300', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: '2pt' }}>
+              India Foundation · Learning Adventures
+            </div>
+          </div>
+          {/* Report meta */}
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '13pt', fontWeight: 800, color: '#1A1A1A' }}>Child Development Assessment Report</div>
+            <div style={{ fontSize: '9pt', color: '#5A5A5A', marginTop: '3pt' }}>
+              <strong>{selectedChild.name}</strong>
+              &nbsp;·&nbsp;
+              Generated on {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+            </div>
+          </div>
+        </div>
+        {/* Gold accent divider */}
+        <div style={{ height: '2pt', background: '#F4A300', marginTop: '10pt', borderRadius: '1pt' }} />
+      </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div><h2 style={{ fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '10px' }}><FileText size={28} color="var(--primary)" />Developmental Reports & Milestones</h2><p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>Complete historical analytics, age group averages, and milestones mapping against NEP 2020 Guidelines.</p></div>
-        <div style={{ display: 'flex', gap: '12px' }} className="print-hide"><button className="btn btn-secondary" onClick={handleDownloadPdf}><Download size={18} />Download PDF</button><button className="btn" onClick={() => window.print()}><Printer size={18} />Print Report</button></div>
+        <div style={{ display: 'flex', gap: '12px' }} className="print-hide"><button className="btn btn-secondary" onClick={() => window.print()}><Printer size={18} />Print Report</button></div>
       </div>
 
+      {/* print-hide: modal is never open during a print() call, but added as defensive guard */}
       {showPdfModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+        <div className="print-hide" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div className="glass-card" style={{ width: '100%', maxWidth: '450px', padding: '30px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', borderRadius: '20px' }}>
             <h3 style={{ fontSize: '1.4rem', color: 'white', marginBottom: '8px' }}>Generating PDF Report</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>{selectedChild.name}'s developmental diagnostics</p>
@@ -696,84 +1036,158 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ selectedChild }) => {
       )}
 
       {/* "?"? Assessment History (real Firestore data) "?"? */}
-      <AssessmentHistorySection selectedChild={selectedChild} />
+      <AssessmentHistorySection
+        selectedChild={selectedChild}
+        milestoneAssessments={milestoneAssessments}
+        maLoading={maLoading}
+        setMilestoneAssessments={setMilestoneAssessments}
+      />
 
       {/* "?"? Original sections: fully preserved "?"? */}
       <div className="dashboard-grid-2">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="glass-card print-hide">
-            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}><History size={18} />Month-by-Month Diagnostic Reports</h3>
-            {monthlyReports.length > 0 ? (
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
-                {monthlyReports.map(r => <button key={r.id} onClick={() => setSelectedMonthKey(r.id)} className={`btn ${selectedMonthKey === r.id ? '' : 'btn-secondary'}`} style={{ padding: '8px 12px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{r.report_date} Report</button>)}
-              </div>
-            ) : <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No monthly diagnostic data populated yet.</p>}
+          <div className="glass-card" style={{ marginBottom: '13px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <History size={18} />Domain-wise Progress History
+            </h3>
+            <DomainWiseTable milestoneAssessments={milestoneAssessments} />
           </div>
 
-          {activeReport ? (
-            <div className="glass-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '14px', marginBottom: '16px' }}>
-                <div><span className="role-badge role-parent" style={{ marginBottom: '6px' }}>Monthly Progress Diagnostic</span><h3 style={{ fontSize: '1.4rem' }}>{activeReport.report_date} Analytics Summary</h3></div>
-                <div style={{ textAlign: 'right' }}><span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Monthly Readiness Index</span><h3 style={{ fontSize: '1.5rem', color: 'var(--primary)' }}>{activeReport.school_readiness_score}%</h3></div>
-              </div>
-              <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Domain Performance Grid</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-                {Object.entries(activeReport.domain_scores).map(([domain, score]) => (
-                  <div key={domain} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '600' }}>{domain}</span>
-                    <h4 style={{ fontSize: '1.25rem', marginTop: '4px' }}>{score as number}%</h4>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{activeReport.time_spent[domain] || 0} mins played</span>
-                  </div>
-                ))}
-              </div>
-              {activeReport.ai_flags.length > 0 ? (
-                <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '10px', padding: '12px', marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '0.85rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 6px 0' }}><AlertTriangle size={14} />Flags Detected During This Period</h4>
-                  <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{activeReport.ai_flags.map((f: string, i: number) => <li key={i} style={{ marginTop: '2px' }}>{f}</li>)}</ul>
-                </div>
-              ) : <div style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '10px', padding: '12px', marginBottom: '16px', fontSize: '0.8rem', color: 'var(--color-success)' }}>o" No severe developmental flags reported for this period.</div>}
-              <div>
-                <h4 style={{ fontSize: '0.85rem', color: '#818cf8', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 8px 0' }}><Sparkles size={14} />AI Suggested Recommendations</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>{activeReport.recommendations.map((r: string, i: number) => <div key={i} style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.01)', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>{r}</div>)}</div>
-              </div>
-            </div>
-          ) : <div className="glass-card" style={{ textAlign: 'center', padding: '40px' }}><FileText size={40} color="var(--text-muted)" style={{ margin: '0 auto 12px' }} /><h4>No Report Profile Selected</h4></div>}
+          <div className="glass-card" style={{ marginBottom: '24px' }}>
+            {/* Header */}
+            <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Users size={18} />Child vs Age-Group Comparison
+            </h3>
 
-          <div className="glass-card">
-            <h3 style={{ marginBottom: '16px' }}>Child vs Age-Group Average Cohorts</h3>
-            <div style={{ width: '100%', height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={cohortData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" /><XAxis dataKey="domain" stroke="var(--text-secondary)" style={{ fontSize: '0.8rem' }} /><YAxis stroke="var(--text-secondary)" style={{ fontSize: '0.8rem' }} />
-                  <ChartTooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: 'var(--text-primary)', borderRadius: '8px' }} /><Legend style={{ fontSize: '0.8rem' }} />
-                  <Bar name={selectedChild.name} dataKey="Child" fill="var(--primary)" radius={[3, 3, 0, 0]} />
-                  <Bar name="Age-Group Average" dataKey="AgeGroupAverage" fill="var(--color-secondary-light)" radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Legend row */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#5A5A5A', fontWeight: '600' }}><span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#10B981', display: 'inline-block' }} />Above Average</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#5A5A5A', fontWeight: '600' }}><span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#F4A300', display: 'inline-block' }} />On Track</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#5A5A5A', fontWeight: '600' }}><span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#EF4444', display: 'inline-block' }} />Needs Support</span>
             </div>
+
+            {/* Table */}
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#F9F5EE', fontSize: '0.78rem', fontWeight: '700', color: '#1A1A1A' }}>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #F0E8DA' }}>📚 Domain</th>
+                    <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '1px solid #F0E8DA' }}>👶 Your Child Average</th>
+                    <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '1px solid #F0E8DA' }}>👥 Age-Group Average</th>
+                    <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '1px solid #F0E8DA' }}>📊 Gap</th>
+                    <th style={{ width: '150px', padding: '12px 16px', borderBottom: '1px solid #F0E8DA' }}></th>
+                    <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '1px solid #F0E8DA' }}>🎯 Status</th>
+                    <th style={{ padding: '12px 16px', borderBottom: '1px solid #F0E8DA' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cohortData.map((row, index) => {
+                    const diff = (realChildAverages[row.domain] ?? 0) - row.AgeGroupAverage;
+                    const status = diff >= 5 ? 'above' : diff >= -10 ? 'ontrack' : 'needs';
+                    const rowBg = index % 2 === 0 ? '#FFFFFF' : '#FFF8EC';
+                    
+                    const visual = getDomainVisualInfo(row.domain);
+                    const noteText = getDomainNote(row.domain, status);
+                    const childScoreColor = (realChildAverages[row.domain] ?? 0) >= 80 ? '#059669' : (realChildAverages[row.domain] ?? 0) >= 60 ? '#6366F1' : '#D97706';
+
+                    const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#DC2626' : '#8A8A8A';
+                    const diffText = diff > 0 ? `+${diff}%` : `${diff}%`;
+
+                    const statusStyles: Record<'above' | 'ontrack' | 'needs', { bg: string; color: string; label: string }> = {
+                      above: { bg: 'rgba(16,185,129,0.12)', color: '#059669', label: 'Above Average' },
+                      ontrack: { bg: 'rgba(244,163,0,0.12)', color: '#D97706', label: 'On Track' },
+                      needs: { bg: 'rgba(220,38,38,0.1)', color: '#DC2626', label: 'Needs Support' }
+                    };
+                    const statusConfig = statusStyles[status];
+
+                    return (
+                      <tr key={row.domain} style={{ backgroundColor: rowBg, borderBottom: '1px solid #F0E8DA' }}>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: visual.bg,
+                              flexShrink: 0,
+                            }}>
+                              {visual.content}
+                            </div>
+                            <span style={{ fontWeight: '700', fontSize: '0.85rem', color: '#1A1A1A' }}>
+                              {row.domain}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '900', fontSize: '0.85rem', color: childScoreColor }}>
+                          {realChildAverages[row.domain] ?? 0}%
+                        </td>
+
+                        <td style={{ padding: '14px 16px', textAlign: 'center', color: '#5A5A5A', fontWeight: '700', fontSize: '0.85rem' }}>
+                          {row.AgeGroupAverage}%
+                        </td>
+
+                        <td style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '800', fontSize: '0.85rem', color: diffColor }}>
+                          {diffText}
+                        </td>
+
+                        <td style={{ width: '150px', padding: '14px 16px' }}>
+                          <div style={{ width: '120px', height: '8px', background: '#E5E7EB', borderRadius: '4px', position: 'relative', overflow: 'hidden' }}>
+                            <div style={{
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              height: '100%',
+                              borderRadius: '4px',
+                              width: `${Math.min(realChildAverages[row.domain] ?? 0, 100)}%`,
+                              background: status === 'above' ? '#10B981' : status === 'ontrack' ? '#F4A300' : '#EF4444'
+                            }} />
+                            <div style={{
+                              position: 'absolute',
+                              left: `${row.AgeGroupAverage}%`,
+                              top: '-2px',
+                              width: '2px',
+                              height: '12px',
+                              background: '#9CA3AF',
+                              borderRadius: '1px'
+                            }} />
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontWeight: '800',
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            whiteSpace: 'nowrap',
+                            display: 'inline-block',
+                            backgroundColor: statusConfig.bg,
+                            color: statusConfig.color
+                          }}>
+                            {statusConfig.label}
+                          </span>
+                        </td>
+
+                        <td style={{ padding: '14px 16px', fontSize: '0.78rem', color: '#8A8A8A', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                          {noteText}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="glass-card">
-            <h3 style={{ marginBottom: '16px' }}>Developmental Learning Curves</h3>
-            <div style={{ width: '100%', height: 240 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={historyTimelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" /><XAxis dataKey="date" stroke="var(--text-secondary)" style={{ fontSize: '0.75rem' }} /><YAxis domain={[40, 100]} stroke="var(--text-secondary)" style={{ fontSize: '0.75rem' }} />
-                  <ChartTooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: 'var(--text-primary)', borderRadius: '8px' }} />
-                  <Line name="Literacy" type="monotone" dataKey="Literacy" stroke="var(--color-literacy)" strokeWidth={2.5} dot={false} />
-                  <Line name="Numeracy" type="monotone" dataKey="Numeracy" stroke="var(--color-numeracy)" strokeWidth={2.5} dot={false} />
-                  <Line name="Cognitive" type="monotone" dataKey="Cognitive" stroke="var(--color-cognitive)" strokeWidth={2.5} dot={false} />
-                  <Line name="Creativity" type="monotone" dataKey="Creativity" stroke="var(--color-creativity)" strokeWidth={2.5} dot={false} />
-                  <Line name="Emotional" type="monotone" dataKey="Emotional" stroke="var(--color-emotional)" strokeWidth={2.5} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', marginTop: '12px', fontSize: '0.7rem' }}>
-              <span style={{ color: 'var(--color-literacy)' }}>- Literacy</span><span style={{ color: 'var(--color-numeracy)' }}>- Numeracy</span><span style={{ color: 'var(--color-cognitive)' }}>- Cognitive</span><span style={{ color: 'var(--color-creativity)' }}>- Creativity</span><span style={{ color: 'var(--color-emotional)' }}>- Emotional</span>
-            </div>
-          </div>
+          <DevelopmentalLearningCurves milestoneAssessments={milestoneAssessments} loading={maLoading} />
 
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>

@@ -1,8 +1,54 @@
 /**
  * Milestone-Wise E-Activity & Educational Game Catalog
- * Ages 0 to 3 Years (Levels 1-6)
+ * Ages 0 to 6 Years (Levels 1-12)
  * Five developmental domains: Physical, Social, Emotional, Cognitive, and Aesthetic
  */
+
+import milestones3to6Raw from './milestones_3_6.json';
+
+// Dynamically compile level 7-12 milestones
+const milestonesByLevel = {};
+milestones3to6Raw.forEach(item => {
+  const lvlKey = `L${item.level}`;
+  if (!milestonesByLevel[lvlKey]) {
+    milestonesByLevel[lvlKey] = {
+      level: item.level,
+      ageRange: item.age_group,
+      description: `Development milestones and activities for children aged ${item.age_group}`,
+      domains: {
+        physical: [],
+        social: [],
+        emotional: [],
+        cognitive: [],
+        aesthetic: []
+      }
+    };
+  }
+
+  // Map domain name in JSON to key in domains
+  let domainKey = 'physical';
+  const rawDomain = item.domain?.toLowerCase() || '';
+  if (rawDomain.includes('phys')) domainKey = 'physical';
+  else if (rawDomain.includes('soc')) domainKey = 'social';
+  else if (rawDomain.includes('emot')) domainKey = 'emotional';
+  else if (rawDomain.includes('cogn')) domainKey = 'cognitive';
+  else if (rawDomain.includes('aest')) domainKey = 'aesthetic';
+
+  // Construct activity object
+  const activity = {
+    milestone: item.milestone,
+    eActivity: item.skill,
+    description: item.assessment_question,
+    gameIdea: `Play Activity: Encourage the child to demonstrate "${item.skill}" during play sessions or structured exercises.`,
+    aiIntegration: `AI computer vision checks motion symmetry and accuracy for "${item.skill}" during session log.`,
+    learningOutcome: `Child develops capabilities in "${item.skill}" matching age expectations.`
+  };
+
+  // Avoid duplicates if same skill is repeated
+  if (!milestonesByLevel[lvlKey].domains[domainKey].some(act => act.eActivity === activity.eActivity)) {
+    milestonesByLevel[lvlKey].domains[domainKey].push(activity);
+  }
+});
 
 export const MILESTONE_ACTIVITIES_CATALOG = {
   // LEVEL 1: 0-6 Months
@@ -1190,12 +1236,13 @@ export const MILESTONE_ACTIVITIES_CATALOG = {
         }
       ]
     }
-  }
+  },
+  ...milestonesByLevel
 };
 
 // Helper function to get activities for a specific age in months
 export function getActivitiesForAge(ageMonths) {
-  if (ageMonths < 0 || ageMonths > 36) return null;
+  if (ageMonths < 0 || ageMonths > 72) return null;
   
   if (ageMonths <= 6) return MILESTONE_ACTIVITIES_CATALOG["0-6"];
   if (ageMonths <= 12) return MILESTONE_ACTIVITIES_CATALOG["6-12"];
@@ -1203,8 +1250,12 @@ export function getActivitiesForAge(ageMonths) {
   if (ageMonths <= 24) return MILESTONE_ACTIVITIES_CATALOG["18-24"];
   if (ageMonths <= 30) return MILESTONE_ACTIVITIES_CATALOG["24-30"];
   if (ageMonths <= 36) return MILESTONE_ACTIVITIES_CATALOG["30-36"];
-  
-  return null;
+  if (ageMonths <= 42) return MILESTONE_ACTIVITIES_CATALOG["L7"];
+  if (ageMonths <= 48) return MILESTONE_ACTIVITIES_CATALOG["L8"];
+  if (ageMonths <= 54) return MILESTONE_ACTIVITIES_CATALOG["L9"];
+  if (ageMonths <= 60) return MILESTONE_ACTIVITIES_CATALOG["L10"];
+  if (ageMonths <= 66) return MILESTONE_ACTIVITIES_CATALOG["L11"];
+  return MILESTONE_ACTIVITIES_CATALOG["L12"];
 }
 
 // Get all activities across all domains for a level

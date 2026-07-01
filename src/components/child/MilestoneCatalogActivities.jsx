@@ -484,11 +484,25 @@ export default function MilestoneCatalogActivities() {
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [selectedActivity, setSelectedActivity] = useState(null);
 
-  // Get child's age in months
-  const ageMonths = profile?.age_months;
+  // Get child's age in months from date of birth or defaults
+  const getMonthsFromDOB = (dobValue) => {
+    if (!dobValue) return null;
+    let dobDate;
+    if (dobValue.toDate) {
+      dobDate = dobValue.toDate();
+    } else {
+      dobDate = new Date(dobValue);
+    }
+    if (isNaN(dobDate.getTime())) return null;
+    const now = new Date();
+    return Math.max(0, (now.getFullYear() - dobDate.getFullYear()) * 12 + (now.getMonth() - dobDate.getMonth()));
+  };
 
-  // ENHANCED CHECK: Show for children aged 0-36 months OR age_group "1-3"
-  const shouldShow = (ageMonths >= 0 && ageMonths <= 36) || profile?.age_group === '1-3';
+  const calculatedMonths = getMonthsFromDOB(profile?.date_of_birth);
+  const ageMonths = (calculatedMonths !== null && calculatedMonths !== undefined) ? calculatedMonths : (profile?.age_months ?? (profile?.age_group === '4-6' ? 48 : (profile?.age_group === '1-3' ? 24 : 12)));
+
+  // ENHANCED CHECK: Show for children aged 0-72 months OR age_group "1-3" or "4-6"
+  const shouldShow = (ageMonths >= 0 && ageMonths <= 72) || profile?.age_group === '1-3' || profile?.age_group === '4-6';
 
   if (!shouldShow) {
     console.log('MilestoneCatalogActivities: Not showing. age_months:', ageMonths, 'age_group:', profile?.age_group);
@@ -512,8 +526,18 @@ export default function MilestoneCatalogActivities() {
   // Count total activities
   const totalActivities = Object.values(domains).reduce((sum, activities) => sum + activities.length, 0);
 
-  // All available levels
-  const allLevels = [
+  // Determine if child belongs to 3-6 age bracket
+  const is3to6 = ageMonths > 36 || profile?.age_group === '4-6';
+
+  // All available levels based on age group
+  const allLevels = is3to6 ? [
+    { key: "L7", label: "Level 7: 3-3.5 Years", isCurrent: level === 7 },
+    { key: "L8", label: "Level 8: 3.5-4 Years", isCurrent: level === 8 },
+    { key: "L9", label: "Level 9: 4-4.5 Years", isCurrent: level === 9 },
+    { key: "L10", label: "Level 10: 4.5-5 Years", isCurrent: level === 10 },
+    { key: "L11", label: "Level 11: 5-5.5 Years", isCurrent: level === 11 },
+    { key: "L12", label: "Level 12: 5.5-6 Years", isCurrent: level === 12 }
+  ] : [
     { key: "0-6", label: "Level 1: 0-6 Months", isCurrent: level === 1 },
     { key: "6-12", label: "Level 2: 6-12 Months", isCurrent: level === 2 },
     { key: "12-18", label: "Level 3: 12-18 Months", isCurrent: level === 3 },
@@ -576,7 +600,12 @@ export default function MilestoneCatalogActivities() {
           {/* Domain Selection Cards */}
           <div className="domain-grid">
             {Object.entries(domains).map(([domainKey, activities]) => {
-              const domainInfo = DOMAIN_INFO[domainKey];
+              const domainInfo = DOMAIN_INFO[domainKey] || {
+                name: domainKey.charAt(0).toUpperCase() + domainKey.slice(1) + ' Development',
+                icon: '📋',
+                color: '#6B7280',
+                description: 'Development activities and milestone monitoring.'
+              };
               return (
                 <div
                   key={domainKey}
@@ -588,7 +617,7 @@ export default function MilestoneCatalogActivities() {
                     <span className="domain-icon">{domainInfo.icon}</span>
                     <h3 className="domain-name">{domainInfo.name}</h3>
                   </div>
-                  <p className="domain-description">{domainInfo.description}</p>
+                  <p className="domain-description">{domainInfo.description || domainInfo.desc}</p>
                   <div className="domain-stats">
                     <span className="domain-activity-count">
                       {activities.length} {activities.length === 1 ? 'Activity' : 'Activities'}
@@ -604,8 +633,8 @@ export default function MilestoneCatalogActivities() {
             <div className="domain-activities-section">
               <div className="domain-activities-header">
                 <h3>
-                  <span>{DOMAIN_INFO[selectedDomain].icon}</span>
-                  {DOMAIN_INFO[selectedDomain].name} Activities
+                  <span>{(DOMAIN_INFO[selectedDomain] || {}).icon || '📋'}</span>
+                  {(DOMAIN_INFO[selectedDomain] || {}).name || selectedDomain} Activities
                 </h3>
                 <button
                   className="close-domain-btn"
@@ -626,9 +655,9 @@ export default function MilestoneCatalogActivities() {
                       <h4 className="activity-name">{activity.eActivity}</h4>
                       <span 
                         className="activity-domain-badge"
-                        style={{ backgroundColor: DOMAIN_INFO[selectedDomain].color }}
+                        style={{ backgroundColor: (DOMAIN_INFO[selectedDomain] || {}).color || '#6B7280' }}
                       >
-                        {DOMAIN_INFO[selectedDomain].icon}
+                        {(DOMAIN_INFO[selectedDomain] || {}).icon || '📋'}
                       </span>
                     </div>
 

@@ -8,6 +8,7 @@ import { getUserSessions } from '../../firebase/firestoreService';
 import { checkAssessmentSchedule } from '../../utils/assessmentScheduler';
 import RecommendationPanel from '../../components/child/RecommendationPanel';
 import MilestoneCatalogActivities from '../../components/child/MilestoneCatalogActivities';
+import { getTranslation } from '../../utils/translations';
 import './Home.css';
 
 const LEARNING_PATH = [
@@ -98,8 +99,11 @@ export default function Home() {
     }).catch(() => {});
   }, [user?.uid]);
 
+  const currentLang = profile?.language || localStorage.getItem('spaceece_language') || 'English';
   const name = profile?.name ?? 'Explorer';
+  const translatedName = name === 'Explorer' ? getTranslation('Explorer', currentLang) : name;
   const greeting = getGreeting();
+  const translatedGreeting = getTranslation(greeting, currentLang);
   const dayStreak = profile?.dayStreak ?? 0;
   const badgeCount = profile?.badges ?? 0;
 
@@ -129,25 +133,24 @@ export default function Home() {
 
   const MODULES = useMemo(() => {
     return [
-      { id: 'assessment-module',    title: 'Skill Assessment',     path: '/child/assessment?start=true', emoji: '🎯', progress: profile?.assessmentCompleted ? 100 : 0, total: 3, done: profile?.assessmentCompleted ? 3 : 0 },
-      { id: 'math-world',           title: 'Math World',           path: '/math-world',                  emoji: '🔢', progress: Math.min(100, Math.floor((profile?.progress?.mathWorld ?? 0) / 3)),           total: 8, done: Math.min(8, Math.floor((profile?.progress?.mathWorld ?? 0) / 40)) },
-      { id: 'puzzle-world',         title: 'Puzzle World',         path: '/puzzle-world',                emoji: '🧩', progress: Math.min(100, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 3)),         total: 8, done: Math.min(8, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 40)) },
-      { id: 'number-adventure',     title: 'Number Adventure',     path: '/number-adventure',            emoji: '🗺️', progress: Math.min(100, Math.floor((profile?.progress?.numberAdventure ?? 0) / 3)),     total: 6, done: Math.min(6, Math.floor((profile?.progress?.numberAdventure ?? 0) / 50)) },
-      { id: 'logic-island',         title: 'Logic Island',         path: '/logic-island',                emoji: '🧠', progress: Math.min(100, Math.floor((profile?.progress?.logicIsland ?? 0) / 3)),         total: 6, done: Math.min(6, Math.floor((profile?.progress?.logicIsland ?? 0) / 50)) },
-      { id: 'reading-world',        title: 'Reading World',        path: '/child/reading-world',         emoji: '📖', progress: Math.min(100, Math.floor((profile?.progress?.readingWorld ?? 0) / 3)),        total: 8, done: Math.min(8, Math.floor((profile?.progress?.readingWorld ?? 0) / 40)) },
-      // ✅ BUG 2 FIX: Added Story World, Vocabulary Zone, Language Challenges cards
-      { id: 'story-world',          title: 'Story World',          path: '/child/story-world',           emoji: '🌟', progress: Math.min(100, Math.floor((profile?.progress?.storyWorld ?? 0) / 3)),          total: 6, done: Math.min(6, Math.floor((profile?.progress?.storyWorld ?? 0) / 50)) },
-      { id: 'vocabulary-zone',      title: 'Vocabulary Zone',      path: '/child/vocabulary-zone',       emoji: '🔤', progress: Math.min(100, Math.floor((profile?.progress?.vocabularyZone ?? 0) / 3)),      total: 8, done: Math.min(8, Math.floor((profile?.progress?.vocabularyZone ?? 0) / 40)) },
-      { id: 'language-challenges',  title: 'Language Challenges',  path: '/child/language-challenges',   emoji: '🎯', progress: Math.min(100, Math.floor((profile?.progress?.languageChallenges ?? 0) / 3)),  total: 6, done: Math.min(6, Math.floor((profile?.progress?.languageChallenges ?? 0) / 50)) },
-      { id: 'brain-world',          title: 'Brain World',          path: '/child/brain-world',           emoji: '🧠', progress: 25, total: 4, done: 1 },
-      { id: 'emotion-world',        title: 'Emotion World',        path: '/child/emotion-world',         emoji: '❤️', progress: 20, total: 5, done: 1 },
-      { id: 'creativity-world',     title: 'Creativity World',     path: '/child/creativity-world',      emoji: '🎨', progress: 0,  total: 4, done: 0 },
-      { id: 'story-choice-world',   title: 'Story Choice',         path: '/child/story-choice-world',    emoji: '🎭', progress: 50, total: 2, done: 1 },
+      { id: 'assessment-module',    title: getTranslation('Skill Assessment', currentLang),     path: '/child/assessment?start=true', emoji: '🎯', progress: profile?.assessmentCompleted ? 100 : 0, total: 3, done: profile?.assessmentCompleted ? 3 : 0 },
+      { id: 'math-world',           title: getTranslation('Math World', currentLang),           path: '/math-world',                  emoji: '🔢', progress: Math.min(100, Math.floor((profile?.progress?.mathWorld ?? 0) / 3)),           total: 8, done: Math.min(8, Math.floor((profile?.progress?.mathWorld ?? 0) / 40)) },
+      { id: 'puzzle-world',         title: getTranslation('Puzzle World', currentLang),         path: '/puzzle-world',                emoji: '🧩', progress: Math.min(100, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 3)),         total: 8, done: Math.min(8, Math.floor((profile?.progress?.puzzleWorld ?? 0) / 40)) },
+      { id: 'number-adventure',     title: getTranslation('Number Adventure', currentLang),     path: '/number-adventure',            emoji: '🗺️', progress: Math.min(100, Math.floor((profile?.progress?.numberAdventure ?? 0) / 3)),     total: 6, done: Math.min(6, Math.floor((profile?.progress?.numberAdventure ?? 0) / 50)) },
+      { id: 'logic-island',         title: getTranslation('Logic Island', currentLang),         path: '/logic-island',                emoji: '🧠', progress: Math.min(100, Math.floor((profile?.progress?.logicIsland ?? 0) / 3)),         total: 6, done: Math.min(6, Math.floor((profile?.progress?.logicIsland ?? 0) / 50)) },
+      { id: 'reading-world',        title: getTranslation('Reading World', currentLang),        path: '/child/reading-world',         emoji: '📖', progress: Math.min(100, Math.floor((profile?.progress?.readingWorld ?? 0) / 3)),        total: 8, done: Math.min(8, Math.floor((profile?.progress?.readingWorld ?? 0) / 40)) },
+      { id: 'story-world',          title: getTranslation('Story World', currentLang),          path: '/child/story-world',           emoji: '🌟', progress: Math.min(100, Math.floor((profile?.progress?.storyWorld ?? 0) / 3)),          total: 6, done: Math.min(6, Math.floor((profile?.progress?.storyWorld ?? 0) / 50)) },
+      { id: 'vocabulary-zone',      title: getTranslation('Vocabulary Zone', currentLang),      path: '/child/vocabulary-zone',       emoji: '🔤', progress: Math.min(100, Math.floor((profile?.progress?.vocabularyZone ?? 0) / 3)),      total: 8, done: Math.min(8, Math.floor((profile?.progress?.vocabularyZone ?? 0) / 40)) },
+      { id: 'language-challenges',  title: getTranslation('Language Challenges', currentLang),  path: '/child/language-challenges',   emoji: '🎯', progress: Math.min(100, Math.floor((profile?.progress?.languageChallenges ?? 0) / 3)),  total: 6, done: Math.min(6, Math.floor((profile?.progress?.languageChallenges ?? 0) / 50)) },
+      { id: 'brain-world',          title: getTranslation('Brain World', currentLang),          path: '/child/brain-world',           emoji: '🧠', progress: 25, total: 4, done: 1 },
+      { id: 'emotion-world',        title: getTranslation('Emotion World', currentLang),        path: '/child/emotion-world',         emoji: '❤️', progress: 20, total: 5, done: 1 },
+      { id: 'creativity-world',     title: getTranslation('Creativity World', currentLang),     path: '/child/creativity-world',      emoji: '🎨', progress: 0,  total: 4, done: 0 },
+      { id: 'story-choice-world',   title: getTranslation('Story Choice', currentLang),         path: '/child/story-choice-world',    emoji: '🎭', progress: 50, total: 2, done: 1 },
     ];
-  }, [profile?.progress, profile?.assessmentCompleted]);
+  }, [profile?.progress, profile?.assessmentCompleted, currentLang]);
 
   const recommendation = useMemo(() => {
-    if (!profile) return { title: 'Logic Island', subtitle: 'Sharpen your brain with logic challenges!', path: '/logic-island', emoji: '🧠' };
+    if (!profile) return { title: getTranslation('Logic Island', currentLang), subtitle: getTranslation('Sharpen your brain with logic challenges!', currentLang), path: '/logic-island', emoji: '🧠' };
     const prog = profile.progress || {};
     const mw = prog.mathWorld ?? 0;
     const pw = prog.puzzleWorld ?? 0;
@@ -156,15 +159,15 @@ export default function Home() {
 
     const minVal = Math.min(mw, pw, na, li);
     if (minVal === mw) {
-      return { title: 'Math World', subtitle: 'Learn numbers & simple counting!', path: '/math-world', emoji: '🔢' };
+      return { title: getTranslation('Math World', currentLang), subtitle: getTranslation('Learn numbers & simple counting!', currentLang), path: '/math-world', emoji: '🔢' };
     } else if (minVal === pw) {
-      return { title: 'Puzzle World', subtitle: 'Train your brain with 3D shapes!', path: '/puzzle-world', emoji: '🧩' };
+      return { title: getTranslation('Puzzle World', currentLang), subtitle: getTranslation('Train your brain with 3D shapes!', currentLang), path: '/puzzle-world', emoji: '🧩' };
     } else if (minVal === na) {
-      return { title: 'Number Adventure', subtitle: 'Explore the map of numbers!', path: '/number-adventure', emoji: '🗺️' };
+      return { title: getTranslation('Number Adventure', currentLang), subtitle: getTranslation('Explore the map of numbers!', currentLang), path: '/number-adventure', emoji: '🗺️' };
     } else {
-      return { title: 'Logic Island', subtitle: 'Solve patterns and multiplication quests!', path: '/logic-island', emoji: '🧠' };
+      return { title: getTranslation('Logic Island', currentLang), subtitle: getTranslation('Solve patterns and multiplication quests!', currentLang), path: '/logic-island', emoji: '🧠' };
     }
-  }, [profile]);
+  }, [profile, currentLang]);
 
   return (
     <div className="dashboard-page">
@@ -172,37 +175,37 @@ export default function Home() {
       <div className="dashboard-topnav">
         <div className="topnav-left">
           <div className="topnav-greeting">
-            <h2>{greeting}, {name} 👋</h2>
+            <h2>{translatedGreeting}, {translatedName} 👋</h2>
           </div>
           <button className="dashboard-assessment-btn" onClick={() => navigate('/child/assessment?start=true')}>
-            🎯 Assessment
+            🎯 {getTranslation('Assessment', currentLang)}
           </button>
         </div>
         <div className="topnav-right">
-          <div className="topnav-stat" title="Daily Streak">
+          <div className="topnav-stat" title={getTranslation('Streak', currentLang)}>
             <span className="stat-icon">🔥</span>
             <span className="stat-value">{dayStreak}</span>
-            <span className="stat-label">Streak</span>
+            <span className="stat-label">{getTranslation('Streak', currentLang)}</span>
           </div>
-          <div className="topnav-stat" title="Total Stars">
+          <div className="topnav-stat" title={getTranslation('Stars', currentLang)}>
             <span className="stat-icon">⭐</span>
             <span className="stat-value">{animateStars}</span>
-            <span className="stat-label">Stars</span>
+            <span className="stat-label">{getTranslation('Stars', currentLang)}</span>
           </div>
-          <div className="topnav-stat" title="Total Badges">
+          <div className="topnav-stat" title={getTranslation('Badges', currentLang)}>
             <span className="stat-icon">🏆</span>
             <span className="stat-value">{badgeCount}</span>
-            <span className="stat-label">Badges</span>
+            <span className="stat-label">{getTranslation('Badges', currentLang)}</span>
           </div>
-          <div className="topnav-stat" title="XP Progress">
+          <div className="topnav-stat" title={getTranslation('XP Progress', currentLang)}>
             <span className="stat-icon">⚡</span>
             <span className="stat-value">{animateXP}</span>
-            <span className="stat-label">XP</span>
+            <span className="stat-label">{getTranslation('XP', currentLang)}</span>
           </div>
           <button 
             className="topnav-profile-btn" 
             onClick={() => setShowProfileModal(true)}
-            title="View My Profile"
+            title={getTranslation('My Profile', currentLang)}
           >
             <div className="profile-btn-avatar">
               {getAvatarEmoji(profile?.avatar)}
@@ -212,7 +215,7 @@ export default function Home() {
                 </span>
               )}
             </div>
-            <span className="profile-btn-text">My Profile</span>
+            <span className="profile-btn-text">{getTranslation('My Profile', currentLang)}</span>
           </button>
         </div>
       </div>
@@ -222,7 +225,7 @@ export default function Home() {
         <div className="hero-section">
           <div className="hero-card" onClick={() => navigate(recommendation.path)}>
             <div className="hero-content">
-              <div className="hero-badge">Continue Learning</div>
+              <div className="hero-badge">{getTranslation('Continue Learning', currentLang)}</div>
               <h3 className="hero-title">{recommendation.title}</h3>
               <p className="hero-subtitle">{recommendation.subtitle}</p>
               <div className="hero-progress">
@@ -233,8 +236,8 @@ export default function Home() {
                 </div>
                 <span className="hero-progress-text">35% Complete</span>
               </div>
-              <p className="hero-time">⏱️ Estimated Time: 10 minutes remaining</p>
-              <button className="hero-btn">Continue Journey →</button>
+              <p className="hero-time">⏱️ {getTranslation('Estimated Time', currentLang)}: 10 {getTranslation('minutes remaining', currentLang)}</p>
+              <button className="hero-btn">{getTranslation('Continue Journey →', currentLang)}</button>
             </div>
             <div className="hero-illustration">
               <div className="hero-icon">{recommendation.emoji}</div>
@@ -254,7 +257,7 @@ export default function Home() {
         <div className="dashboard-grid">
           {/* Learning Journey Map */}
           <div className="dash-card journey-map">
-            <h3 className="card-title">🗺️ Learning Journey</h3>
+            <h3 className="card-title">🗺️ {getTranslation('Learning Journey', currentLang)}</h3>
             <div className="journey-path">
               {LEARNING_PATH.map((step, index) => (
                 <div key={step.id} className="journey-step">
@@ -264,7 +267,7 @@ export default function Home() {
                     {step.status === 'current' && <div className="step-pulse"></div>}
                   </div>
                   <div className="step-info">
-                    <span className="step-name">{step.name}</span>
+                    <span className="step-name">{getTranslation(step.name, currentLang)}</span>
                     {step.status !== 'locked' && <span className="step-progress">{step.progress}%</span>}
                   </div>
                   {index < LEARNING_PATH.length - 1 && (
@@ -277,32 +280,32 @@ export default function Home() {
 
           {/* Daily Missions */}
           <div className="dash-card daily-missions">
-            <h3 className="card-title">✅ Daily Missions</h3>
+            <h3 className="card-title">✅ {getTranslation('Daily Missions', currentLang)}</h3>
             <div className="missions-list">
               {DAILY_MISSIONS.map(mission => (
                 <div key={mission.id} className={`mission-item ${mission.completed ? 'completed' : ''}`}>
                   <div className="mission-checkbox">{mission.completed ? '✅' : '⬜'}</div>
-                  <div className="mission-text">{mission.task}</div>
+                  <div className="mission-text">{getTranslation(mission.task, currentLang)}</div>
                   <div className="mission-reward">+{mission.xp} XP</div>
                 </div>
               ))}
             </div>
             <div className="missions-reward">
-              <span className="reward-text">Complete all for bonus:</span>
+              <span className="reward-text">{getTranslation('Complete all for bonus:', currentLang)}</span>
               <span className="reward-value">+20 XP 🎁</span>
             </div>
           </div>
 
           {/* Explore Worlds */}
           <div className="dash-card explore-worlds">
-            <h3 className="card-title">🌍 Explore Worlds</h3>
+            <h3 className="card-title">🌍 {getTranslation('Explore Worlds', currentLang)}</h3>
             <div className="module-grid">
               {MODULES.map(mod => (
                 <div key={mod.id} className="module-card" onClick={() => navigate(mod.path)}>
                   <span className="module-emoji">{mod.emoji}</span>
                   <div className="module-info">
                     <h4 className="module-name">{mod.title}</h4>
-                    <span className="module-lessons">{mod.done}/{mod.total} lessons</span>
+                    <span className="module-lessons">{mod.done}/{mod.total} {getTranslation('lessons', currentLang)}</span>
                   </div>
                   <div className="module-progress-bar">
                     <div className="module-progress-fill" style={{ width: `${mod.progress}%` }}></div>
@@ -314,26 +317,26 @@ export default function Home() {
 
           {/* Statistics */}
           <div className="dash-card statistics-section">
-            <h3 className="card-title">📊 Your Progress</h3>
+            <h3 className="card-title">📊 {getTranslation('Your Progress', currentLang)}</h3>
             <div className="stats-grid">
               <div className="stat-box">
                 <div className="stat-icon-large">⏱️</div>
-                <div className="stat-label">Learning Time</div>
+                <div className="stat-label">{getTranslation('Learning Time', currentLang)}</div>
                 <div className="stat-value">{learningTime}</div>
               </div>
               <div className="stat-box">
                 <div className="stat-icon-large">📚</div>
-                <div className="stat-label">Lessons Done</div>
+                <div className="stat-label">{getTranslation('Lessons Done', currentLang)}</div>
                 <div className="stat-value">{MODULES.reduce((sum, m) => sum + m.done, 0)}</div>
               </div>
               <div className="stat-box">
                 <div className="stat-icon-large">🎯</div>
-                <div className="stat-label">Current Level</div>
-                <div className="stat-value">Level {profile?.milestone_level ?? profile?.level ?? 1}</div>
+                <div className="stat-label">{getTranslation('Current Level', currentLang)}</div>
+                <div className="stat-value">{getTranslation('Level', currentLang)} {profile?.milestone_level ?? profile?.level ?? 1}</div>
               </div>
               <div className="stat-box">
                 <div className="stat-icon-large">🧩</div>
-                <div className="stat-label">Puzzles Solved</div>
+                <div className="stat-label">{getTranslation('Puzzles Solved', currentLang)}</div>
                 <div className="stat-value">{Math.floor((profile?.progress?.puzzleWorld ?? 0) / 10)}</div>
               </div>
             </div>
@@ -351,17 +354,17 @@ export default function Home() {
             {assessmentModalType === 'first-time' ? (
               <>
                 <span className="assessment-modal-decor">🧑‍🚀</span>
-                <h2 className="assessment-modal-title">Welcome, Explorer!</h2>
+                <h2 className="assessment-modal-title">{getTranslation('Welcome, Explorer!', currentLang)}</h2>
                 <p className="assessment-modal-text">
-                  Before we begin our learning journey, let's complete a quick and fun skill assessment!
+                  {getTranslation("Before we begin our learning journey, let's complete a quick and fun skill assessment!", currentLang)}
                 </p>
               </>
             ) : (
               <>
                 <span className="assessment-modal-decor">📋</span>
-                <h2 className="assessment-modal-title">Time for Your Weekly Check-in!</h2>
+                <h2 className="assessment-modal-title">{getTranslation("Time for Your Weekly Check-in!", currentLang)}</h2>
                 <p className="assessment-modal-text">
-                  It's been a week! Take a short assessment to track your progress and unlock new activities.
+                  {getTranslation("It's been a week! Take a short assessment to track your progress and unlock new activities.", currentLang)}
                 </p>
               </>
             )}
@@ -372,14 +375,14 @@ export default function Home() {
                 navigate('/child/assessment?start=true');
               }}
             >
-              {assessmentModalType === 'first-time' ? '🚀 Start Assessment' : '🎯 Take Weekly Assessment'}
+              {assessmentModalType === 'first-time' ? getTranslation('🚀 Start Assessment', currentLang) : getTranslation('🎯 Take Weekly Assessment', currentLang)}
             </button>
             {assessmentModalType === 'weekly' && (
               <button
                 className="assessment-modal-skip"
                 onClick={() => setAssessmentModalType(null)}
               >
-                Maybe Later
+                {getTranslation('Maybe Later', currentLang)}
               </button>
             )}
           </div>
@@ -395,7 +398,7 @@ export default function Home() {
             </button>
 
             <div className="profile-modal-content">
-              <h2 className="profile-modal-title">👤 My Profile</h2>
+              <h2 className="profile-modal-title">👤 {getTranslation('My Profile', currentLang)}</h2>
               
               <div className="profile-content">
                 {/* Avatar Section */}
@@ -416,7 +419,7 @@ export default function Home() {
                         navigate('/child/avatar');
                       }}
                     >
-                      ✏️ Customize Avatar
+                      ✏️ {getTranslation('Customize Avatar', currentLang)}
                     </button>
                   </div>
 
@@ -425,22 +428,22 @@ export default function Home() {
                     <div className="profile-stat-item">
                       <span className="profile-stat-icon">⭐</span>
                       <span className="profile-stat-value">{animateStars}</span>
-                      <span className="profile-stat-label">Stars</span>
+                      <span className="profile-stat-label">{getTranslation('Stars', currentLang)}</span>
                     </div>
                     <div className="profile-stat-item">
                       <span className="profile-stat-icon">⚡</span>
                       <span className="profile-stat-value">{animateXP}</span>
-                      <span className="profile-stat-label">XP</span>
+                      <span className="profile-stat-label">{getTranslation('XP', currentLang)}</span>
                     </div>
                     <div className="profile-stat-item">
                       <span className="profile-stat-icon">🔥</span>
                       <span className="profile-stat-value">{dayStreak}</span>
-                      <span className="profile-stat-label">Streak</span>
+                      <span className="profile-stat-label">{getTranslation('Streak', currentLang)}</span>
                     </div>
                     <div className="profile-stat-item">
                       <span className="profile-stat-icon">⏱️</span>
                       <span className="profile-stat-value">{learningTime}</span>
-                      <span className="profile-stat-label">Time</span>
+                      <span className="profile-stat-label">{getTranslation('Time', currentLang)}</span>
                     </div>
                   </div>
                 </div>
@@ -450,18 +453,18 @@ export default function Home() {
                   <div className="profile-detail-row">
                     <span className="profile-detail-icon">📛</span>
                     <div className="profile-detail-info">
-                      <span className="profile-detail-label">Name</span>
-                      <span className="profile-detail-value">{profile?.name || 'Explorer'}</span>
+                      <span className="profile-detail-label">{getTranslation('Name', currentLang)}</span>
+                      <span className="profile-detail-value">{profile?.name || getTranslation('Explorer', currentLang)}</span>
                     </div>
                   </div>
 
                   <div className="profile-detail-row">
                     <span className="profile-detail-icon">🎂</span>
                     <div className="profile-detail-info">
-                      <span className="profile-detail-label">Age Group</span>
+                      <span className="profile-detail-label">{getTranslation('Age Group', currentLang)}</span>
                       <span className="profile-detail-value">
-                        {profile?.age_group ? `Age ${profile.age_group}` : 'Not set'}
-                        {profile?.age_months && ` (${profile.age_months} months)`}
+                        {profile?.age_group ? `${getTranslation('Age', currentLang)} ${profile.age_group}` : getTranslation('Not set', currentLang)}
+                        {profile?.age_months && ` (${profile.age_months} ${getTranslation('months', currentLang)})`}
                       </span>
                     </div>
                   </div>
@@ -470,9 +473,9 @@ export default function Home() {
                     <div className="profile-detail-row">
                       <span className="profile-detail-icon">📅</span>
                       <div className="profile-detail-info">
-                        <span className="profile-detail-label">Date of Birth</span>
+                        <span className="profile-detail-label">{getTranslation('Date of Birth', currentLang)}</span>
                         <span className="profile-detail-value">
-                          {new Date(profile.date_of_birth).toLocaleDateString('en-US', {
+                          {new Date(profile.date_of_birth).toLocaleDateString(currentLang === 'हिंदी' ? 'hi-IN' : currentLang === 'मराठी' ? 'mr-IN' : 'en-US', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric'
@@ -485,9 +488,9 @@ export default function Home() {
                   <div className="profile-detail-row">
                     <span className="profile-detail-icon">🎓</span>
                     <div className="profile-detail-info">
-                      <span className="profile-detail-label">Current Level</span>
+                      <span className="profile-detail-label">{getTranslation('Current Level', currentLang)}</span>
                       <span className="profile-detail-value">
-                        Level {profile?.milestone_level ?? profile?.level ?? 1}
+                        {getTranslation('Level', currentLang)} {profile?.milestone_level ?? profile?.level ?? 1}
                       </span>
                     </div>
                   </div>
@@ -495,9 +498,9 @@ export default function Home() {
                   <div className="profile-detail-row">
                     <span className="profile-detail-icon">🏅</span>
                     <div className="profile-detail-info">
-                      <span className="profile-detail-label">Achievements</span>
+                      <span className="profile-detail-label">{getTranslation('Achievements', currentLang)}</span>
                       <span className="profile-detail-value">
-                        {profile?.badges?.length ?? 0} Badges
+                        {profile?.badges?.length ?? 0} {getTranslation('Badges', currentLang)}
                       </span>
                     </div>
                   </div>
@@ -505,9 +508,9 @@ export default function Home() {
                   <div className="profile-detail-row">
                     <span className="profile-detail-icon">🪙</span>
                     <div className="profile-detail-info">
-                      <span className="profile-detail-label">Coins</span>
+                      <span className="profile-detail-label">{getTranslation('Coins', currentLang)}</span>
                       <span className="profile-detail-value">
-                        {profile?.coin_count ?? 0} coins
+                        {profile?.coin_count ?? 0} {getTranslation('coins', currentLang)}
                       </span>
                     </div>
                   </div>
@@ -516,9 +519,9 @@ export default function Home() {
                     <div className="profile-detail-row">
                       <span className="profile-detail-icon">👪</span>
                       <div className="profile-detail-info">
-                        <span className="profile-detail-label">Parent Account</span>
+                        <span className="profile-detail-label">{getTranslation('Parent Account', currentLang)}</span>
                         <span className="profile-detail-value">
-                          Connected
+                          {getTranslation('Connected', currentLang)}
                         </span>
                       </div>
                     </div>
@@ -528,9 +531,9 @@ export default function Home() {
                     <div className="profile-detail-row">
                       <span className="profile-detail-icon">🌟</span>
                       <div className="profile-detail-info">
-                        <span className="profile-detail-label">Member Since</span>
+                        <span className="profile-detail-label">{getTranslation('Member Since', currentLang)}</span>
                         <span className="profile-detail-value">
-                          {new Date(profile.created_at.toDate ? profile.created_at.toDate() : profile.created_at).toLocaleDateString('en-US', {
+                          {new Date(profile.created_at.toDate ? profile.created_at.toDate() : profile.created_at).toLocaleDateString(currentLang === 'हिंदी' ? 'hi-IN' : currentLang === 'मराठी' ? 'mr-IN' : 'en-US', {
                             year: 'numeric',
                             month: 'short'
                           })}

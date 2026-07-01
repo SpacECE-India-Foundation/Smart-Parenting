@@ -2,6 +2,7 @@ import { NavLink, Link } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import { logout, updateUserProfile } from '../../firebase/services';
 import logoImg from '../../assets/logo.jpeg';
+import { getTranslation } from '../../utils/translations';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
@@ -105,7 +106,7 @@ export default function Sidebar({ isOpen, onClose }) {
               onClick={onClose}
             >
               <span className="tab-icon">{tab.icon}</span>
-              <span className="tab-label">{tab.label}</span>
+              <span className="tab-label">{getTranslation(tab.label, currentLang)}</span>
               <span className="tab-indicator"></span>
             </NavLink>
           ))}
@@ -115,7 +116,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="navbar-logout-container">
           <button className="navbar-logout-btn" onClick={handleLogout}>
             <span className="logout-icon">🚪</span>
-            <span className="logout-label">Sign Out</span>
+            <span className="logout-label">{getTranslation('Sign Out', currentLang)}</span>
           </button>
         </div>
       </nav>

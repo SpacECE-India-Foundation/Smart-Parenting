@@ -251,8 +251,8 @@ export const saveAssessmentSeenIds = async (uid, seenIds = []) => {
     await client.put(`/children/${uid}`, { assessmentSeenIds: seenIds });
     return { error: null };
   } catch (e) {
-    console.error('saveAssessmentSeenIds:', e);
-    return { error: e.response?.data?.error || e.message };
+    console.warn('saveAssessmentSeenIds skipped:', e.response?.status || e.message);
+    return { error: null };
   }
 };
 
@@ -262,7 +262,7 @@ export const getAssessmentSeenIds = async (uid) => {
     const { data } = await client.get(`/children/${uid}`);
     return data.data?.assessmentSeenIds || [];
   } catch (e) {
-    console.error('getAssessmentSeenIds:', e);
+    console.warn('getAssessmentSeenIds skipped:', e.response?.status || e.message);
     return [];
   }
 };

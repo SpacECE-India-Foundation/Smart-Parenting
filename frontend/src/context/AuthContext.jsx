@@ -40,13 +40,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     const { user, error } = await loginUser(email, password);
-    if (user) setCurrentUser(user);
+    if (user) {
+      setCurrentUser(user);
+      setLoading(false);
+    }
     return { user, error };
   }, []);
 
   const register = useCallback(async (email, password, displayName, role) => {
     const { user, error } = await registerUser(email, password, displayName, role);
-    if (user) setCurrentUser(user);
+    if (user) {
+      setCurrentUser(user);
+      setLoading(false);
+    }
     return { user, error };
   }, []);
 
@@ -58,7 +64,10 @@ export const AuthProvider = ({ children }) => {
 
   const loginChildProfile = useCallback(async (profileId, pin) => {
     const { profile, error } = await loginChild(profileId, pin);
-    if (profile) setCurrentUser(profile);
+    if (profile) {
+      setCurrentUser(profile);
+      setLoading(false);
+    }
     return { profile, error };
   }, []);
 

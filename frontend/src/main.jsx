@@ -11,21 +11,19 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 if ('serviceWorker' in navigator) {
   if (import.meta.env.DEV) {
-    // In development, unregister any active service worker and clear caches to prevent stale chunk mismatches
+    // In development, unregister any active service worker and clear caches
+    // without forcing a hard reload, which was interrupting the login flow.
     navigator.serviceWorker.getRegistrations().then((registrations) => {
-      let unregisteredAny = false;
       const unregisterPromises = registrations.map((registration) => {
         return registration.unregister().then((success) => {
           if (success) {
             console.log('Unregistered stale service worker in development mode.');
-            unregisteredAny = true;
           }
         });
       });
-      Promise.all(unregisterPromises).then(() => {
-        if (unregisteredAny) {
-          window.location.reload();
-        }
+
+      Promise.all(unregisterPromises).catch((err) => {
+        console.warn('Failed to unregister service worker in development mode:', err);
       });
     });
 

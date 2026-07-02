@@ -39,8 +39,11 @@ export default function Awards() {
 
   useEffect(() => {
     if (user) {
-      getUnlockedAchievements(user.uid).then((ids) => {
-        setUnlockedIds(ids || []);
+      getUnlockedAchievements(user.uid).then((result) => {
+        const ids = Array.isArray(result?.data)
+          ? result.data.map((item) => item?.id).filter(Boolean)
+          : [];
+        setUnlockedIds(ids);
       });
     }
   }, [user]);

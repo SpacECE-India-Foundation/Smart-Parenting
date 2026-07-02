@@ -41,6 +41,7 @@ export default function AssessmentModule() {
 
   const queryParams = new URLSearchParams(location.search);
   const isManualStart = queryParams.get('start') === 'true';
+  const childId = profile?._id || profile?.id || profile?.uid || user?.uid || null;
 
   /* ── Age & Question State ── */
   const [ageGroupKey, setAgeGroupKey]   = useState(null);   // e.g. '2-2.5y'
@@ -83,10 +84,9 @@ export default function AssessmentModule() {
       const key = getAgeGroupKey(profile);
       setAgeGroupKey(key);
 
-      // Fetch seen IDs from Firestore
-      const uid = user?.uid;
-      const existingSeenIds = uid ? await getAssessmentSeenIds(uid) : [];
-      setSeenIds(existingSeenIds);
+      // Fetch seen IDs from the child profile record when available; otherwise continue with an empty list.
+      const existingSeenIds = childId ? await getAssessmentSeenIds(childId) : [];
+      setSeenIds(Array.isArray(existingSeenIds) ? existingSeenIds : []);
 
       // Select randomized questions
       const { questions: selected } = selectRandomQuestions(key, existingSeenIds, TOTAL_QUESTIONS);
@@ -96,7 +96,7 @@ export default function AssessmentModule() {
 
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile?.id]);
+  }, [childId]);
 
   /* ── Current question (screen 1–7 → index 0–6) ── */
   const currentQ = screen >= 1 && screen <= TOTAL_QUESTIONS ? questions[screen - 1] : null;
@@ -190,21 +190,22 @@ export default function AssessmentModule() {
     if (saving) return;
     setSaving(true);
     try {
-      const uid = user?.uid;
-      if (uid) {
+      if (childId) {
         // 1. Save assessment completion & score
-        await updateUserProfile(uid, {
+        await updateUserProfile(childId, {
           assessmentCompleted: true,
           assessmentScore: score,
           assessmentAgeGroup: ageGroupKey,
         });
 
-        // 2. Persist newly seen question IDs
+        // 2. Persist newly seen question IDs when the child profile record exists.
         const newSeenIds = updateSeenIds(seenIds, questions.map(q => q.id));
-        await saveAssessmentSeenIds(uid, newSeenIds);
+        if (childId) {
+          await saveAssessmentSeenIds(childId, newSeenIds);
+        }
 
         // 3. Award bonus XP / stars / coins
-        await awardProgress(uid, {
+        await awardProgress(childId, {
           xp: 30,
           stars: 3,
           coins: 10,
@@ -239,8 +240,8 @@ export default function AssessmentModule() {
         }));
 
         await saveMilestoneAssessmentResult({
-          childId: uid,
-          milestone_level: profile?.milestone_level ?? null,
+          childId,
+          milestone_level: profile?.milestone_level ?? 1,
           totalScore: score,
           maxPossible: questions.length * 2,
           domainScores,
@@ -253,7 +254,7 @@ export default function AssessmentModule() {
       console.error('Failed to save assessment results:', e);
     }
     navigate('/child/dashboard', { replace: true });
-  }, [saving, user, score, ageGroupKey, seenIds, questions, answers, isMilestone, profile, refreshProfile, navigate]);
+  }, [saving, childId, score, ageGroupKey, seenIds, questions, answers, isMilestone, profile, refreshProfile, navigate]);
 
   /* ── Domain label for current question ── */
   const domainIcon = currentQ ? (DOMAIN_ICONS[currentQ.domain] || '🧠') : '';

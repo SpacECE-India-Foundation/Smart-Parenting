@@ -125,12 +125,21 @@ export const ChildProfileProvider = ({ children }) => {
     return result;
   }, [activeChild]);
 
+  const switchChild = useCallback((profileId) => {
+    const profile = childProfiles.find((p) => (p._id || p.id) === profileId);
+    if (profile) {
+      setActiveChild(profile);
+      localStorage.setItem('spaceece_active_child', profileId);
+    }
+  }, [childProfiles]);
+
   return (
     <ChildProfileContext.Provider value={{
       childProfiles,
       activeChild,
       loading,
       selectChild,
+      switchChild,
       loadProfiles,
       createChildProfile,
       updateChildProfile,

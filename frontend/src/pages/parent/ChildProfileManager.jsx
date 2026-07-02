@@ -45,6 +45,33 @@ const calculateAgeGroupFromDob = (dobString) => {
   return '7-10';
 };
 
+// ── Milestone helpers (Age 1–3 only) ─────────────────────────────────────
+/**
+ * Calculates the child's age in whole months from their date of birth,
+ * then maps it to a milestone level (1–6) matching milestones_0_3.json.
+ *
+ * Level 1 → 0–6 months   | Level 4 → 1.5–2 years
+ * Level 2 → 6–12 months  | Level 5 → 2–2.5 years
+ * Level 3 → 1–1.5 years  | Level 6 → 2.5–3 years
+ */
+const getMilestoneInfo = (dateOfBirth) => {
+  if (!dateOfBirth) return null;
+  const dob = new Date(dateOfBirth);
+  const now = new Date();
+  const ageMonths =
+    (now.getFullYear() - dob.getFullYear()) * 12 +
+    (now.getMonth() - dob.getMonth());
+  let milestoneLevel;
+  if      (ageMonths < 6)  milestoneLevel = 1;
+  else if (ageMonths < 12) milestoneLevel = 2;
+  else if (ageMonths < 18) milestoneLevel = 3;
+  else if (ageMonths < 24) milestoneLevel = 4;
+  else if (ageMonths < 30) milestoneLevel = 5;
+  else                     milestoneLevel = 6;
+  return { ageMonths, milestoneLevel };
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const ChildProfileManager = () => {
   const { childProfiles, loading: profilesLoading, createChildProfile, updateChildProfile, deleteChildProfile } = useChildProfile();
   const [dialogOpen,       setDialogOpen]       = useState(false);
@@ -87,15 +114,61 @@ const ChildProfileManager = () => {
   const handleSave = async () => {
     if (!formData.name.trim()) { setError('Please enter a name.'); return; }
     if (!formData.age_group) { setError('Please select an age group.'); return; }
-    setLoading(true); setError('');
-    if (editingProfile) {
-      console.log('[ChildProfileManager] Calling updateChildProfile with Firestore doc ID:', editingProfile._id || editingProfile.id, '| Data:', formData);
+
+    // ── Age 1-3 & 4-6: validate DOB and derive milestone fields if applicable ─────────
+    if (['1-3', '4-6'].includes(formData.age_group)) {
+      if (!formData.date_of_birth) {
+        setError(`Please enter the date of birth for children in the ${formData.age_group} age group.`);
+        return;
+      }
+      const dob = new Date(formData.date_of_birth);
+      if (dob > new Date()) {
+        setError('Date of birth cannot be in the future.');
+        return;
+      }
+      if (formData.age_group === '1-3') {
+        const check = getMilestoneInfo(formData.date_of_birth);
+        if (!check || check.ageMonths > 36) {
+          setError('Date of birth indicates the child is older than 3 years. Please select the correct age group.');
+          return;
+        }
+      } else if (formData.age_group === '4-6') {
+        const ageMonths = (new Date() - dob) / (1000 * 60 * 60 * 24 * 30.44);
+        if (ageMonths > 84) { // Roughly 7 years
+          setError('Date of birth indicates the child is older than 6 years. Please select the correct age group.');
+          return;
+        }
+      }
+    }
+
+    // ── Build payload ────────────────────────────────────
+    let payload;
+    if (['1-3', '4-6'].includes(formData.age_group) && formData.date_of_birth) {
+      const dob = new Date(formData.date_of_birth);
+      const ageMonths = Math.floor((new Date() - dob) / (1000 * 60 * 60 * 24 * 30.44));
+      
+      // Calculate milestoneLevel only if they fall under the 1-3 age group format (1 to 6)
+      let milestoneLevel = null;
+      if (formData.age_group === '1-3') {
+        milestoneLevel = Math.min(6, Math.floor(ageMonths / 6) + 1);
+      }
+      
+      payload = { ...formData, age_months: ageMonths, milestone_level: milestoneLevel };
     } else {
-      console.log('[ChildProfileManager] Calling createChildProfile with data:', formData);
+      // Ensure milestone fields are explicitly cleared for other age groups (e.g. 7-10)
+      payload = { ...formData, date_of_birth: null, age_months: null, milestone_level: null };
+    }
+
+    setLoading(true); setError('');
+    const targetId = editingProfile?._id || editingProfile?.id;
+    if (editingProfile) {
+      console.log('[ChildProfileManager] Calling updateChildProfile with Firestore doc ID:', targetId, '| Data:', payload);
+    } else {
+      console.log('[ChildProfileManager] Calling createChildProfile with data:', payload);
     }
     const result = editingProfile
-      ? await updateChildProfile(editingProfile._id || editingProfile.id, formData)
-      : await createChildProfile(formData);
+      ? await updateChildProfile(targetId, payload)
+      : await createChildProfile(payload);
     if (result.error) {
       console.error('[ChildProfileManager] Save failed:', result.error);
       setError(result.error);
@@ -285,7 +358,24 @@ const ChildProfileManager = () => {
             {AGE_GROUPS.map((ag) => (
               <Box
                 key={ag.value}
-                onClick={() => setFormData((p) => ({ ...p, age_group: ag.value }))}
+                onClick={() => {
+                  const now = new Date();
+                  const toISO = (d) => d.toISOString().split('T')[0];
+                  let defaultDob = '';
+                  if (ag.value === '1-3') {
+                    // Default to ~1.5 years ago (middle of 1-3 range)
+                    defaultDob = toISO(new Date(now.getFullYear() - 1, now.getMonth() - 6, now.getDate()));
+                  } else if (ag.value === '4-6') {
+                    // Default to ~5 years ago (middle of 4-6 range)
+                    defaultDob = toISO(new Date(now.getFullYear() - 5, now.getMonth(), now.getDate()));
+                  }
+                  setFormData((p) => ({
+                    ...p,
+                    age_group: ag.value,
+                    // Set a sensible default DOB for groups that need it, clear for others
+                    date_of_birth: ['1-3', '4-6'].includes(ag.value) ? (p.date_of_birth || defaultDob) : '',
+                  }));
+                }}
                 sx={{
                   flex: 1, py: 1.25, borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
                   bgcolor: formData.age_group === ag.value ? ag.color : '#F9FAFB',

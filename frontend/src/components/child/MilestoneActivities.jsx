@@ -109,8 +109,8 @@ export default function MilestoneActivities() {
     setSimulationSuccess(true);
     playSuccessSound();
     
-    if (profile?.id) {
-      const success = await awardProgress(profile.id, {
+    if (profile?._id || profile?.id) {
+      const success = await awardProgress(profile._id || profile.id, {
         xp: 20,
         stars: 5,
         coins: 10,

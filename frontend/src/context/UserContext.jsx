@@ -1,33 +1,46 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getUserProfile, updateDayStreak, startSession, endSession } from '../api/services';
-import { getCurrentUser } from '../api/authService';
+import { useAuth } from './AuthContext';
+import { getChildProfile } from '../api/childProfileService';
 
 const UserContext = createContext();
 
 export function UserProvider({ children }) {
+  const { currentUser, uid, userRole } = useAuth();
   const [user, setUser]         = useState(null);
   const [profile, setProfile]   = useState(null);
   const [loading, setLoading]   = useState(true);
   const [newAchievements, setNewAchievements] = useState([]);
   const sessionId   = useRef(null);
-  const initialized = useRef(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    if (!uid) {
+      setUser(null);
+      setProfile(null);
+      setLoading(false);
+      if (sessionId.current) {
+        endSession(sessionId.current).catch(() => {});
+        sessionId.current = null;
+      }
+      return;
+    }
 
-    const u = getCurrentUser();
-    if (!u) { setLoading(false); return; }
+    setLoading(true);
+    setUser(currentUser);
 
-    setUser(u);
-
-    const uid = u._id || u.uid || u.id;
-
-    // Fetch profile silently
-    getUserProfile(uid)
-      .then(prof => { if (prof) setProfile(prof); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    if (userRole === 'child') {
+      // Set initial cached profile instantly
+      setProfile(currentUser);
+      getChildProfile(uid)
+        .then(res => { if (res && res.data) setProfile(res.data); })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    } else {
+      getUserProfile(uid)
+        .then(prof => { if (prof) setProfile(prof); })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
 
     // Non-blocking side effects
     updateDayStreak(uid).catch(() => {});
@@ -36,15 +49,20 @@ export function UserProvider({ children }) {
     return () => {
       if (sessionId.current) {
         endSession(sessionId.current).catch(() => {});
+        sessionId.current = null;
       }
     };
-  }, []);
+  }, [uid, userRole]);
 
   const refreshProfile = async () => {
-    if (!user) return;
-    const uid = user._id || user.uid || user.id;
-    const prof = await getUserProfile(uid);
-    if (prof) setProfile(prof);
+    if (!uid) return;
+    if (userRole === 'child') {
+      const res = await getChildProfile(uid);
+      if (res && res.data) setProfile(res.data);
+    } else {
+      const prof = await getUserProfile(uid);
+      if (prof) setProfile(prof);
+    }
   };
 
   const markLoggedOut = () => {
@@ -54,7 +72,6 @@ export function UserProvider({ children }) {
       endSession(sessionId.current).catch(() => {});
       sessionId.current = null;
     }
-    initialized.current = false;
   };
 
   return (

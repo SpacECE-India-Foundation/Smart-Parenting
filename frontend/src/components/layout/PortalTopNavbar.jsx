@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon, Notifications as NotificationsIcon,
-  Settings as SettingsIcon, Logout as LogoutIcon,
+  Settings as SettingsIcon, Logout as LogoutIcon, SwapHoriz as SwapIcon,
 } from '@mui/icons-material';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -249,6 +249,21 @@ const TopNavbar = ({ onMenuClick }) => {
               <SettingsIcon sx={{ mr: 1.5, fontSize: 18, color: roleColors.main }} />
               <Typography variant="body2" fontWeight={700}>{userRole === 'child' ? 'My Avatar' : 'Settings'}</Typography>
             </MenuItem>
+            {userRole === 'parent' && (
+              <>
+                <Divider />
+                <MenuItem
+                  onClick={() => {
+                    handleMenuClose();
+                    navigate('/login/child');
+                  }}
+                  sx={{ py: 1.5, '&:hover': { bgcolor: '#FFF8E1' } }}
+                >
+                  <SwapIcon sx={{ mr: 1.5, fontSize: 18, color: '#FF9500' }} />
+                  <Typography variant="body2" fontWeight={700} sx={{ color: '#FF9500' }}>Child Portal 🧒</Typography>
+                </MenuItem>
+              </>
+            )}
             <Divider />
             <MenuItem onClick={handleLogout} sx={{ py: 1.5, '&:hover': { bgcolor: '#FFF5F5' } }}>
               <LogoutIcon sx={{ mr: 1.5, fontSize: 18, color: '#E53E3E' }} />

@@ -8,16 +8,16 @@ import AgeGroupBadge from '../../components/shared/AgeGroupBadge';
 
 const SwitchChild = () => {
   const navigate = useNavigate();
-  const { childProfiles, activeChild, switchChild } = useChildProfile();
+  const { childProfiles, activeChild, selectChild } = useChildProfile();
 
   const profiles = childProfiles.length > 0 ? childProfiles : [
-    { id: '1', name: 'Darwin', avatar: 'avatar1', age_group: '4-6', coin_count: 850 },
-    { id: '2', name: 'Aria', avatar: 'avatar8', age_group: '7-10', coin_count: 1200 },
-    { id: '3', name: 'Luna', avatar: 'avatar11', age_group: '1-3', coin_count: 320 },
+    { _id: '1', name: 'Darwin', avatar: 'avatar1', age_group: '4-6', coin_count: 850 },
+    { _id: '2', name: 'Aria', avatar: 'avatar8', age_group: '7-10', coin_count: 1200 },
+    { _id: '3', name: 'Luna', avatar: 'avatar11', age_group: '1-3', coin_count: 320 },
   ];
 
-  const handleSwitch = (profileId) => {
-    switchChild(profileId);
+  const handleSwitch = (profile) => {
+    selectChild(profile);
     navigate('/parent/dashboard');
   };
 
@@ -34,9 +34,9 @@ const SwitchChild = () => {
 
       <Grid container spacing={3} justifyContent="center" alignItems="stretch">
         {profiles.map((profile, index) => {
-          const isActive = activeChild?.id === profile.id;
+          const isActive = (activeChild?._id || activeChild?.id) === (profile._id || profile.id);
           return (
-            <Grid size={{ xs: 12, sm: 4 }} key={profile.id} sx={{ display: 'flex' }}>
+            <Grid size={{ xs: 12, sm: 4 }} key={profile._id || profile.id} sx={{ display: 'flex' }}>
               <Card sx={{
                 borderRadius: 4, border: '3px solid',
                 borderColor: isActive ? 'secondary.main' : 'divider',
@@ -47,7 +47,7 @@ const SwitchChild = () => {
                 transform: isActive ? 'scale(1.02)' : 'scale(1)',
                 '&:hover': { transform: 'scale(1.04)', boxShadow: 4 },
               }}>
-                <CardActionArea onClick={() => handleSwitch(profile.id)} sx={{ p: 0 }}>
+                <CardActionArea onClick={() => handleSwitch(profile)} sx={{ p: 0 }}>
                   <CardContent sx={{ textAlign: 'center', py: 3.5 }}>
                     {isActive && (
                       <Chip label="Active" size="small" sx={{

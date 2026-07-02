@@ -38,12 +38,34 @@ const ChildLogin = () => {
   const { loginChild } = useAuth();
   const { childProfiles, loading } = useChildProfile();
   const [selectedProfile, setSelectedProfile] = useState(null);
-  const [hoveredAge, setHoveredAge] = useState(null);
+  const [loggingIn, setLoggingIn] = useState(false);
 
-   const handleContinue = () => {
-    if (selectedProfile) {
-       loginChild(selectedProfile._id || selectedProfile.id);
-      navigate('/child/dashboard');
+  const handleProfileClick = async (profile) => {
+    if (loggingIn) return;
+    setSelectedProfile(profile);
+    setLoggingIn(true);
+    try {
+      let pin = null;
+      if (profile.pin) {
+        pin = prompt(`Enter PIN for ${profile.name}:`);
+        if (pin === null) {
+          setSelectedProfile(null);
+          setLoggingIn(false);
+          return;
+        }
+      }
+      const { profile: loggedInProfile, error } = await loginChild(profile._id || profile.id, pin);
+      if (loggedInProfile && !error) {
+        navigate('/child/dashboard');
+      } else {
+        alert(error || 'Login failed. Please try again.');
+        setSelectedProfile(null);
+      }
+    } catch (err) {
+      console.error('Child login failed:', err);
+      setSelectedProfile(null);
+    } finally {
+      setLoggingIn(false);
     }
   };
 
@@ -67,10 +89,12 @@ const ChildLogin = () => {
       </Typography>
 
       {/* ── Loading ── */}
-      {loading ? (
+      {loading || loggingIn ? (
         <Box sx={{ py: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
           <CircularProgress size={44} sx={{ color: '#FF9500' }} />
-          <Typography variant="body2" color="text.secondary" fontWeight={700}>Loading profiles...</Typography>
+          <Typography variant="body2" color="text.secondary" fontWeight={700}>
+            {loggingIn ? 'Logging in...' : 'Loading profiles...'}
+          </Typography>
         </Box>
 
       ) : childProfiles.length === 0 ? (
@@ -108,12 +132,12 @@ const ChildLogin = () => {
         <Grid container spacing={2} sx={{ mb: 3 }} alignItems="stretch">
           {childProfiles.map((profile, index) => {
             const ageData = ageGroupData[profile.age_group] || ageGroupData['4-6'];
-            const isSelected = selectedProfile?.id === profile.id;
+            const isSelected = (selectedProfile?._id || selectedProfile?.id) === (profile._id || profile.id);
 
             return (
-              <Grid size={{ xs: 12, sm: 4 }} key={profile.id} sx={{ display: 'flex' }}>
+              <Grid size={{ xs: 12, sm: 4 }} key={profile._id || profile.id} sx={{ display: 'flex' }}>
                 <Box
-                  onClick={() => setSelectedProfile(profile)}
+                  onClick={() => handleProfileClick(profile)}
                   sx={{
                     width: '100%', borderRadius: '24px', cursor: 'pointer',
                     background: isSelected
@@ -199,36 +223,6 @@ const ChildLogin = () => {
             );
           })}
         </Grid>
-      )}
-
-      {/* ── Continue Button ── */}
-      {!loading && childProfiles.length > 0 && (
-        <Button
-          variant="contained"
-          size="large"
-          fullWidth
-          disabled={!selectedProfile}
-          onClick={handleContinue}
-          startIcon={<RocketLaunchIcon />}
-          sx={{
-            py: 1.8, fontSize: '1.05rem', fontWeight: 900,
-            borderRadius: 50, mb: 2,
-            background: selectedProfile
-              ? 'linear-gradient(135deg, #FF9500 0%, #FFC107 100%)'
-              : undefined,
-            color: selectedProfile ? 'white' : undefined,
-            boxShadow: selectedProfile ? '0 8px 28px rgba(255,149,0,0.45)' : 'none',
-            transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            '&:hover': {
-              boxShadow: selectedProfile ? '0 14px 36px rgba(255,149,0,0.55)' : 'none',
-            },
-            '&.Mui-disabled': {
-              background: 'rgba(255,255,255,0.5)', color: '#A0AEC0',
-            },
-          }}
-        >
-          {selectedProfile ? `Continue as ${selectedProfile.name} →` : 'Select Your Profile First 👆'}
-        </Button>
       )}
 
       <Button

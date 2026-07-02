@@ -19,7 +19,14 @@ export const ChildProfileProvider = ({ children }) => {
   // Use stable uid string — NOT the whole currentUser object
   const { uid, userRole } = useAuth();
 
-  const [childProfiles, setChildProfiles] = useState([]);
+  const [childProfiles, setChildProfiles] = useState(() => {
+    try {
+      const saved = localStorage.getItem('spaceece_saved_child_profiles');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [activeChild, setActiveChild]     = useState(null);
   const [loading, setLoading]             = useState(false);
   const fetchedUid = useRef(null);
@@ -37,6 +44,7 @@ export const ChildProfileProvider = ({ children }) => {
       const { data, error } = await getChildProfiles(targetUid);
       if (!error && data) {
         setChildProfiles(data);
+        localStorage.setItem('spaceece_saved_child_profiles', JSON.stringify(data));
 
         const savedId = localStorage.getItem('spaceece_active_child');
         if (savedId) {
@@ -53,8 +61,7 @@ export const ChildProfileProvider = ({ children }) => {
     if (uid && userRole === 'parent') {
       loadProfiles(uid);
     } else if (!uid) {
-      // Logout — reset everything
-      setChildProfiles([]);
+      // Logout parent/child — clear active child, but keep profiles cache
       setActiveChild(null);
       fetchedUid.current = null;
     }
@@ -90,9 +97,11 @@ export const ChildProfileProvider = ({ children }) => {
   const updateChildProfile = useCallback(async (profileId, data) => {
     const result = await updateProfile(profileId, data);
     if (!result.error) {
-      setChildProfiles(prev =>
-        prev.map(p => ((p._id || p.id) === profileId ? { ...p, ...result.data } : p))
-      );
+      setChildProfiles(prev => {
+        const next = prev.map(p => ((p._id || p.id) === profileId ? { ...p, ...result.data } : p));
+        localStorage.setItem('spaceece_saved_child_profiles', JSON.stringify(next));
+        return next;
+      });
       if (activeChild && (activeChild._id || activeChild.id) === profileId) {
         setActiveChild(prev => ({ ...prev, ...result.data }));
       }
@@ -103,7 +112,11 @@ export const ChildProfileProvider = ({ children }) => {
   const deleteChildProfile = useCallback(async (profileId) => {
     const result = await deleteProfile(profileId);
     if (!result.error) {
-      setChildProfiles(prev => prev.filter(p => (p._id || p.id) !== profileId));
+      setChildProfiles(prev => {
+        const next = prev.filter(p => (p._id || p.id) !== profileId);
+        localStorage.setItem('spaceece_saved_child_profiles', JSON.stringify(next));
+        return next;
+      });
       if (activeChild && (activeChild._id || activeChild.id) === profileId) {
         setActiveChild(null);
         localStorage.removeItem('spaceece_active_child');

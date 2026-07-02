@@ -61,8 +61,7 @@ export const AVATARS = [
 ];
 
 export const AGE_GROUPS = [
-  { id: 'group1', label: '3-4 years', min: 3, max: 4 },
-  { id: 'group2', label: '4-5 years', min: 4, max: 5 },
-  { id: 'group3', label: '5-6 years', min: 5, max: 6 },
-  { id: 'group4', label: '6-8 years', min: 6, max: 8 },
+  { value: '1-3', label: 'Age 1-3', color: '#F43F5E' },
+  { value: '4-6', label: 'Age 4-6', color: '#F5A623' },
+  { value: '7-10', label: 'Age 7-10', color: '#3B82F6' },
 ];

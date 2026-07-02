@@ -19,6 +19,32 @@ const AGE_COLORS = {
   '7-10': { color: '#3B82F6', bg: '#EFF6FF' },
 };
 
+const formatDateToInput = (dateString) => {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const calculateAgeGroupFromDob = (dobString) => {
+  if (!dobString) return '4-6';
+  const birthDate = new Date(dobString);
+  const today = new Date();
+  let ageYears = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    ageYears--;
+  }
+  if (ageYears >= 1 && ageYears <= 3) return '1-3';
+  if (ageYears >= 4 && ageYears <= 6) return '4-6';
+  if (ageYears >= 7 && ageYears <= 10) return '7-10';
+  if (ageYears < 1) return '1-3';
+  return '7-10';
+};
+
 const ChildProfileManager = () => {
   const { childProfiles, loading: profilesLoading, createChildProfile, updateChildProfile, deleteChildProfile } = useChildProfile();
   const [dialogOpen,       setDialogOpen]       = useState(false);
@@ -27,7 +53,7 @@ const ChildProfileManager = () => {
   const [deleteTarget,     setDeleteTarget]     = useState(null);
   const [error,            setError]            = useState('');
   const [loading,          setLoading]          = useState(false);
-  const [formData,         setFormData]         = useState({ name: '', avatar: 'avatar1', age_group: '4-6' });
+  const [formData,         setFormData]         = useState({ name: '', avatar: 'avatar1', age_group: '', date_of_birth: '' });
 
   // Always use real Firestore profiles — never fall back to fake IDs.
   // The placeholder fallback (id: '1', '2', '3') was the root cause of
@@ -37,32 +63,38 @@ const ChildProfileManager = () => {
 
   console.log(
     '[ChildProfileManager] Child profiles loaded from Firestore:',
-    childProfiles.map((p) => ({ firestoreDocId: p.id, name: p.name, age_group: p.age_group }))
+    childProfiles.map((p) => ({ firestoreDocId: p._id || p.id, name: p.name, age_group: p.age_group }))
   );
 
   const handleOpenCreate = () => {
     setEditingProfile(null);
-    setFormData({ name: '', avatar: 'avatar1', age_group: '4-6' });
+    setFormData({ name: '', avatar: 'avatar1', age_group: '', date_of_birth: '' });
     setError(''); setDialogOpen(true);
   };
 
   const handleOpenEdit = (profile) => {
-    console.log('[ChildProfileManager] Edit clicked — Firestore document ID used for update:', profile.id, '| Profile:', profile.name);
+    console.log('[ChildProfileManager] Edit clicked — Firestore document ID used for update:', profile._id || profile.id, '| Profile:', profile.name);
     setEditingProfile(profile);
-    setFormData({ name: profile.name, avatar: profile.avatar, age_group: profile.age_group });
+    setFormData({
+      name: profile.name,
+      avatar: profile.avatar,
+      age_group: profile.age_group,
+      date_of_birth: formatDateToInput(profile.date_of_birth),
+    });
     setError(''); setDialogOpen(true);
   };
 
   const handleSave = async () => {
     if (!formData.name.trim()) { setError('Please enter a name.'); return; }
+    if (!formData.age_group) { setError('Please select an age group.'); return; }
     setLoading(true); setError('');
     if (editingProfile) {
-      console.log('[ChildProfileManager] Calling updateChildProfile with Firestore doc ID:', editingProfile.id, '| Data:', formData);
+      console.log('[ChildProfileManager] Calling updateChildProfile with Firestore doc ID:', editingProfile._id || editingProfile.id, '| Data:', formData);
     } else {
       console.log('[ChildProfileManager] Calling createChildProfile with data:', formData);
     }
     const result = editingProfile
-      ? await updateChildProfile(editingProfile.id, formData)
+      ? await updateChildProfile(editingProfile._id || editingProfile.id, formData)
       : await createChildProfile(formData);
     if (result.error) {
       console.error('[ChildProfileManager] Save failed:', result.error);
@@ -76,12 +108,12 @@ const ChildProfileManager = () => {
 
   const handleDelete = async () => {
     if (deleteTarget) {
-      console.log('[ChildProfileManager] Delete clicked — Firestore document ID used for deleteDoc:', deleteTarget.id, '| Profile:', deleteTarget.name);
-      const result = await deleteChildProfile(deleteTarget.id);
+      console.log('[ChildProfileManager] Delete clicked — Firestore document ID used for deleteDoc:', deleteTarget._id || deleteTarget.id, '| Profile:', deleteTarget.name);
+      const result = await deleteChildProfile(deleteTarget._id || deleteTarget.id);
       if (result?.error) {
         console.error('[ChildProfileManager] Delete failed:', result.error);
       } else {
-        console.log('[ChildProfileManager] Delete succeeded for doc ID:', deleteTarget.id);
+        console.log('[ChildProfileManager] Delete succeeded for doc ID:', deleteTarget._id || deleteTarget.id);
       }
     }
     setDeleteDialogOpen(false); setDeleteTarget(null);
@@ -114,7 +146,7 @@ const ChildProfileManager = () => {
         {displayProfiles.map((profile, index) => {
           const ageStyle = AGE_COLORS[profile.age_group] || AGE_COLORS['4-6'];
           return (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={profile.id} sx={{ display: 'flex' }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={profile._id || profile.id} sx={{ display: 'flex' }}>
               <Card sx={{
                 borderRadius: '20px', width: '100%', textAlign: 'center',
                 border: `1.5px solid ${ageStyle.color}25`,
@@ -249,7 +281,7 @@ const ChildProfileManager = () => {
           <Typography variant="caption" fontWeight={900} sx={{ mb: 1.25, display: 'block', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Age Group
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
             {AGE_GROUPS.map((ag) => (
               <Box
                 key={ag.value}
@@ -268,6 +300,27 @@ const ChildProfileManager = () => {
               </Box>
             ))}
           </Box>
+
+          {/* Date of Birth Calendar */}
+          {formData.age_group && (
+            <>
+              <Typography variant="caption" fontWeight={900} sx={{ mt: 3, mb: 1.25, display: 'block', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Date of Birth (Auto-selects Age Group)
+              </Typography>
+              <TextField
+                fullWidth
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={formData.date_of_birth || ''}
+                onChange={(e) => {
+                  const dob = e.target.value;
+                  const calculatedGroup = calculateAgeGroupFromDob(dob);
+                  setFormData((p) => ({ ...p, date_of_birth: dob, age_group: calculatedGroup }));
+                }}
+                sx={{ mb: 1 }}
+              />
+            </>
+          )}
         </DialogContent>
         <DialogActions sx={{ p: 2.5, gap: 1 }}>
           <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>

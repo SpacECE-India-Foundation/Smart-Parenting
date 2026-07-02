@@ -8,7 +8,9 @@
  * 4. Cognitive & Creativity — Brain World, Creativity World, Emotion World
  * 5. Parent Analytics & Reports — Linked dashboard views under Parent Analytics
  */
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { setNavigate } from './api/client';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import theme from './theme/theme';
 import { ThemeProvider } from './context/ThemeContext';
@@ -89,6 +91,14 @@ import CreativityWorldPage from './pages/cognitive-sel/CreativityWorldPage';
 import EmotionWorldPage from './pages/cognitive-sel/EmotionWorldPage';
 import CognitiveStoryWorldPage from './pages/cognitive-sel/StoryWorldPage';
 
+function NavigationSetter() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+  return null;
+}
+
 /**
  * MaintenanceGate
  * Must live INSIDE PlatformProvider so it can read useApp().
@@ -149,6 +159,7 @@ export default function App() {
               <PlatformProvider>
                 <UserProvider>
                   <BrowserRouter>
+                    <NavigationSetter />
                     <MaintenanceGate>
                     <Routes>
                       {/* Public Auth Routes */}

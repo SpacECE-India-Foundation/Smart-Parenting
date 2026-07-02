@@ -24,6 +24,12 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
+let navigate = null;
+
+export const setNavigate = (nav) => {
+  navigate = nav;
+};
+
 // ── Response interceptor: handle 401 globally ────────────────────────────
 client.interceptors.response.use(
   (response) => response,
@@ -31,7 +37,11 @@ client.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      if (navigate) {
+        navigate('/');
+      } else {
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }

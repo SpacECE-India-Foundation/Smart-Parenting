@@ -20,7 +20,7 @@ const ROLE_DASHBOARDS_MAP = {
 
 const ParentLogin = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, userRole, refreshUser } = useAuth();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -131,7 +131,10 @@ const ParentLogin = () => {
 
         <GoogleSignInButton
           role="parent"
-          onSuccess={(user) => navigate(ROLE_DASHBOARDS_MAP[user?.role] || '/parent/dashboard')}
+          onSuccess={async (user) => {
+            await refreshUser();
+            navigate(ROLE_DASHBOARDS_MAP[user?.role] || '/parent/dashboard');
+          }}
           onError={(msg) => setError(msg)}
         />
       </Box>

@@ -1,6 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
+import { useUser } from '../../context/UserContext';
+import { getTranslation } from '../../utils/translations';
 
 const NAV_ITEMS = [
   { path: '/child/dashboard',       label: 'Home',       emoji: '🏠' },
@@ -12,7 +14,9 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const { isDark } = useTheme();
+  const { profile } = useUser();
   const location = useLocation();
+  const currentLang = profile?.language || localStorage.getItem('spaceece_language') || 'English';
 
   return (
     <nav className={`fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur-xl lg:hidden ${
@@ -44,7 +48,7 @@ export default function BottomNav() {
                   ? (isDark ? 'text-[#FFD180]' : 'text-[#F5A623]')
                   : (isDark ? 'text-[#A0A0B0]' : 'text-[#6B6B6B]')
               }`}>
-                {label}
+                {getTranslation(label, currentLang)}
               </span>
             </NavLink>
           );

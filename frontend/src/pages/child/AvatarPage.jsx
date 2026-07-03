@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useUser } from '../../context/UserContext';
 import { updateUserProfile } from '../../api/services';
+import './AvatarPage.css';
 
 const CHARACTERS = [
   { id: 'Alex',  emoji: '👦', bg: '#FFB3BA' },
@@ -19,6 +20,7 @@ const CHARACTERS = [
 ];
 
 const ACCESSORIES = [
+  { id: 'none',     label: 'None',        emoji: '❌' },
   { id: 'hat',      label: 'Top Hat',     emoji: '🎩' },
   { id: 'crown',    label: 'Crown',       emoji: '👑' },
   { id: 'glasses',  label: 'Glasses',     emoji: '👓' },
@@ -30,71 +32,91 @@ const ACCESSORIES = [
 export default function AvatarPage() {
   const { user, profile, refreshProfile } = useUser();
   const [selected, setSelected] = useState(profile?.avatar ?? 'Alex');
-  const [accessory, setAccessory] = useState(profile?.accessory ?? 'hat');
+  const [accessory, setAccessory] = useState(profile?.accessory ?? 'none');
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (profile?.avatar) {
+      setSelected(profile.avatar);
+    }
+    if (profile?.accessory) {
+      setAccessory(profile.accessory);
+    }
+  }, [profile?.avatar, profile?.accessory]);
 
   const selectedChar = CHARACTERS.find((c) => c.id === selected) ?? CHARACTERS[0];
 
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    await updateUserProfile(user.uid, { avatar: selected, accessory: accessory });
-    await refreshProfile();
+    setSaveSuccess(false);
+    try {
+      await updateUserProfile(user.uid, { avatar: selected, accessory: accessory });
+      await refreshProfile();
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (e) {
+      console.warn('Failed to update avatar details:', e);
+    }
     setSaving(false);
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '40px 24px', minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+    <div className="avatar-container">
       {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-10"
+        className="avatar-header"
       >
-        <h1 className="text-4xl font-bold flex items-center justify-center gap-2" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
+        <h1 className="avatar-title">
           Create Your Avatar ✨
         </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-          Pick a character and make it yours!
+        <p className="avatar-subtitle">
+          Pick a character and customize with accessories!
         </p>
       </motion.div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '48px', justifyContent: 'center', alignItems: 'flex-start' }}>
+      <div className="avatar-layout">
         
         {/* Left Column: Preview & Save */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 300px', maxWidth: '400px' }}>
+        <div className="avatar-preview-panel">
+          {saveSuccess && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="save-alert-banner"
+            >
+              🎉 Avatar Saved Successfully!
+            </motion.div>
+          )}
+
           {/* Preview */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center mb-8"
+            className="avatar-circle-preview"
+            style={{ background: selectedChar.bg }}
           >
-            <div
-              className="w-56 h-56 rounded-full flex items-center justify-center text-8xl border-4 border-white shadow-2xl mb-4 relative"
-              style={{ background: selectedChar.bg }}
-            >
-              {selectedChar.emoji}
-              {accessory && (
-                <div
-                  className="absolute text-7xl"
-                  style={{
-                    top: accessory === 'hat' || accessory === 'crown' ? '-24px' : 'auto',
-                    bottom: accessory === 'star' || accessory === 'rocket' ? '12px' : 'auto',
-                    left: accessory === 'glasses' ? '32px' : 'auto',
-                    right: accessory === 'bow' ? '16px' : 'auto',
-                    transform: accessory === 'glasses' ? 'scale(1.2)' : 'none',
-                    zIndex: 10,
-                    filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))',
-                  }}
-                >
-                  {ACCESSORIES.find(a => a.id === accessory)?.emoji}
-                </div>
-              )}
-            </div>
-            <h2 className="font-bold text-3xl" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-              {selected}
-            </h2>
+            {selectedChar.emoji}
+            {accessory && accessory !== 'none' && (
+              <div
+                className="avatar-accessory-floating"
+                style={{
+                  top: accessory === 'hat' || accessory === 'crown' ? '-24px' : 'auto',
+                  bottom: accessory === 'star' || accessory === 'rocket' ? '12px' : 'auto',
+                  left: accessory === 'glasses' ? '32px' : 'auto',
+                  right: accessory === 'bow' ? '16px' : 'auto',
+                  transform: accessory === 'glasses' ? 'scale(1.2)' : 'none',
+                }}
+              >
+                {ACCESSORIES.find(a => a.id === accessory)?.emoji}
+              </div>
+            )}
           </motion.div>
+          
+          <h2 className="avatar-name-label">{selected}</h2>
 
           {/* Save Button */}
           <motion.button
@@ -103,64 +125,65 @@ export default function AvatarPage() {
             onClick={handleSave}
             disabled={saving}
             className="btn-orange text-xl px-12 py-3 w-full"
-            style={{ maxWidth: '280px' }}
+            style={{ maxWidth: '280px', marginTop: '16px' }}
           >
-            {saving ? 'Saving…' : '✨ Save Avatar'}
+            {saving ? 'Saving...' : '✨ Save Avatar'}
           </motion.button>
         </div>
 
         {/* Right Column: Choices */}
-        <div style={{ flex: '2 1 500px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
+        <div className="avatar-choices-panel">
+          
           {/* Choose Character */}
-          <section>
-            <h3 className="font-bold text-xl mb-4" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-              Choose Your Character
+          <div className="avatar-choices-section">
+            <h3 className="choices-title">
+              <span>👤</span> Choose Your Character
             </h3>
-            <div className="flex flex-wrap gap-6">
+            <div className="choices-grid-characters">
               {CHARACTERS.map((char, i) => (
                 <motion.button
                   key={char.id}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.04, type: 'spring', stiffness: 300 }}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.92 }}
+                  transition={{ delay: i * 0.03, type: 'spring', stiffness: 300 }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => setSelected(char.id)}
-                  className={`avatar-card p-3 flex flex-col items-center gap-2 w-24 ${selected === char.id ? 'selected' : ''}`}
+                  className={`char-card-btn ${selected === char.id ? 'selected' : ''}`}
                   style={{ background: char.bg }}
                 >
-                  <span className="text-5xl">{char.emoji}</span>
-                  <span className="text-sm font-bold" style={{ color: '#1A1A1A' }}>{char.id}</span>
+                  <span className="char-card-emoji">{char.emoji}</span>
+                  <span className="char-card-name">{char.id}</span>
                 </motion.button>
               ))}
             </div>
-          </section>
+          </div>
 
           {/* Customize Accessories */}
-          <section>
-            <h3 className="font-bold text-xl mb-4" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-              Customize Accessories
+          <div className="avatar-choices-section">
+            <h3 className="choices-title">
+              <span>👑</span> Customize Accessories
             </h3>
-            <div className="flex flex-wrap gap-6">
+            <div className="choices-grid-accessories">
               {ACCESSORIES.map((acc, i) => (
                 <motion.button
                   key={acc.id}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 + i * 0.04, type: 'spring' }}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.92 }}
+                  transition={{ delay: 0.15 + i * 0.03, type: 'spring' }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => setAccessory(acc.id)}
-                  className={`avatar-card p-4 flex flex-col items-center gap-2 ${accessory === acc.id ? 'selected' : ''}`}
-                  style={{ background: 'var(--bg-card)', minWidth: 96 }}
+                  className={`acc-card-btn ${accessory === acc.id ? 'selected' : ''}`}
                 >
-                  <span className="text-4xl">{acc.emoji}</span>
-                  <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{acc.label}</span>
+                  <span className="acc-card-emoji">{acc.emoji}</span>
+                  <span className="acc-card-label">{acc.label}</span>
                 </motion.button>
               ))}
             </div>
-          </section>
+          </div>
         </div>
+
       </div>
     </div>
   );

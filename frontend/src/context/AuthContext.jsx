@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import {
-  loginUser, registerUser, logoutUser, loginChild,
+  loginUser, registerUser, logoutUser, loginChild, loginWithGoogle,
   sendPasswordReset, changePassword,
   fetchCurrentUser, getCurrentUser, isAuthenticated,
 } from '../api/authService';
@@ -71,6 +71,15 @@ export const AuthProvider = ({ children }) => {
     return { profile, error };
   }, []);
 
+  const loginGoogle = useCallback(async (role) => {
+    const { user, error } = await loginWithGoogle(role);
+    if (user) {
+      setCurrentUser(user);
+      setLoading(false);
+    }
+    return { user, error };
+  }, []);
+
   const refreshUser = useCallback(async () => {
     const { user } = await fetchCurrentUser();
     if (user) setCurrentUser(user);
@@ -88,6 +97,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     loginChild:       loginChildProfile,
+    loginGoogle,
     sendPasswordReset,
     changePassword,
     refreshUser,

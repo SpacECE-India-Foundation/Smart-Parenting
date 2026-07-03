@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import StoryCard   from '../../components/literacy/StoryCard';
 import StoryReader from '../../components/literacy/StoryReader';
-import MilestoneActivities from '../../components/child/MilestoneActivities';
 import MilestoneCatalogActivities from '../../components/child/MilestoneCatalogActivities';
 import { getStories } from '../../api/literacyService';
 import { storiesData as defaultStories } from '../../data/storiesData';
@@ -185,9 +184,6 @@ export default function ReadingWorldPage() {
             </div>
           </>
         )}
-
-        {/* Milestone Activities Section - Only for age 0-3 */}
-        <MilestoneActivities />
 
         {/* Milestone Catalog Activities - Comprehensive catalog for ages 0-36 months */}
         <MilestoneCatalogActivities />

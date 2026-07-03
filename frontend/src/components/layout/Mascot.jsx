@@ -16,6 +16,20 @@ const MASCOT_MESSAGES = [
 export default function Mascot() {
   const [open, setOpen] = React.useState(false);
   const [msgIdx] = React.useState(() => Math.floor(Math.random() * MASCOT_MESSAGES.length));
+  const [companion, setCompanion] = React.useState('🦁');
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('spaceece_mascot') || '🦁';
+    setCompanion(saved);
+
+    const handleMascotChange = () => {
+      setCompanion(localStorage.getItem('spaceece_mascot') || '🦁');
+    };
+    window.addEventListener('spaceece_mascot_updated', handleMascotChange);
+    return () => {
+      window.removeEventListener('spaceece_mascot_updated', handleMascotChange);
+    };
+  }, []);
 
   return (
     <div className="fixed bottom-6 right-6 z-[200] flex flex-col items-end gap-3">
@@ -38,12 +52,12 @@ export default function Mascot() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setOpen((v) => !v)}
-        className="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-xl flex items-center justify-center"
+        className="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-xl flex items-center justify-center relative"
         style={{ background: 'linear-gradient(135deg, #F5A623, #FFD180)' }}
         aria-label="SpacECE Mascot"
       >
         <div className="text-center">
-          <div className="text-2xl">🏠</div>
+          <div className="text-2xl">{companion}</div>
           <div className="text-[7px] font-bold text-[#1A1A1A] leading-none">SpacECE</div>
         </div>
         {/* Pulse ring */}

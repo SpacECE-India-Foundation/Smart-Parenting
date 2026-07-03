@@ -16,11 +16,17 @@ const { verifyToken } = require('../middleware/auth');
 
 const MAX_PROFILES = 4;
 
-// GET all children for a parent
+// GET all children
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const parentUid = req.query.parentUid || req.user.userId;
-    const profiles  = await ChildProfile.find({ parent_uid: parentUid });
+    const parentUid = req.query.parentUid;
+    const query = {};
+    if (parentUid) {
+      query.parent_uid = parentUid;
+    } else if (req.user.role !== 'admin') {
+      query.parent_uid = req.user.userId;
+    }
+    const profiles  = await ChildProfile.find(query);
     res.json({ data: profiles, error: null });
   } catch (err) {
     res.status(500).json({ data: [], error: err.message });

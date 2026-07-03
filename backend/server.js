@@ -35,6 +35,7 @@ const sessionsRoutes  = require('./routes/sessions');
 const scoresRoutes    = require('./routes/scores');
 const numeracyRoutes  = require('./routes/numeracy');
 const milestonesRoutes = require('./routes/milestones');
+const notificationsRoutes = require('./routes/notifications');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -58,6 +59,7 @@ app.use('/api/sessions',  sessionsRoutes);
 app.use('/api/scores',    scoresRoutes);
 app.use('/api/numeracy',  numeracyRoutes);
 app.use('/api/milestones', milestonesRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // ── Global error handler ───────────────────────────────────────────────────
 app.use((err, req, res, _next) => {

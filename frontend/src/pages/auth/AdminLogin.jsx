@@ -7,10 +7,11 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PasswordField from '../../components/auth/PasswordField';
 import SpacECELogo from '../../components/shared/SpacECELogo';
-import { loginWithEmail } from '../../api/authService';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
@@ -20,7 +21,7 @@ const AdminLogin = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const result = await loginWithEmail(email, password);
+    const result = await login(email, password);
     setLoading(false);
     if (result.error) { setError(result.error); return; }
     if (result.user?.role !== 'admin') {

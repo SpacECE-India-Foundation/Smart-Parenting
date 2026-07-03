@@ -9,7 +9,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PasswordField from '../../components/auth/PasswordField';
 import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
 import SpacECELogo from '../../components/shared/SpacECELogo';
-import { loginWithEmail, loginWithGoogle } from '../../api/authService';
 import { useAuth } from '../../context/AuthContext';
 
 const ROLE_DASHBOARDS_MAP = {
@@ -20,7 +19,7 @@ const ROLE_DASHBOARDS_MAP = {
 
 const ParentLogin = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, userRole, refreshUser } = useAuth();
+  const { login, loginGoogle, isAuthenticated, userRole, refreshUser } = useAuth();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -41,7 +40,7 @@ const ParentLogin = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const result = await loginWithEmail(email, password);
+    const result = await login(email, password);
     setLoading(false);
     if (result.error) { setError(result.error); return; }
     const destination = ROLE_DASHBOARDS_MAP[result.user?.role] || '/parent/dashboard';
@@ -51,7 +50,7 @@ const ParentLogin = () => {
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
-    const result = await loginWithGoogle('parent');
+    const result = await loginGoogle('parent');
     setLoading(false);
     if (result.error) { setError(result.error); return; }
     const destination = ROLE_DASHBOARDS_MAP[result.user?.role] || '/parent/dashboard';

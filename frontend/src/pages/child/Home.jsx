@@ -1,11 +1,9 @@
-/**
- * Home.jsx - Child Dashboard Homepage
- */
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import { getUserSessions } from '../../api/userService';
 import { checkAssessmentSchedule } from '../../utils/assessmentScheduler';
+import { awardProgress } from '../../api/services';
 import RecommendationPanel from '../../components/child/RecommendationPanel';
 import MilestoneCatalogActivities from '../../components/child/MilestoneCatalogActivities';
 import { getTranslation } from '../../utils/translations';
@@ -16,12 +14,6 @@ const LEARNING_PATH = [
   { id: 'addition', name: 'Addition Valley', icon: '➕', status: 'current', progress: 35 },
   { id: 'shapes', name: 'Shape Kingdom', icon: '🔷', status: 'locked', progress: 0 },
   { id: 'patterns', name: 'Pattern Palace', icon: '🎨', status: 'locked', progress: 0 },
-];
-
-const DAILY_MISSIONS = [
-  { id: 1, task: 'Solve 5 Math Puzzles', completed: true, xp: 20 },
-  { id: 2, task: 'Complete a Logic Game', completed: true, xp: 15 },
-  { id: 3, task: 'Earn 3 Stars', completed: false, xp: 10 },
 ];
 
 const ACCESSORIES = {
@@ -50,15 +42,186 @@ function getGreeting() {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, profile } = useUser();
+  const { user, profile, refreshProfile } = useUser();
   const [animateStars, setAnimateStars] = useState(0);
   const [animateXP, setAnimateXP] = useState(0);
   // 'first-time' | 'weekly' | null
   const [assessmentModalType, setAssessmentModalType] = useState(null);
   const [learningTime, setLearningTime] = useState('0m');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [missions, setMissions] = useState([]);
+  const [bonusClaimed, setBonusClaimed] = useState(false);
 
   const childId = profile?._id || profile?.id || user?._id || user?.id;
+
+  // ── Seeding Daily Markers ──
+  useEffect(() => {
+    if (!childId || !profile) return;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const markerKey = `spaceece_markers_date_${childId}`;
+    const storedDate = localStorage.getItem(markerKey);
+    if (storedDate !== todayStr) {
+      localStorage.setItem(markerKey, todayStr);
+      localStorage.setItem(`spaceece_start_stars_${childId}`, String(profile.stars || 0));
+      localStorage.setItem(`spaceece_start_math_${childId}`, String(profile.progress?.mathWorld || 0));
+      localStorage.setItem(`spaceece_start_story_${childId}`, String(profile.progress?.storyWorld || 0));
+      localStorage.setItem(`spaceece_start_words_${childId}`, String(profile.progress?.vocabularyZone || 0));
+      localStorage.setItem(`spaceece_start_brain_${childId}`, String(profile.progress?.logicIsland || 0));
+      localStorage.setItem(`spaceece_start_draw_${childId}`, String(profile.progress?.creativityWorld || 0));
+    }
+  }, [childId, profile]);
+
+  // ── Generate/Load Daily Missions ──
+  useEffect(() => {
+    if (!childId) return;
+    const missionKey = `spaceece_missions_${childId}`;
+    const stored = localStorage.getItem(missionKey);
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    let needGen = true;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.date === todayStr && Array.isArray(parsed.items)) {
+          setMissions(parsed.items);
+          setBonusClaimed(parsed.bonusClaimed || false);
+          needGen = false;
+        }
+      } catch {}
+    }
+
+    if (needGen) {
+      const pool = [
+        { id: 'math', task: 'Solve a Math Puzzle', target: 1, current: 0, xp: 20, link: '/math-world', icon: '🔢', rewardClaimed: false },
+        { id: 'story', task: 'Read an Adventure Story', target: 1, current: 0, xp: 15, link: '/child/story-world', icon: '🌟', rewardClaimed: false },
+        { id: 'stars', task: 'Earn 3 Stars', target: 3, current: 0, xp: 15, link: '/child/explore', icon: '⭐', rewardClaimed: false },
+        { id: 'words', task: 'Learn 5 Vocabulary Words', target: 5, current: 0, xp: 20, link: '/child/vocabulary-zone', icon: '🔤', rewardClaimed: false },
+        { id: 'brain', task: 'Train on Logic Island', target: 1, current: 0, xp: 15, link: '/logic-island', icon: '🧠', rewardClaimed: false },
+        { id: 'draw', task: 'Create a Drawing', target: 1, current: 0, xp: 15, link: '/child/creativity-world', icon: '🎨', rewardClaimed: false },
+      ];
+      const shuffled = [...pool].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 3);
+      const data = { date: todayStr, items: selected, bonusClaimed: false };
+      localStorage.setItem(missionKey, JSON.stringify(data));
+      setMissions(selected);
+      setBonusClaimed(false);
+    }
+  }, [childId]);
+
+  // ── Auto Check Progress ──
+  useEffect(() => {
+    if (!profile || !childId || missions.length === 0) return;
+    const missionKey = `spaceece_missions_${childId}`;
+    const stored = localStorage.getItem(missionKey);
+    if (!stored) return;
+
+    try {
+      const data = JSON.parse(stored);
+      let updated = false;
+
+      const newMissions = missions.map(m => {
+        if (m.current >= m.target) return m;
+        let newCurrent = m.current;
+
+        if (m.id === 'stars') {
+          const startStars = Number(localStorage.getItem(`spaceece_start_stars_${childId}`)) || profile.stars || 0;
+          const earned = Math.max(0, (profile.stars || 0) - startStars);
+          newCurrent = Math.min(m.target, earned);
+        } else if (m.id === 'math') {
+          const startMath = Number(localStorage.getItem(`spaceece_start_math_${childId}`)) || 0;
+          const currentMath = profile.progress?.mathWorld || 0;
+          if (currentMath > startMath) newCurrent = m.target;
+        } else if (m.id === 'story') {
+          const startStory = Number(localStorage.getItem(`spaceece_start_story_${childId}`)) || 0;
+          const currentStory = profile.progress?.storyWorld || 0;
+          if (currentStory > startStory) newCurrent = m.target;
+        } else if (m.id === 'words') {
+          const startWords = Number(localStorage.getItem(`spaceece_start_words_${childId}`)) || 0;
+          const currentWords = profile.progress?.vocabularyZone || 0;
+          const diff = Math.max(0, currentWords - startWords);
+          if (diff > 0) newCurrent = Math.min(m.target, diff * 5);
+        } else if (m.id === 'brain') {
+          const startBrain = Number(localStorage.getItem(`spaceece_start_brain_${childId}`)) || 0;
+          const currentBrain = profile.progress?.logicIsland || 0;
+          if (currentBrain > startBrain) newCurrent = m.target;
+        } else if (m.id === 'draw') {
+          const startDraw = Number(localStorage.getItem(`spaceece_start_draw_${childId}`)) || 0;
+          const currentDraw = profile.progress?.creativityWorld || 0;
+          if (currentDraw > startDraw) newCurrent = m.target;
+        }
+
+        if (newCurrent !== m.current) {
+          updated = true;
+          return { ...m, current: newCurrent };
+        }
+        return m;
+      });
+
+      if (updated) {
+        const updatedData = { ...data, items: newMissions };
+        localStorage.setItem(missionKey, JSON.stringify(updatedData));
+        setMissions(newMissions);
+      }
+    } catch {}
+  }, [profile, childId, missions]);
+
+  const handleClaimReward = async (missionId) => {
+    if (!childId) return;
+    const missionKey = `spaceece_missions_${childId}`;
+    const stored = localStorage.getItem(missionKey);
+    if (!stored) return;
+
+    try {
+      const data = JSON.parse(stored);
+      const updatedMissions = missions.map(m => {
+        if (m.id === missionId && m.current >= m.target && !m.rewardClaimed) {
+          awardProgress(childId, { xp: m.xp });
+          return { ...m, rewardClaimed: true };
+        }
+        return m;
+      });
+      const updatedData = { ...data, items: updatedMissions };
+      localStorage.setItem(missionKey, JSON.stringify(updatedData));
+      setMissions(updatedMissions);
+      if (refreshProfile) refreshProfile();
+    } catch {}
+  };
+
+  const handleSimulateMission = async (missionId) => {
+    if (!childId) return;
+    const missionKey = `spaceece_missions_${childId}`;
+    const stored = localStorage.getItem(missionKey);
+    if (!stored) return;
+
+    try {
+      const data = JSON.parse(stored);
+      const updatedMissions = missions.map(m => {
+        if (m.id === missionId) {
+          return { ...m, current: m.target };
+        }
+        return m;
+      });
+      const updatedData = { ...data, items: updatedMissions };
+      localStorage.setItem(missionKey, JSON.stringify(updatedData));
+      setMissions(updatedMissions);
+    } catch {}
+  };
+
+  const handleClaimBonus = async () => {
+    if (!childId || bonusClaimed) return;
+    const missionKey = `spaceece_missions_${childId}`;
+    const stored = localStorage.getItem(missionKey);
+    if (!stored) return;
+
+    try {
+      const data = JSON.parse(stored);
+      await awardProgress(childId, { xp: 20 });
+      const updatedData = { ...data, bonusClaimed: true };
+      localStorage.setItem(missionKey, JSON.stringify(updatedData));
+      setBonusClaimed(true);
+      if (refreshProfile) refreshProfile();
+    } catch {}
+  };
 
   // ── Assessment scheduling: show first-time or weekly popup via database ──
   useEffect(() => {
@@ -284,18 +447,112 @@ export default function Home() {
           <div className="dash-card daily-missions">
             <h3 className="card-title">✅ {getTranslation('Daily Missions', currentLang)}</h3>
             <div className="missions-list">
-              {DAILY_MISSIONS.map(mission => (
-                <div key={mission.id} className={`mission-item ${mission.completed ? 'completed' : ''}`}>
-                  <div className="mission-checkbox">{mission.completed ? '✅' : '⬜'}</div>
-                  <div className="mission-text">{getTranslation(mission.task, currentLang)}</div>
-                  <div className="mission-reward">+{mission.xp} XP</div>
-                </div>
-              ))}
+              {missions.map(mission => {
+                const isDone = mission.current >= mission.target;
+                const isClaimed = mission.rewardClaimed;
+                return (
+                  <div key={mission.id || mission.task} className={`mission-item ${isDone ? 'completed' : ''}`}>
+                    <span className="mission-checkbox" style={{ fontSize: '1.4rem' }}>
+                      {mission.icon}
+                    </span>
+                    <div className="mission-text" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ fontSize: '1rem', fontWeight: 800 }}>
+                        {getTranslation(mission.task, currentLang)}
+                      </span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 700 }}>
+                        Progress: {mission.current}/{mission.target}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {/* Go Play button */}
+                      {!isDone && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                          <button
+                            className="btn-orange"
+                            style={{ padding: '6px 12px', fontSize: '0.8rem', fontWeight: 800, borderRadius: '999px' }}
+                            onClick={() => navigate(mission.link)}
+                          >
+                            Play 🚀
+                          </button>
+                          <span
+                            style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', cursor: 'pointer', textDecoration: 'underline' }}
+                            onClick={() => handleSimulateMission(mission.id)}
+                          >
+                            Simulate 🧪
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Claim reward button */}
+                      {isDone && !isClaimed && (
+                        <button
+                          className="btn-orange"
+                          style={{
+                            padding: '8px 16px',
+                            fontSize: '0.8rem',
+                            fontWeight: 900,
+                            borderRadius: '999px',
+                            background: 'linear-gradient(135deg, #FF9800, #E91E8C)',
+                            boxShadow: '0 4px 12px rgba(233, 30, 140, 0.3)'
+                          }}
+                          onClick={() => handleClaimReward(mission.id)}
+                        >
+                          Claim 🎁
+                        </button>
+                      )}
+
+                      {/* Claimed state */}
+                      {isClaimed && (
+                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#2E7D32' }}>
+                          Claimed ✅
+                        </span>
+                      )}
+
+                      <div className="mission-reward">+{mission.xp} XP</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="missions-reward">
-              <span className="reward-text">{getTranslation('Complete all for bonus:', currentLang)}</span>
-              <span className="reward-value">+20 XP 🎁</span>
-            </div>
+
+            {/* Bonus Box */}
+            {missions.length > 0 && (
+              <div 
+                className="missions-reward"
+                style={{
+                  background: bonusClaimed ? '#E8F5E9' : (missions.every(m => m.rewardClaimed) ? 'linear-gradient(135deg, #FFFDF0, #FFE699)' : '#FFF9F2'),
+                  borderColor: bonusClaimed ? '#A5D6A7' : (missions.every(m => m.rewardClaimed) ? '#F5A623' : '#FFD9B3')
+                }}
+              >
+                {bonusClaimed ? (
+                  <>
+                    <span className="reward-text" style={{ color: '#2E7D32' }}>🎁 All daily missions completed!</span>
+                    <span className="reward-value" style={{ color: '#2E7D32' }}>Done 🎉</span>
+                  </>
+                ) : missions.every(m => m.rewardClaimed) ? (
+                  <button
+                    className="btn-orange"
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      fontSize: '0.9rem',
+                      fontWeight: 900,
+                      borderRadius: '12px',
+                      background: 'linear-gradient(90deg, #F5A623, #FF5E36)'
+                    }}
+                    onClick={handleClaimBonus}
+                  >
+                    Claim Bonus Chest 🎁 (+20 XP!)
+                  </button>
+                ) : (
+                  <>
+                    <span className="reward-text">{getTranslation('Complete all for bonus:', currentLang)}</span>
+                    <span className="reward-value">+20 XP 🎁</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Explore Worlds */}

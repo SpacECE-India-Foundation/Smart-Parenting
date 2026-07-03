@@ -19,7 +19,7 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
-  const { currentUser, userRole } = useAuth();
+  const { currentUser, userRole, uid } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -30,12 +30,14 @@ export const NotificationProvider = ({ children }) => {
    * - Child sessions (no JWT auth): use localStorage spaceece_child_id
    */
   const getEffectiveUserId = useCallback(() => {
+    if (uid) return uid;
     if (currentUser?.uid) return currentUser.uid;
+    if (currentUser?._id) return currentUser._id;
     if (userRole === 'child') {
       return localStorage.getItem('spaceece_child_id') || null;
     }
     return null;
-  }, [currentUser, userRole]);
+  }, [currentUser, userRole, uid]);
 
   /**
    * Resolve the Firestore field to query by for the current user.

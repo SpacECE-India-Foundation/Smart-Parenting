@@ -8,7 +8,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PasswordField from '../../components/auth/PasswordField';
 import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
 import SpacECELogo from '../../components/shared/SpacECELogo';
-import { loginWithEmail, loginWithGoogle } from '../../api/authService';
+import { useAuth } from '../../context/AuthContext';
 
 const ROLE_DASHBOARDS_MAP = {
   parent:  '/parent/dashboard',
@@ -18,6 +18,7 @@ const ROLE_DASHBOARDS_MAP = {
 
 const TeacherLogin = () => {
   const navigate = useNavigate();
+  const { login, loginGoogle } = useAuth();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
@@ -27,7 +28,7 @@ const TeacherLogin = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const result = await loginWithEmail(email, password);
+    const result = await login(email, password);
     setLoading(false);
     if (result.error) { setError(result.error); return; }
     const destination = ROLE_DASHBOARDS_MAP[result.user?.role] || '/teacher/dashboard';
@@ -37,7 +38,7 @@ const TeacherLogin = () => {
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
-    const result = await loginWithGoogle('teacher');
+    const result = await loginGoogle('teacher');
     setLoading(false);
     if (result.error) { setError(result.error); return; }
     navigate(ROLE_DASHBOARDS_MAP[result.user?.role] || '/teacher/dashboard');

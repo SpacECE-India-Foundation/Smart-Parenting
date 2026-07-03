@@ -2,34 +2,33 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../context/UserContext';
 import { getUnlockedAchievements } from '../../api/services';
+import './Awards.css';
 
 const CATEGORIES = ['All', 'Literacy', 'Math', 'Creative', 'Emotion', 'Brain', 'Science'];
 
 const TROPHY_SHELF = [
-  { id: 'first-steps',    label: 'First Steps',    emoji: '🏅', locked: true },
-  { id: 'rising-star',    label: 'Rising Star',    emoji: '🌟', locked: true },
-  { id: 'rocket-learner', label: 'Rocket Learner', emoji: '🚀', locked: true },
-  { id: 'knowledge-king', label: 'Knowledge King', emoji: '👑', locked: true },
+  { id: 'first-steps',    label: 'First Steps',    emoji: '🏆', locked: true, color: '#FFD700' },
+  { id: 'rising-star',    label: 'Rising Star',    emoji: '⭐', locked: true, color: '#FF7F50' },
+  { id: 'rocket-learner', label: 'Rocket Learner', emoji: '🚀', locked: true, color: '#40E0D0' },
+  { id: 'knowledge-king', label: 'Knowledge King', emoji: '👑', locked: true, color: '#DA70D6' },
 ];
 
 const BADGES = [
-  { id: 'first-game',     title: 'First Game!',      desc: 'Play your first learning game',    emoji: '🎮', cat: 'Brain',   locked: true },
-  { id: 'streak-3',       title: '3-Day Streak',     desc: 'Log in 3 days in a row',           emoji: '🔥', cat: 'Emotion', locked: true },
-  { id: 'streak-7',       title: 'Week Warrior',     desc: 'Log in 7 days in a row',           emoji: '⚡', cat: 'Emotion', locked: true },
-  { id: 'xp-100',         title: 'XP Hunter',        desc: 'Earn 100 Experience Points',        emoji: '💫', cat: 'Brain',   locked: true },
-  { id: 'xp-500',         title: 'Math Master',      desc: 'Reach 500 Experience Points',        emoji: '🏆', cat: 'Math',    locked: true },
-  { id: 'stars-10',       title: 'Star Collector',   desc: 'Collect 10 stars in games',        emoji: '⭐', cat: 'Brain',   locked: true },
-  { id: 'coins-100',      title: 'Coin Champion',    desc: 'Amass 100 gold coins',             emoji: '🪙', cat: 'Brain',   locked: true },
-  { id: 'numeracy-pro',   title: 'Numeracy Pro',     desc: 'Get 200 XP in Math World',          emoji: '🔢', cat: 'Math',    locked: true },
-
-  // existing hardcoded badges for other domains
-  { id: 'literacy-star',  title: 'Literacy Star',    desc: 'Complete 5 reading activities',   emoji: '📚', cat: 'Literacy', locked: true },
-  { id: 'creative-mind',  title: 'Creative Mind',    desc: 'Finish 5 creative projects',      emoji: '🎨', cat: 'Creative', locked: true },
-  { id: 'emotion-exp',    title: 'Emotion Explorer', desc: 'Complete emotional learning path', emoji: '💖', cat: 'Emotion', locked: true },
-  { id: 'science-whiz',   title: 'Science Whiz',     desc: 'Do 5 science experiments',        emoji: '🔬', cat: 'Science', locked: true },
-  { id: 'puzzle-master',  title: 'Puzzle Master',    desc: 'Solve 20 puzzles',                emoji: '🧩', cat: 'Brain',   locked: true },
-  { id: 'bookworm',       title: 'Bookworm',         desc: 'Read 10 stories',                 emoji: '📖', cat: 'Literacy', locked: true },
-  { id: 'music-maker',    title: 'Music Maker',      desc: 'Complete all music activities',   emoji: '🎵', cat: 'Creative', locked: true },
+  { id: 'first-game',     title: 'First Game!',      desc: 'Play your first learning game',    emoji: '🎮', cat: 'Brain',   locked: true, color: '#FF8A80' },
+  { id: 'streak-3',       title: '3-Day Streak',     desc: 'Log in 3 days in a row',           emoji: '🔥', cat: 'Emotion', locked: true, color: '#FFD180' },
+  { id: 'streak-7',       title: 'Week Warrior',     desc: 'Log in 7 days in a row',           emoji: '⚡', cat: 'Emotion', locked: true, color: '#80D8FF' },
+  { id: 'xp-100',         title: 'XP Hunter',        desc: 'Earn 100 Experience Points',        emoji: '💫', cat: 'Brain',   locked: true, color: '#B9F6CA' },
+  { id: 'xp-500',         title: 'Math Master',      desc: 'Reach 500 Experience Points',        emoji: '🏆', cat: 'Math',    locked: true, color: '#FFE082' },
+  { id: 'stars-10',       title: 'Star Collector',   desc: 'Collect 10 stars in games',        emoji: '⭐', cat: 'Brain',   locked: true, color: '#A7FFEB' },
+  { id: 'coins-100',      title: 'Coin Champion',    desc: 'Amass 100 gold coins',             emoji: '🪙', cat: 'Brain',   locked: true, color: '#FFD180' },
+  { id: 'numeracy-pro',   title: 'Numeracy Pro',     desc: 'Get 200 XP in Math World',          emoji: '🔢', cat: 'Math',    locked: true, color: '#EA80FC' },
+  { id: 'literacy-star',  title: 'Literacy Star',    desc: 'Complete 5 reading activities',   emoji: '📚', cat: 'Literacy', locked: true, color: '#CCFF90' },
+  { id: 'creative-mind',  title: 'Creative Mind',    desc: 'Finish 5 creative projects',      emoji: '🎨', cat: 'Creative', locked: true, color: '#FF8A80' },
+  { id: 'emotion-exp',    title: 'Emotion Explorer', desc: 'Complete emotional learning path', emoji: '💖', cat: 'Emotion', locked: true, color: '#FF80AB' },
+  { id: 'science-whiz',   title: 'Science Whiz',     desc: 'Do 5 science experiments',        emoji: '🔬', cat: 'Science', locked: true, color: '#A7FFEB' },
+  { id: 'puzzle-master',  title: 'Puzzle Master',    desc: 'Solve 20 puzzles',                emoji: '🧩', cat: 'Brain',   locked: true, color: '#CFD8DC' },
+  { id: 'bookworm',       title: 'Bookworm',         desc: 'Read 10 stories',                 emoji: '📖', cat: 'Literacy', locked: true, color: '#FFD180' },
+  { id: 'music-maker',    title: 'Music Maker',      desc: 'Complete all music activities',   emoji: '🎵', cat: 'Creative', locked: true, color: '#B9F6CA' },
 ];
 
 export default function Awards() {
@@ -72,87 +71,85 @@ export default function Awards() {
   const percentage = Math.min(100, Math.round((totalUnlocked / badges.length) * 100));
 
   return (
-    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '24px 24px', minHeight: 'calc(100vh - 80px)' }}>
+    <div className="awards-container">
       {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-6"
+        className="awards-header"
       >
-        <h1 className="text-3xl font-bold flex items-center justify-center gap-2" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-          Achievements 🏆
+        <h1 className="awards-title">
+          My Awards 🏆
         </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-          {totalUnlocked}/{badges.length} badges unlocked
+        <p className="awards-subtitle">
+          Play games, read stories and complete challenges to unlock badges!
         </p>
-        <div className="mt-3 max-w-xs mx-auto">
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #F5A623, #E91E8C)' }} />
+        
+        <div className="awards-progress-box">
+          <span style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--color-text-secondary)' }}>
+            🎉 {totalUnlocked} of {badges.length} Badges Unlocked ({percentage}%)
+          </span>
+          <div className="progress-track-large">
+            <div 
+              className="progress-fill-large" 
+              style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #FF6B00, #E91E8C)' }} 
+            />
           </div>
         </div>
       </motion.div>
 
-      {/* Trophy Shelf */}
+      {/* 3D Wooden Shelf for Trophies */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="card p-6 mb-6"
+        transition={{ delay: 0.05 }}
+        className="trophy-section"
       >
-        <h2 className="font-bold text-base mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-          Trophy Shelf ✨
+        <h2 className="section-title">
+          <span>✨</span> My Trophy Shelf
         </h2>
-        <div className="relative pt-4 pb-2">
-          {/* Shelf line */}
-          <div
-            className="absolute left-0 right-0 h-1 rounded-full"
-            style={{ top: '65px', background: 'var(--border-default)', zIndex: 0 }}
-          />
-          <div className="flex justify-around relative z-10">
+        <div className="shelf-wrapper">
+          <div className="trophy-grid">
             {trophies.map((t, i) => (
               <motion.div
                 key={t.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 + i * 0.07 }}
-                className="flex flex-col items-center gap-2"
-                style={{ width: '90px' }}
+                transition={{ delay: 0.1 + i * 0.06 }}
+                className={`trophy-item ${t.locked ? 'locked' : ''}`}
               >
-                <div
-                  className="text-5xl mb-1 relative"
-                  style={{ opacity: t.locked ? 0.3 : 1, filter: t.locked ? 'grayscale(1)' : 'none' }}
-                >
+                <div className="trophy-icon-container">
                   {t.emoji}
                   {t.locked && (
-                    <div className="absolute -bottom-2 -right-2 text-base">🔒</div>
+                    <div className="trophy-lock-sticker">🔒</div>
                   )}
                 </div>
-                <span className="text-xs font-semibold text-center mt-1" style={{ color: 'var(--text-muted)' }}>
+                <span className="trophy-label">
                   {t.label}
                 </span>
               </motion.div>
             ))}
           </div>
+          {/* Wood Shelf Line */}
+          <div className="wood-shelf" />
         </div>
       </motion.section>
 
-      {/* Category Filter */}
-      <div className="flex flex-wrap gap-2 mb-5">
+      {/* Category Filters */}
+      <div className="category-scroller">
         {CATEGORIES.map((cat) => (
-          <motion.button
+          <button
             key={cat}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
             onClick={() => setActiveCategory(cat)}
-            className={`filter-pill ${activeCategory === cat ? 'active' : ''}`}
+            className={`award-filter-btn ${activeCategory === cat ? 'active' : ''}`}
           >
-            {cat === 'All' && '⭐ '}{cat}
-          </motion.button>
+            {cat === 'All' ? '⭐ All Badges' : cat}
+          </button>
         ))}
       </div>
 
-      {/* Badge Grid */}
-      <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Badge Grid with Large Readable Texts */}
+      <motion.div layout className="badges-grid">
         <AnimatePresence mode="popLayout">
           {filtered.map((badge, i) => (
             <motion.div
@@ -161,25 +158,34 @@ export default function Awards() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 25 }}
-              className="card p-4 flex flex-col items-center text-center gap-2"
-              style={{ opacity: badge.locked ? 0.6 : 1 }}
+              transition={{ delay: i * 0.02, type: 'spring', stiffness: 300, damping: 25 }}
+              className={`badge-card ${badge.locked ? 'locked' : 'unlocked'}`}
             >
-              <div className="relative">
-                <div
-                  className="text-4xl"
-                  style={{ filter: badge.locked ? 'grayscale(0.8)' : 'none' }}
-                >
-                  {badge.emoji}
-                </div>
+              {!badge.locked && <span className="unlocked-sticker-sparkle">✨</span>}
+              
+              <div className="badge-icon-box">
+                {badge.emoji}
                 {badge.locked && (
-                  <div className="absolute -bottom-1 -right-1 text-sm">🔒</div>
+                  <div className="badge-lock-overlay">🔒</div>
                 )}
               </div>
-              <h4 className="font-bold text-xs leading-tight" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+
+              <h4 className="badge-card-title">
                 {badge.title}
               </h4>
-              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{badge.desc}</p>
+              <p className="badge-card-desc">
+                {badge.desc}
+              </p>
+
+              <span 
+                className="badge-card-category-tag" 
+                style={{ 
+                  color: badge.locked ? 'var(--color-text-muted)' : badge.color, 
+                  background: badge.locked ? 'var(--color-border)' : `${badge.color}15` 
+                }}
+              >
+                {badge.cat}
+              </span>
             </motion.div>
           ))}
         </AnimatePresence>

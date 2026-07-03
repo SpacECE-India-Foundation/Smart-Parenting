@@ -423,6 +423,8 @@ html { scrollbar-color: var(--color-primary-light) var(--color-divider); scrollb
 @media (min-width: 1024px) {
   .main-content.has-navbar {
     margin-left: 280px;
+    width: calc(100% - 280px);
+    max-width: calc(100% - 280px);
   }
 }
 

@@ -141,21 +141,105 @@ export const getChildSummary = async (childId) => {
   }
 };
 
-// ── Notifications (stubs) ─────────────────────────────────────────────────────
-export const getNotifications = async () => ({ data: [], error: null });
-export const getParentNotifications = async () => ({ data: [], error: null });
-export const markNotificationAsRead = async () => ({ error: null });
-export const getUnreadCount = async () => ({ count: 0, error: null });
-export const subscribeToNotifications = (userId, callback) => {
-  if (typeof callback === 'function') {
-    setTimeout(() => callback([]), 0);
+// ── Notifications ─────────────────────────────────────────────────────────────
+export const getNotifications = async (userId) => {
+  try {
+    const { data } = await client.get(`/notifications?userId=${userId}&field=child_id`);
+    return { data: data.data, error: null };
+  } catch (e) {
+    return { data: [], error: e.response?.data?.error || e.message };
   }
-  return () => {};
 };
-export const getNotificationTemplates = async () => ({ data: [], error: null });
-export const saveNotificationTemplate = async (data) => ({ data, error: null });
-export const deleteNotificationTemplate = async () => ({ error: null });
-export const toggleNotificationTemplate = async () => ({ error: null });
+
+export const getParentNotifications = async (userId) => {
+  try {
+    const { data } = await client.get(`/notifications?userId=${userId}&field=parent_id`);
+    return { data: data.data, error: null };
+  } catch (e) {
+    return { data: [], error: e.response?.data?.error || e.message };
+  }
+};
+
+export const markNotificationAsRead = async (notifId) => {
+  try {
+    await client.put(`/notifications/${notifId}/read`);
+    return { error: null };
+  } catch (e) {
+    return { error: e.response?.data?.error || e.message };
+  }
+};
+
+export const getUnreadCount = async (userId, field) => {
+  try {
+    const { data } = await client.get(`/notifications/unread/count?userId=${userId}&field=${field}`);
+    return { count: data.count, error: null };
+  } catch (e) {
+    return { count: 0, error: e.response?.data?.error || e.message };
+  }
+};
+
+export const subscribeToNotifications = (userId, field, callback) => {
+  const fetchNotifs = async () => {
+    try {
+      const { data } = await client.get(`/notifications?userId=${userId}&field=${field}`);
+      if (data && data.data && typeof callback === 'function') {
+        callback(data.data);
+      }
+    } catch (err) {
+      console.error('Subscription fetch failed:', err);
+    }
+  };
+  
+  fetchNotifs();
+  const interval = setInterval(fetchNotifs, 8000);
+  return () => clearInterval(interval);
+};
+
+export const getNotificationTemplates = async () => {
+  try {
+    const { data } = await client.get('/notifications/templates');
+    return { data: data.data, error: null };
+  } catch (e) {
+    return { data: [], error: e.response?.data?.error || e.message };
+  }
+};
+
+export const saveNotificationTemplate = async (templateData, id = null) => {
+  try {
+    const url = id ? `/notifications/templates?id=${id}` : '/notifications/templates';
+    const { data } = await client.post(url, templateData);
+    return { id: data.id, error: null };
+  } catch (e) {
+    return { id: null, error: e.response?.data?.error || e.message };
+  }
+};
+
+export const deleteNotificationTemplate = async (id) => {
+  try {
+    await client.delete(`/notifications/templates/${id}`);
+    return { error: null };
+  } catch (e) {
+    return { error: e.response?.data?.error || e.message };
+  }
+};
+
+export const toggleNotificationTemplate = async (id, active) => {
+  try {
+    await client.put(`/notifications/templates/${id}/toggle`, { active });
+    return { error: null };
+  } catch (e) {
+    return { error: e.response?.data?.error || e.message };
+  }
+};
+
+export const sendNotification = async (notifData) => {
+  try {
+    const { data } = await client.post('/notifications', notifData);
+    return { data: data.data, error: null };
+  } catch (e) {
+    return { data: null, error: e.response?.data?.error || e.message };
+  }
+};
 
 // ── Feature Flags ─────────────────────────────────────────────────────────────
 export const subscribeToFeatureFlags = (callback) => {

@@ -392,25 +392,21 @@ const ChildProfileManager = () => {
           </Box>
 
           {/* Date of Birth Calendar */}
-          {formData.age_group && (
-            <>
-              <Typography variant="caption" fontWeight={900} sx={{ mt: 3, mb: 1.25, display: 'block', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Date of Birth (Auto-selects Age Group)
-              </Typography>
-              <TextField
-                fullWidth
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={formData.date_of_birth || ''}
-                onChange={(e) => {
-                  const dob = e.target.value;
-                  const calculatedGroup = calculateAgeGroupFromDob(dob);
-                  setFormData((p) => ({ ...p, date_of_birth: dob, age_group: calculatedGroup }));
-                }}
-                sx={{ mb: 1 }}
-              />
-            </>
-          )}
+          <Typography variant="caption" fontWeight={900} sx={{ mt: 3, mb: 1.25, display: 'block', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Date of Birth (Auto-selects Age Group)
+          </Typography>
+          <TextField
+            fullWidth
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={formData.date_of_birth || ''}
+            onChange={(e) => {
+              const dob = e.target.value;
+              const calculatedGroup = calculateAgeGroupFromDob(dob);
+              setFormData((p) => ({ ...p, date_of_birth: dob, age_group: calculatedGroup }));
+            }}
+            sx={{ mb: 1 }}
+          />
         </DialogContent>
         <DialogActions sx={{ p: 2.5, gap: 1 }}>
           <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>

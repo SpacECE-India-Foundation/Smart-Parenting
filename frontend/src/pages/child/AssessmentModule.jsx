@@ -96,7 +96,7 @@ export default function AssessmentModule() {
 
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [childId]);
+  }, [profile, childId]);
 
   /* ── Current question (screen 1–7 → index 0–6) ── */
   const currentQ = screen >= 1 && screen <= TOTAL_QUESTIONS ? questions[screen - 1] : null;

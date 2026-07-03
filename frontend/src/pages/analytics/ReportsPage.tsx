@@ -749,7 +749,7 @@ interface RealChild {
 interface ReportsPageProps { selectedChild: RealChild; }
 
 export const ReportsPage: React.FC<ReportsPageProps> = ({ selectedChild }) => {
-  const childId = selectedChild.id;
+  const childId = selectedChild._id || selectedChild.id;
   console.log('[ReportsPage] Active childId being used for queries:', childId, '| name:', selectedChild.name);
   const [selectedMonthKey, setSelectedMonthKey] = useState<string>('');
   const [showPdfModal, setShowPdfModal] = useState(false);

@@ -15,7 +15,7 @@ const MAP_ZONES: MapZone[] = [
 ];
 
 export const LearningMap: React.FC<LearningMapProps> = ({ selectedChild }) => {
-  const childId = selectedChild.id;
+  const childId = selectedChild._id || selectedChild.id;
   const [selectedZone, setSelectedZone] = useState<MapZone | null>(null);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [analysis, setAnalysis] = useState<AIAnalysis>({ child_id: childId, reading_difficulty: false, numeracy_gap: false, learning_delay_flag: false, strength_areas: [], last_updated: '' });

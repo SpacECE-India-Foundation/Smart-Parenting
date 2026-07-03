@@ -6,7 +6,7 @@ import type { Child, Assessment, AIAnalysis } from '../../services/analyticsServ
 interface ChildProgressProps { selectedChild: Child; }
 
 export const ChildProgress: React.FC<ChildProgressProps> = ({ selectedChild }) => {
-  const childId = selectedChild.id;
+  const childId = selectedChild._id || selectedChild.id;
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [analysis, setAnalysis] = useState<AIAnalysis>({ child_id: childId, reading_difficulty: false, numeracy_gap: false, learning_delay_flag: false, strength_areas: [], last_updated: '' });
   const [readinessScore, setReadinessScore] = useState(0);

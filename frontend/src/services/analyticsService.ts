@@ -363,6 +363,7 @@ export const checkPredictiveInactivity = async (childId: string): Promise<{ inac
 };
 
 // Initialize database (no-op — MongoDB is always ready)
-export const initializeDatabase = async (): Promise<void> => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const initializeDatabase = async (_reset?: boolean): Promise<void> => {
   console.log('MongoDB backend ready.');
 };

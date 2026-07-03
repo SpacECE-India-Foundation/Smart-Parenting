@@ -146,8 +146,12 @@ export const getCurrentUser = () => {
 export const fetchCurrentUser = async () => {
   try {
     const { data } = await client.get('/auth/me');
-    localStorage.setItem('user', JSON.stringify(data.user));
-    return { user: data.user, error: null };
+    const user = data.user;
+    if (user && data.role) {
+      user.role = data.role;
+    }
+    localStorage.setItem('user', JSON.stringify(user));
+    return { user, error: null };
   } catch (err) {
     return { user: null, error: err.response?.data?.error || err.message };
   }

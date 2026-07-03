@@ -58,7 +58,10 @@ const TREND_CFG = {
 // totalScore stored by AssessmentModule is already a percentage (0-100).
 // Fallback: if stored as 0 but responses exist, re-derive from responses.
 function effectiveScore(a: MilestoneAssessment): number {
-  if (a.totalScore > 0) return a.totalScore;
+  if (a.totalScore > 0 && a.maxPossible > 0) {
+    // If it is already a percentage, return it, otherwise compute the percentage from raw score
+    return a.totalScore > 14 ? a.totalScore : Math.round((a.totalScore / a.maxPossible) * 100);
+  }
   // Re-derive from responses if totalScore was saved as 0 incorrectly
   if (a.responses?.length > 0) {
     const earned = a.responses.reduce((s, r) => s + (r.score ?? 0), 0);
@@ -888,7 +891,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ selectedChild }) => {
           ? Math.round(kidAverages.reduce((sum, v) => sum + v, 0) / kidAverages.length)
           : 75;
         console.log(`[Cohort] Domain "${domain}" final avg: ${ageGroupAvg}`);
-        return { domain, Child: 0, AgeGroupAverage: ageGroupAvg };
+        return { domain, Child: realChildAverages[domain] || 0, AgeGroupAverage: ageGroupAvg };
       });
 
       console.log('[Cohort] Final cohortData:', cohortRows);

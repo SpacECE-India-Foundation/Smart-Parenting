@@ -227,9 +227,9 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const renderCustomizedLabel = (props: any) => {
+const renderCustomizedLabel = (props: any): React.ReactElement => {
   const { x, y, value } = props;
-  if (value === undefined || value === null) return null;
+  if (value === undefined || value === null) return <text />;
   return (
     <text
       x={x}

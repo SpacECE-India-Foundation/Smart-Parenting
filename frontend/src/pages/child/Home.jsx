@@ -58,10 +58,12 @@ export default function Home() {
   const [learningTime, setLearningTime] = useState('0m');
   const [showProfileModal, setShowProfileModal] = useState(false);
 
+  const childId = profile?._id || profile?.id || user?._id || user?.id;
+
   // ── Assessment scheduling: show first-time or weekly popup via database ──
   useEffect(() => {
-    if (!user?.uid) return;
-    checkAssessmentSchedule(user.uid).then(({ status }) => {
+    if (!childId) return;
+    checkAssessmentSchedule(childId).then(({ status }) => {
       if (status === 'none') {
         setAssessmentModalType('first-time');
       } else if (status === 'due') {
@@ -70,18 +72,18 @@ export default function Home() {
         setAssessmentModalType(null);
       }
     });
-  }, [user?.uid]);
+  }, [childId]);
 
   // ── Fetch real learning time from sessions collection ──
   useEffect(() => {
-    if (!user?.uid) return;
-    getUserSessions(user.uid).then(({ data: sessions }) => {
+    if (!childId) return;
+    getUserSessions(childId).then(({ data: sessions }) => {
       if (!sessions || sessions.length === 0) return;
       let totalMs = 0;
       const now = Date.now();
       for (const s of sessions) {
-        const login = s.login_time?.toDate?.() ?? null;
-        const logout = s.logout_time?.toDate?.() ?? null;
+        const login = s.started_at ? new Date(s.started_at) : null;
+        const logout = s.ended_at ? new Date(s.ended_at) : null;
         if (login && logout) {
           totalMs += logout - login;           // completed session
         } else if (login && !logout) {
@@ -97,7 +99,7 @@ export default function Home() {
         setLearningTime(m > 0 ? `${h}h ${m}m` : `${h}h`);
       }
     }).catch(() => { });
-  }, [user?.uid]);
+  }, [childId]);
 
   const currentLang = profile?.language || localStorage.getItem('spaceece_language') || 'English';
   const name = profile?.name ?? 'Explorer';
@@ -105,7 +107,7 @@ export default function Home() {
   const greeting = getGreeting();
   const translatedGreeting = getTranslation(greeting, currentLang);
   const dayStreak = profile?.dayStreak ?? 0;
-  const badgeCount = profile?.badges ?? 0;
+  const badgeCount = profile?.badges ? (Array.isArray(profile.badges) ? profile.badges.length : Number(profile.badges) || 0) : 0;
 
   useEffect(() => {
     if (!profile) return;
@@ -251,7 +253,7 @@ export default function Home() {
         </div>
 
         {/* AI Activity Recommendations — shown after milestone assessment */}
-        <RecommendationPanel childId={user?.uid} />
+        <RecommendationPanel childId={childId} />
 
         {/* Dashboard Grid */}
         <div className="dashboard-grid">

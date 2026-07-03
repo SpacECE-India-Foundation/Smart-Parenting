@@ -53,6 +53,7 @@ export default function Sidebar({ isOpen, onClose }) {
       {isOpen && <div className="sidebar-mobile-overlay" onClick={onClose} />}
 
       <nav className={`navbar ${isOpen ? 'open' : ''}`} id="main-navbar">
+        <button className="navbar-close-btn" onClick={onClose} aria-label="Close menu">&times;</button>
         <div className="navbar-header">
           <Link to="/child/dashboard" className="navbar-brand" onClick={onClose}>
             <div className="brand-logo">

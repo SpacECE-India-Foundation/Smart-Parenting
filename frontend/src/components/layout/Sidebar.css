@@ -358,3 +358,33 @@
   color: var(--color-error);
 }
 
+.navbar-close-btn {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .navbar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-bg-elevated);
+    border: 2px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.2s, background-color 0.2s;
+  }
+  .navbar-close-btn:hover {
+    transform: scale(1.08);
+    background: rgba(239, 83, 80, 0.1);
+    color: var(--color-error);
+  }
+}
+

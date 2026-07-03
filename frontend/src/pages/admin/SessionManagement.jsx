@@ -91,9 +91,9 @@ const SessionManagement = () => {
       const allSessions = flatSessions
         .filter((s) => s.logout_time !== null && s.logout_time !== undefined)
         .sort((a, b) => {
-          const aTime = a.login_time?.toDate?.() || new Date(0);
-          const bTime = b.login_time?.toDate?.() || new Date(0);
-          return bTime - aTime;
+          const aTime = a.login_time?.toDate ? a.login_time.toDate() : (a.login_time ? new Date(a.login_time) : new Date(0));
+          const bTime = b.login_time?.toDate ? b.login_time.toDate() : (b.login_time ? new Date(b.login_time) : new Date(0));
+          return bTime.getTime() - aTime.getTime();
         });
       console.log('[LoginHistory] TRACE 4 — After logout_time filter (count:', allSessions.length, '):', allSessions);
 

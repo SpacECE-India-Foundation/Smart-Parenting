@@ -3,14 +3,14 @@
    ============================================================ */
 
 .awards-container {
-  width: 100%;
-  max-width: 1040px;
+  width: 92%;
+  max-width: 1440px;
   margin: 0 auto;
   padding: var(--space-8) var(--space-4) var(--space-16);
   min-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-8);
 }
 
 .awards-header {

@@ -6,10 +6,12 @@
  * - Limits zone accessibility based on the child's active XP level
  * - Redirects children to corresponding learning worlds (MathWorld, reading-world, etc.) upon unlock
  */
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../context/UserContext';
 import FloatingElements from '../../components/animations/FloatingElements';
+import '../cognitive-sel/BrainWorldPage.css';
 
 const ZONES = [
   {
@@ -141,7 +143,7 @@ export default function Adventure() {
       </div>
 
       {/* ─── Adventure Island Map ─── */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-6 animate-scale-in">
+      <div className="relative z-10 mx-auto px-6 py-6 animate-scale-in" style={{ width: '92%', maxWidth: '1440px' }}>
         {/* Map background container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
@@ -149,7 +151,7 @@ export default function Adventure() {
           className="relative rounded-3xl overflow-hidden mb-8"
           style={{
             background: 'radial-gradient(circle at 50% 50%, #4ea8de 0%, #0077b6 55%, #023e8a 85%, #03045e 100%)',
-            minHeight: 480,
+            minHeight: 600,
             border: '6px solid #FFD166',
             boxShadow: '0 20px 50px rgba(3, 4, 94, 0.35), inset 0 0 120px rgba(0, 0, 0, 0.4)',
           }}
@@ -242,7 +244,7 @@ export default function Adventure() {
           </svg>
 
           {/* Zone 3D Platforms on map */}
-          <div className="relative w-full h-full" style={{ minHeight: 420, zIndex: 5 }}>
+          <div className="relative w-full h-full" style={{ minHeight: 520, zIndex: 5 }}>
             {ZONES.map((zone, i) => {
               const unlocked = playerXp >= zone.xpRequired;
               const positions = [

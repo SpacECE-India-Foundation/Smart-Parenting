@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import FloatingElements from '../../components/animations/FloatingElements';
 import ConfettiEffect from '../../components/animations/ConfettiEffect';
 import './BrainWorldPage.css';
@@ -386,13 +386,135 @@ function MyGallery() {
 /* ============================================================
    CREATIVITY WORLD HOME
    ============================================================ */
+const MascotCompanion = () => {
+  const mascot = localStorage.getItem('spaceece_mascot') || '🦁';
+  const mascotNames = { '🦁': 'Leo the Lion', '🐯': 'Toby the Tiger', '🐼': 'Penny the Panda', '🦊': 'Felix the Fox', '🐱': 'Cleo the Cat', '🐶': 'Buddy the Dog' };
+  const mascotName = mascotNames[mascot] || 'My Companion';
+  
+  const [bubbleText, setBubbleText] = useState(`Hi there! I am ${mascotName}. Let's learn and play together today! ✨`);
+  const [sparkle, setSparkle] = useState(false);
+  const [heart, setHeart] = useState(false);
+
+  const handlePet = () => {
+    setHeart(true);
+    setSparkle(false);
+    const reactions = [
+      `Aww, that tickles! 🥰`,
+      `You are my best friend! ❤️`,
+      `Hehe, thank you! I love pet sessions! 😄`
+    ];
+    setBubbleText(reactions[Math.floor(Math.random() * reactions.length)]);
+    setTimeout(() => setHeart(false), 1500);
+  };
+
+  const handleFeed = () => {
+    setSparkle(true);
+    setHeart(false);
+    const foods = ['🍌', '🍎', '🥕', '🍪', '🍓'];
+    const selectedFood = foods[Math.floor(Math.random() * foods.length)];
+    setBubbleText(`Nom nom nom! That ${selectedFood} was super tasty! 😋`);
+    setTimeout(() => setSparkle(false), 1500);
+  };
+
+  const handleTalk = () => {
+    setSparkle(false);
+    setHeart(false);
+    const facts = [
+      `Did you know that honeybees can dance to talk to each other? 🐝💃`,
+      `Every puzzle you solve makes our brains grow bigger! 🧠`,
+      `Being kind to a friend is like giving them a bright sunshine! ☀️`,
+      `You are doing amazing today! Keep going! 🌟`
+    ];
+    setBubbleText(facts[Math.floor(Math.random() * facts.length)]);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.2 }}
+      className="brain-sidebar-card"
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '24px' }}
+    >
+      <h3 className="sidebar-title" style={{ width: '100%', justifyContent: 'center' }}>🐾 Mascot Companion</h3>
+      
+      <div style={{ position: 'relative', margin: '16px 0' }}>
+        <motion.div 
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+          style={{ fontSize: '5rem', cursor: 'pointer', userSelect: 'none', lineHeight: 1 }}
+          onClick={handlePet}
+        >
+          {mascot}
+        </motion.div>
+        
+        <AnimatePresence>
+          {heart && (
+            <motion.span 
+              initial={{ scale: 0, y: 0, opacity: 1 }}
+              animate={{ scale: 1.5, y: -45, opacity: 0 }}
+              exit={{ opacity: 0 }}
+              style={{ position: 'absolute', top: '-10px', left: '30px', zIndex: 10, fontSize: '2rem' }}
+            >
+              💖
+            </motion.span>
+          )}
+          {sparkle && (
+            <motion.span 
+              initial={{ scale: 0, y: 0, opacity: 1 }}
+              animate={{ scale: 1.5, y: -45, opacity: 0 }}
+              exit={{ opacity: 0 }}
+              style={{ position: 'absolute', top: '-10px', left: '30px', zIndex: 10, fontSize: '2rem' }}
+            >
+              ✨
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-text)' }}>
+        {mascotName}
+      </div>
+
+      <div 
+        style={{
+          background: 'linear-gradient(135deg, #FFFDF0 0%, #FFEEDD 100%)',
+          border: '2px solid #FFE4B5',
+          borderRadius: '16px',
+          padding: '12px 16px',
+          fontSize: '0.88rem',
+          fontWeight: 700,
+          color: '#1A1A1A',
+          textAlign: 'center',
+          lineHeight: 1.45,
+          position: 'relative',
+          width: '100%',
+          boxShadow: 'var(--shadow-sm)'
+        }}
+      >
+        {bubbleText}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%', marginTop: '8px' }}>
+        <button onClick={handlePet} className="btn-ghost" style={{ padding: '8px 4px', fontSize: '0.78rem', fontWeight: 800, borderRadius: '12px', cursor: 'pointer' }}>
+          Pet 💖
+        </button>
+        <button onClick={handleFeed} className="btn-ghost" style={{ padding: '8px 4px', fontSize: '0.78rem', fontWeight: 800, borderRadius: '12px', cursor: 'pointer' }}>
+          Feed 🍎
+        </button>
+        <button onClick={handleTalk} className="btn-orange" style={{ padding: '8px 4px', fontSize: '0.78rem', fontWeight: 800, borderRadius: '12px', cursor: 'pointer' }}>
+          Talk 🗣️
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ============================================================
+   CREATIVITY WORLD HOME
+   ============================================================ */
 const CreativityWorldHome = () => {
   const navigate = useNavigate();
-  const mascot = localStorage.getItem('spaceece_mascot') || '🦁';
-
-  const drawingsCount = localStorage.getItem('spaceece_drawings_count') || '0';
-  const storiesCount = localStorage.getItem('spaceece_stories_count') || '0';
-  const colorStatus = localStorage.getItem('spaceece_color_studio_sessions') || 'Not started 🎨';
 
   const activities = [
     { id: 'drawing-pad',     title: 'Drawing Pad',    description: 'Create your own masterpiece with digital canvas', emoji: '🖌️', color: '#F2A100' },
@@ -456,44 +578,8 @@ const CreativityWorldHome = () => {
           </motion.div>
         </div>
 
-        {/* Right Side: Sidebar Scoreboard panel (utilises side margins) */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="brain-sidebar-card"
-        >
-          <h3 className="sidebar-title">📊 Creative Album</h3>
-          
-          <div className="stat-row">
-            <span className="stat-label-box">🖌️ Drawings Created</span>
-            <span className="stat-val-box">{drawingsCount} designs</span>
-          </div>
-          <div className="stat-row">
-            <span className="stat-label-box">📖 Stories Published</span>
-            <span className="stat-val-box">{storiesCount} comics</span>
-          </div>
-          <div className="stat-row">
-            <span className="stat-label-box">🎨 Coloring Sessions</span>
-            <span className="stat-val-box">{colorStatus}</span>
-          </div>
-          <div className="stat-row">
-            <span className="stat-label-box">🖼️ Gallery Artworks</span>
-            <span className="stat-val-box">3 items</span>
-          </div>
-          <div className="stat-row">
-            <span className="stat-label-box">⚡ Creative XP</span>
-            <span className="stat-val-box">+40 XP Total</span>
-          </div>
-
-          {/* Mascot cheering area */}
-          <div className="brain-mascot-cheer" style={{ background: 'linear-gradient(135deg, #FFF9E6 0%, #FFF5CC 100%)', borderColor: '#FFE8A3' }}>
-            <div className="cheer-avatar">{mascot}</div>
-            <div className="cheer-bubble">
-              I absolutely love your drawings and colorful stickers! You are a brilliant artist! 🎨✨
-            </div>
-          </div>
-        </motion.div>
+        {/* Right Side: Interactive Mascot companion (utilises side margins) */}
+        <MascotCompanion />
 
       </div>
     </div>

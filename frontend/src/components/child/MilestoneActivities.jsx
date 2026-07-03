@@ -27,56 +27,11 @@ export default function MilestoneActivities() {
   const [activeSimulation, setActiveSimulation] = useState(null);
   const [simulationProgress, setSimulationProgress] = useState(0);
   const [simulationSuccess, setSimulationSuccess] = useState(false);
-  const [activeParticles, setActiveParticles] = useState([]);
 
   // Game states
   const [gameScore, setGameScore] = useState(0);
   const [gameItems, setGameItems] = useState([]);
-  const [gameStatus, setGameStatus] = useState('');
   const [gameActive, setGameActive] = useState('');
-
-  // Auto-timer for Sit & Explore
-  useEffect(() => {
-    let interval;
-    if (activeSimulation) {
-      const key = (activeSimulation.name || activeSimulation.eActivity || '').toLowerCase();
-      const isSitExplore = key.includes('sit') && key.includes('explore');
-      if (isSitExplore && !simulationSuccess) {
-        interval = setInterval(() => {
-          setGameScore(prev => {
-            const nextScore = prev + 1;
-            const nextProgress = Math.min(100, nextScore * 10);
-            setSimulationProgress(nextProgress);
-            
-            if (nextScore === 10) {
-              handleSimulationComplete();
-              clearInterval(interval);
-            }
-            return nextScore;
-          });
-        }, 1000);
-      }
-    }
-    return () => clearInterval(interval);
-  }, [activeSimulation, simulationSuccess]);
-
-  const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3000);
-  };
-
-  const handleToggleBookmark = (activityName) => {
-    let newBookmarks;
-    if (bookmarks.includes(activityName)) {
-      newBookmarks = bookmarks.filter(b => b !== activityName);
-      showToast(`Removed "${activityName}" from bookmarks`);
-    } else {
-      newBookmarks = [...bookmarks, activityName];
-      showToast(`Saved "${activityName}" to bookmarks!`);
-    }
-    setBookmarks(newBookmarks);
-    localStorage.setItem('spaceece_bookmarked_milestones', JSON.stringify(newBookmarks));
-  };
 
   const playSuccessSound = () => {
     try {
@@ -120,6 +75,49 @@ export default function MilestoneActivities() {
         refreshProfile();
       }
     }
+  };
+
+  // Auto-timer for Sit & Explore
+  useEffect(() => {
+    let interval;
+    if (activeSimulation) {
+      const key = (activeSimulation.name || activeSimulation.eActivity || '').toLowerCase();
+      const isSitExplore = key.includes('sit') && key.includes('explore');
+      if (isSitExplore && !simulationSuccess) {
+        interval = setInterval(() => {
+          setGameScore(prev => {
+            const nextScore = prev + 1;
+            const nextProgress = Math.min(100, nextScore * 10);
+            setSimulationProgress(nextProgress);
+            
+            if (nextScore === 10) {
+              handleSimulationComplete();
+              clearInterval(interval);
+            }
+            return nextScore;
+          });
+        }, 1000);
+      }
+    }
+    return () => clearInterval(interval);
+  }, [activeSimulation, simulationSuccess]);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  const handleToggleBookmark = (activityName) => {
+    let newBookmarks;
+    if (bookmarks.includes(activityName)) {
+      newBookmarks = bookmarks.filter(b => b !== activityName);
+      showToast(`Removed "${activityName}" from bookmarks`);
+    } else {
+      newBookmarks = [...bookmarks, activityName];
+      showToast(`Saved "${activityName}" to bookmarks!`);
+    }
+    setBookmarks(newBookmarks);
+    localStorage.setItem('spaceece_bookmarked_milestones', JSON.stringify(newBookmarks));
   };
 
   const getActivityKey = (activity) => {
@@ -206,7 +204,9 @@ export default function MilestoneActivities() {
                       osc.frequency.setValueAtTime(300 + count * 100, audioCtx.currentTime);
                       osc.start();
                       osc.stop(audioCtx.currentTime + 0.15);
-                    } catch {}
+                    } catch (err) {
+                      console.warn(err);
+                    }
 
                     if (nextItems.length === 5) {
                       handleSimulationComplete();
@@ -356,7 +356,9 @@ export default function MilestoneActivities() {
                       osc.frequency.setValueAtTime(261.63 * Math.pow(1.12, count), audioCtx.currentTime);
                       osc.start();
                       osc.stop(audioCtx.currentTime + 0.2);
-                    } catch {}
+                    } catch (err) {
+                      console.warn(err);
+                    }
 
                     if (nextItems.length === 8) {
                       handleSimulationComplete();
@@ -771,7 +773,6 @@ export default function MilestoneActivities() {
                    setSelectedActivity(null);
                    setGameScore(0);
                    setGameItems([]);
-                   setGameStatus('Ready to play!');
                    setGameActive(Math.random() > 0.5 ? 'left' : 'right');
                  }}
                >

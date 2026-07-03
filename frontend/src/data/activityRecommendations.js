@@ -435,7 +435,6 @@ export function generateRecommendations(domainScores, count = 4) {
 
   // Round-robin from weakest domain first, picking 1 activity per domain per round
   const domainPointers = {};
-  let round = 0;
   while (picked.length < count) {
     let addedThisRound = false;
     for (const { domain } of ranked) {
@@ -454,7 +453,6 @@ export function generateRecommendations(domainScores, count = 4) {
       }
     }
     if (!addedThisRound) break;
-    round++;
   }
 
   return picked;

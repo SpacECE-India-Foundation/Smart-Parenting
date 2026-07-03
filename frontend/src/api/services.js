@@ -163,7 +163,7 @@ export const updateDayStreak = async (userId) => {
   }
 };
 
-export const startSession = async (_userId) => {
+export const startSession = async () => {
   try {
     const { data } = await client.post('/sessions');
     return data.sessionId;
@@ -181,7 +181,7 @@ export const endSession = async (sessionId) => {
   }
 };
 
-export const checkAndUnlockAchievements = async (_userId, _profile) => {
+export const checkAndUnlockAchievements = async () => {
   return [];
 };
 

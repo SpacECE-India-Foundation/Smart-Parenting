@@ -151,7 +151,6 @@ function DomainStrip({ domainScores }) {
     <div className="rec-domain-strip">
       {ranked.map(({ domain, percentage }) => {
         const meta  = DOMAIN_META[domain];
-        const color = percentageColor(percentage);
         return (
           <span
             key={domain}
@@ -178,17 +177,24 @@ export default function RecommendationPanel({ childId }) {
 
   useEffect(() => {
     if (!childId) {
-      setState({ loading: false, data: null });
-      return;
+      const timer = setTimeout(() => {
+        setState(prev => (prev.loading || prev.data) ? { loading: false, data: null } : prev);
+      }, 0);
+      return () => clearTimeout(timer);
     }
     let cancelled = false;
-    setState({ loading: true, data: null });
+    const timer = setTimeout(() => {
+      if (!cancelled) setState({ loading: true, data: null });
+    }, 0);
 
     getChildRecommendations(childId).then((result) => {
       if (!cancelled) setState({ loading: false, data: result });
     });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [childId]);
 
   // While loading — show shimmer

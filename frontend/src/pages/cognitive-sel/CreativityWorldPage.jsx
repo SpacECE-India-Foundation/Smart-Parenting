@@ -5,6 +5,7 @@ import { useUser } from '../../context/UserContext';
 import FloatingElements from '../../components/animations/FloatingElements';
 import ConfettiEffect from '../../components/animations/ConfettiEffect';
 import { getTranslation } from '../../utils/translations';
+import { getCognitiveSelGames } from '../../api/cognitiveSelService';
 import './BrainWorldPage.css';
 
 const staggerContainer = {
@@ -19,10 +20,9 @@ const staggerItem = {
 /* ============================================================
    1. DRAWING PAD
    ============================================================ */
-const PALETTE = ['#EF4444','#F59E0B','#22C55E','#3B82F6','#8B5CF6','#EC4899','#000000','#FFFFFF'];
-const BRUSH_SIZES = [4, 8, 14, 22];
-
-function DrawingPad() {
+function DrawingPad({ palette, brushSizes }) {
+  const PALETTE = palette;
+  const BRUSH_SIZES = brushSizes;
   const navigate = useNavigate();
   const canvasRef = useRef(null);
   const [color, setColor] = useState('#3B82F6');
@@ -149,9 +149,8 @@ function DrawingPad() {
 /* ============================================================
    2. STORY CREATOR
    ============================================================ */
-const STICKERS = ['🦁','🐸','🌈','🏰','🌸','🚀','⭐','🌊','🦋','🌺','🎈','🍭'];
-
-function StoryCreator() {
+function StoryCreator({ stickers }) {
+  const STICKERS = stickers;
   const navigate = useNavigate();
   const [panels, setPanels] = useState([[], [], []]);
   const [activePanel, setActivePanel] = useState(0);
@@ -253,13 +252,9 @@ function StoryCreator() {
 /* ============================================================
    3. COLOR STUDIO (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-const SHAPES = [
-  { id: 'cat', emoji: '🐱', path: 'M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z' },
-  { id: 'star', emoji: '⭐', path: 'M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z' },
-  { id: 'heart', emoji: '❤️', path: 'M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z' }
-];
-
-function ColorStudio() {
+function ColorStudio({ shapes, palette }) {
+  const SHAPES = shapes;
+  const PALETTE = palette;
   const navigate = useNavigate();
   const [selectedShape, setSelectedShape] = useState(SHAPES[0]);
   const [fillColor, setFillColor] = useState('#EF4444');
@@ -515,17 +510,13 @@ const MascotCompanion = () => {
 /* ============================================================
    CREATIVITY WORLD HOME
    ============================================================ */
-const CreativityWorldHome = () => {
+/* ============================================================
+   CREATIVITY WORLD HOME
+   ============================================================ */
+const CreativityWorldHome = ({ activities }) => {
   const navigate = useNavigate();
   const { profile } = useUser();
   const currentLang = profile?.language || localStorage.getItem('spaceece_language') || 'English';
-
-  const activities = [
-    { id: 'drawing-pad',     title: 'Drawing Pad',    description: 'Create your own masterpiece with digital canvas', emoji: '🖌️', color: '#F2A100' },
-    { id: 'story-creator',   title: 'Story Creator',  description: 'Build your own comic stories with stickers',       emoji: '📖', color: '#EC4899' },
-    { id: 'coloring-studio', title: 'Color Studio',   description: 'Color beautiful illustrations digitally',         emoji: '🎨', color: '#F7B733' },
-    { id: 'gallery',         title: 'My Gallery',     description: 'View all your creative masterpieces',              emoji: '🖼️', color: '#8B5CF6' },
-  ];
 
   return (
     <div className="brain-world-container">
@@ -593,15 +584,68 @@ const CreativityWorldHome = () => {
 /* ============================================================
    ROUTER PATH COMPONENT
    ============================================================ */
-const CreativityWorldPage = () => (
-  <Routes>
-    <Route index element={<CreativityWorldHome />} />
-    <Route path="drawing-pad"     element={<DrawingPad />} />
-    <Route path="story-creator"   element={<StoryCreator />} />
-    <Route path="coloring-studio" element={<ColorStudio />} />
-    <Route path="gallery"         element={<MyGallery />} />
-    <Route path="*"               element={<CreativityWorldHome />} />
-  </Routes>
-);
+const CreativityWorldPage = () => {
+  const [gamesData, setGamesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCognitiveSelGames('creativity')
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setGamesData(data);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const dpGame = gamesData.find(g => g.game_id === 'drawing-pad');
+  const dpPalette = dpGame?.config?.palette || ['#EF4444','#F59E0B','#22C55E','#3B82F6','#8B5CF6','#EC4899','#000000','#FFFFFF'];
+  const dpBrushSizes = dpGame?.config?.brush_sizes || [4, 8, 14, 22];
+
+  const scGame = gamesData.find(g => g.game_id === 'story-creator');
+  const scStickers = scGame?.config?.stickers || ['🦁','🐸','🌈','🏰','🌸','🚀','⭐','🌊','🦋','🌺','🎈','🍭'];
+
+  const csGame = gamesData.find(g => g.game_id === 'coloring-studio');
+  const csShapes = csGame?.config?.shapes || [
+    { id: 'cat', emoji: '🐱', path: 'M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z' },
+    { id: 'star', emoji: '⭐', path: 'M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z' },
+    { id: 'heart', emoji: '❤️', path: 'M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z' }
+  ];
+  const csPalette = csGame?.config?.palette || ['#EF4444','#F59E0B','#22C55E','#3B82F6','#8B5CF6','#EC4899','#000000','#FFFFFF'];
+
+  const activities = gamesData.length > 0
+    ? gamesData.map(g => ({
+        id: g.game_id,
+        title: g.title,
+        description: g.description,
+        emoji: g.emoji || '🎨',
+        color: g.color || '#F2A100'
+      }))
+    : [
+        { id: 'drawing-pad',     title: 'Drawing Pad',    description: 'Create your own masterpiece with digital canvas', emoji: '🖌️', color: '#F2A100' },
+        { id: 'story-creator',   title: 'Story Creator',  description: 'Build your own comic stories with stickers',       emoji: '📖', color: '#EC4899' },
+        { id: 'coloring-studio', title: 'Color Studio',   description: 'Color beautiful illustrations digitally',         emoji: '🎨', color: '#F7B733' },
+        { id: 'gallery',         title: 'My Gallery',     description: 'View all your creative masterpieces',              emoji: '🖼️', color: '#8B5CF6' }
+      ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-lg font-black" style={{ color: 'var(--color-text)' }}>
+        Loading Creativity World... 🎨
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route index element={<CreativityWorldHome activities={activities} />} />
+      <Route path="drawing-pad"     element={<DrawingPad palette={dpPalette} brushSizes={dpBrushSizes} />} />
+      <Route path="story-creator"   element={<StoryCreator stickers={scStickers} />} />
+      <Route path="coloring-studio" element={<ColorStudio shapes={csShapes} palette={csPalette} />} />
+      <Route path="gallery"         element={<MyGallery />} />
+      <Route path="*"               element={<CreativityWorldHome activities={activities} />} />
+    </Routes>
+  );
+};
 
 export default CreativityWorldPage;

@@ -13,6 +13,329 @@ const {
   SoundMatch, ObjectRecognition, FluencyPassage,
   Challenge, ReadingActivity
 } = require('./models/Literacy');
+const { CognitiveSelGame, CognitiveStory } = require('./models/CognitiveSel');
+
+// ── Cognitive & SEL Games Config ─────────────────────────────────────────────
+const COGNITIVE_GAMES = [
+  // --- Brain World ---
+  {
+    universe: 'brain',
+    game_id: 'memory-match',
+    title: 'Memory Match',
+    description: 'Flip cards and find matching pairs',
+    emoji: '🃏',
+    color: '#3B82F6',
+    config: { card_emojis: ['🐶','🐱','🦁','🐯','🦊','🐺','🦝','🐻'] }
+  },
+  {
+    universe: 'brain',
+    game_id: 'sequence-builder',
+    title: 'Sequence Builder',
+    description: 'Remember and repeat the color pattern',
+    emoji: '✨',
+    color: '#8B5CF6',
+    config: { colors: ['#3B82F6','#EF4444','#22C55E','#F59E0B'], emojis: ['🔵','🔴','🟢','🟡'] }
+  },
+  {
+    universe: 'brain',
+    game_id: 'pattern-finder',
+    title: 'Pattern Finder',
+    description: 'Find the odd emoji out in the grid',
+    emoji: '🔍',
+    color: '#F59E0B',
+    config: { sets: [{ common: '🐱', odd: '🐶' }, { common: '🍎', odd: '🍏' }, { common: '🚗', odd: '🚲' }, { common: '🦁', odd: '🐯' }, { common: '🎈', odd: '🎨' }] }
+  },
+  {
+    universe: 'brain',
+    game_id: 'maze-challenge',
+    title: 'Maze Challenge',
+    description: 'Navigate the rocket safely to the planet',
+    emoji: '🏝️',
+    color: '#10B981',
+    config: { layout: [[0, 0, 1, 0, 0], [1, 0, 1, 0, 1], [0, 0, 0, 0, 0], [0, 1, 1, 1, 0], [0, 0, 0, 1, 0]] }
+  },
+  // --- Creativity World ---
+  {
+    universe: 'creativity',
+    game_id: 'drawing-pad',
+    title: 'Drawing Pad',
+    description: 'Create your own masterpiece with digital canvas',
+    emoji: '🖌️',
+    color: '#F2A100',
+    config: { palette: ['#EF4444','#F59E0B','#22C55E','#3B82F6','#8B5CF6','#EC4899','#000000','#FFFFFF'], brush_sizes: [4, 8, 14, 22] }
+  },
+  {
+    universe: 'creativity',
+    game_id: 'story-creator',
+    title: 'Story Creator',
+    description: 'Build your own comic stories with stickers',
+    emoji: '📖',
+    color: '#EC4899',
+    config: { stickers: ['🦁','🐸','🌈','🏰','🌸','🚀','⭐','🌊','🦋','🌺','🎈','🍭'] }
+  },
+  {
+    universe: 'creativity',
+    game_id: 'coloring-studio',
+    title: 'Color Studio',
+    description: 'Color beautiful illustrations digitally',
+    emoji: '🎨',
+    color: '#F7B733',
+    config: {
+      palette: ['#EF4444','#F59E0B','#22C55E','#3B82F6','#8B5CF6','#EC4899','#000000','#FFFFFF'],
+      shapes: [
+        { id: 'cat', emoji: '🐱', path: 'M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z' },
+        { id: 'star', emoji: '⭐', path: 'M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z' },
+        { id: 'heart', emoji: '❤️', path: 'M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z' }
+      ]
+    }
+  },
+  {
+    universe: 'creativity',
+    game_id: 'gallery',
+    title: 'My Gallery',
+    description: "Explore all the masterpieces you've built!",
+    emoji: '🖼️',
+    color: '#8B5CF6',
+    config: {}
+  },
+  // --- Emotion World ---
+  {
+    universe: 'emotion',
+    game_id: 'emotion-checkin',
+    title: 'Emotion Check-In',
+    description: 'How are you feeling today?',
+    emoji: '😊',
+    color: '#F59E0B',
+    config: {
+      moods: [
+        { emoji: '😊', label: 'Happy',    color: '#F59E0B', message: 'Wonderful! Keep that smile going! 🌟' },
+        { emoji: '😐', label: 'Okay',     color: '#6B7280', message: "That's alright. Every day is different! 💪" },
+        { emoji: '😢', label: 'Sad',      color: '#3B82F6', message: "It's okay to feel sad. You are loved! 💙" },
+        { emoji: '😠', label: 'Angry',    color: '#EF4444', message: 'Take a deep breath. You can calm down! 🍃' },
+        { emoji: '😨', label: 'Scared',   color: '#8B5CF6', message: "It's brave to share how you feel! 💜" },
+        { emoji: '🤩', label: 'Excited',  color: '#EC4899', message: 'Your excitement is contagious! 🎉' }
+      ]
+    }
+  },
+  {
+    universe: 'emotion',
+    game_id: 'emotion-recognition',
+    title: 'Emotion Recognition',
+    description: 'Learn to identify different emotions',
+    emoji: '👀',
+    color: '#EF4444',
+    config: {
+      scenarios: [
+        { face: '😊', correct: 'Happy', options: ['Happy', 'Sad', 'Angry', 'Scared'] },
+        { face: '😢', correct: 'Sad', options: ['Happy', 'Sad', 'Excited', 'Okay'] },
+        { face: '😠', correct: 'Angry', options: ['Happy', 'Angry', 'Excited', 'Scared'] },
+        { face: '😨', correct: 'Scared', options: ['Sad', 'Okay', 'Scared', 'Happy'] },
+        { face: '🤩', correct: 'Excited', options: ['Angry', 'Excited', 'Sad', 'Scared'] },
+        { face: '😐', correct: 'Okay', options: ['Okay', 'Happy', 'Angry', 'Sad'] }
+      ]
+    }
+  },
+  {
+    universe: 'emotion',
+    game_id: 'friendship-stories',
+    title: 'Friendship Stories',
+    description: 'Make caring choices in social stories',
+    emoji: '❤️',
+    color: '#EC4899',
+    config: {
+      scenarios: [
+        {
+          scene: '🏫',
+          story: 'Ananya sees a new student sitting alone at lunch. What should she do?',
+          choices: [
+            { text: '😊 Invite them to sit with her friends', correct: true, response: 'Wonderful! You made a new friend feel welcome! 🌟' },
+            { text: '😐 Ignore them and continue eating', correct: false, response: 'Hmm, they might feel lonely. Try being more welcoming next time!' }
+          ]
+        },
+        {
+          scene: '🎨',
+          story: 'Rohan accidentally breaks his friend\'s pencil. What should he do?',
+          choices: [
+            { text: 'Apologize and offer to replace it 🙏', correct: true, response: 'Great! Saying sorry and making it right is very kind! 💙' },
+            { text: 'Pretend it didn\'t happen 🏃', correct: false, response: 'It\'s better to be honest and apologise. Friends trust each other!' }
+          ]
+        },
+        {
+          scene: '⚽',
+          story: 'During a game, Priya\'s team loses. Her friend starts crying. What should Priya do?',
+          choices: [
+            { text: '🤗 Comfort them and say "We played well!"', correct: true, response: 'You are such a caring friend! 🤗' },
+            { text: '😤 Tell them "Stop crying, it\'s just a game"', correct: false, response: 'Feelings matter! Comforting friends is always better.' }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    universe: 'emotion',
+    game_id: 'kindness-challenge',
+    title: 'Kindness Challenge',
+    description: 'Complete daily acts of kindness',
+    emoji: '🎁',
+    color: '#8B5CF6',
+    config: {
+      acts: [
+        { id: 1, text: 'Share a snack or treat with someone today 🍎', done: false },
+        { id: 2, text: 'Give a warm hug or high-five to a family member 🤗', done: false },
+        { id: 3, text: 'Say a big "Thank you" to a parent or teacher 🙏', done: false }
+      ]
+    }
+  },
+  {
+    universe: 'emotion',
+    game_id: 'decision-making',
+    title: 'Decision Making',
+    description: 'Practice making thoughtful choices',
+    emoji: '💡',
+    color: '#10B981',
+    config: {
+      scenarios: [
+        {
+          scenario: 'You want to play with the red truck, but your classmate is using it. What is the best choice?',
+          choices: [
+            { text: 'Wait for my turn patiently ⌛', correct: true, feedback: 'Excellent! Sharing and taking turns makes playtime fun for everyone!' },
+            { text: 'Snatch the toy when they look away 😤', correct: false, feedback: 'Oops, snatching is not nice and could hurt their feelings.' }
+          ]
+        },
+        {
+          scenario: 'You find a pencil lying alone on the school hallway floor. What is the best choice?',
+          choices: [
+            { text: 'Give it to the classroom teacher 👩‍🏫', correct: true, feedback: 'Superb! Returning lost things is the honest and right thing to do!' },
+            { text: 'Keep it and hide it in my pencil box 🎒', correct: false, feedback: 'Hmm, the person who lost it might be looking for it.' }
+          ]
+        }
+      ]
+    }
+  }
+];
+
+const COGNITIVE_STORIES = [
+  {
+    story_id: 'lost-puppy',
+    title: 'The Lost Puppy',
+    emoji: '🐶',
+    color: '#F59E0B',
+    nodes: {
+      start: {
+        text: 'You find a little puppy sitting alone in the park, looking sad and lost. What do you do?',
+        scene: '🌳🐶😢',
+        choices: [
+          { text: '🏠 Take the puppy home and look after it', next: 'home' },
+          { text: '📣 Ask around the park if anyone lost it', next: 'ask' }
+        ]
+      },
+      home: {
+        text: 'You bring the puppy home and give it water and food. It wags its tail happily! What next?',
+        scene: '🏠🐶💧🍖',
+        choices: [
+          { text: '📋 Make "Found Dog" posters and put them up', next: 'poster' },
+          { text: '🤗 Keep it as your own pet', next: 'keep' }
+        ]
+      },
+      ask: {
+        text: 'You ask around and find an old lady crying — it\'s her puppy! She is so relieved. What do you say?',
+        scene: '👵🐶😊',
+        choices: [
+          { text: '😊 "I\'m so glad I found it for you!"', next: 'kindEnding' },
+          { text: '💰 "Can I have a reward please?"', next: 'rewardEnding' }
+        ]
+      },
+      poster: {
+        text: 'Your posters work! The owner calls and comes to pick up the puppy. They thank you gratefully.',
+        scene: '📋✅🐶👨',
+        ending: true,
+        emotion: 'proud',
+        message: '🌟 You are responsible and kind! The puppy is home safe.'
+      },
+      keep: {
+        text: 'A few days later a child comes looking for their puppy. They had been crying all week.',
+        scene: '👦😢🐶',
+        choices: [
+          { text: '❤️ Return the puppy to the child', next: 'returnEnding' },
+          { text: '😐 Pretend you don\'t know about any puppy', next: 'dishonestEnding' }
+        ]
+      },
+      kindEnding: {
+        text: 'The old lady hugs you and calls you a true hero. She gives you a beautiful flower from her garden.',
+        scene: '🌸👵🐶😊',
+        ending: true,
+        emotion: 'happy',
+        message: '💛 Your kindness made the whole day brighter!'
+      },
+      rewardEnding: {
+        text: 'The old lady gives you a coin but looks a little sad. True kindness doesn\'t need a reward!',
+        scene: '💰👵🐶😐',
+        ending: true,
+        emotion: 'neutral',
+        message: '🤔 Helping others feels even better when you don\'t expect anything back!'
+      },
+      returnEnding: {
+        text: 'The child cries happy tears and hugs the puppy tightly. You feel a warm glow in your heart!',
+        scene: '👦🐶❤️😊',
+        ending: true,
+        emotion: 'proud',
+        message: '🌟 Doing the right thing always feels amazing. You\'re a hero!'
+      },
+      dishonestEnding: {
+        text: 'The child leaves sad and the puppy misses its family. Honesty is always the right choice.',
+        scene: '👦😢🚶',
+        ending: true,
+        emotion: 'sad',
+        message: '💙 It\'s never too late to be honest. Next time, you\'ll know what to do!'
+      }
+    }
+  },
+  {
+    story_id: 'magic-garden',
+    title: 'The Magic Garden',
+    emoji: '🌸',
+    color: '#10B981',
+    nodes: {
+      start: {
+        text: 'You discover a beautiful hidden garden full of glowing flowers. A fairy appears and offers you a gift. Which do you choose?',
+        scene: '🌺✨🧚',
+        choices: [
+          { text: '🌱 A magic seed that grows a wish tree', next: 'wishTree' },
+          { text: '📚 A book that teaches you all about plants', next: 'book' }
+        ]
+      },
+      wishTree: {
+        text: 'The tree grows! It can grant ONE wish. What do you wish for?',
+        scene: '🌳✨⭐',
+        choices: [
+          { text: '🌍 A healthier planet with more trees', next: 'planetEnding' },
+          { text: '🍭 All the sweets I want forever!', next: 'sweetsEnding' }
+        ]
+      },
+      book: {
+        text: 'You learn to grow beautiful gardens everywhere. Your village becomes the greenest in the country!',
+        scene: '📚🌿🏡',
+        ending: true,
+        emotion: 'proud',
+        message: '🌿 Knowledge is the greatest gift! You made the world greener.'
+      },
+      planetEnding: {
+        text: 'Trees sprout across the world! Birds sing, rivers flow clear, and everyone breathes fresh air.',
+        scene: '🌍🌳🐦💨',
+        ending: true,
+        emotion: 'happy',
+        message: '🌟 You thought of everyone, not just yourself. True hero!'
+      },
+      sweetsEnding: {
+        text: 'The sweets are delicious but you feel sick after too many. Perhaps a wish for others lasts longer!',
+        scene: '🍭😋🤢',
+        ending: true,
+        emotion: 'neutral',
+        message: '🍬 Sweet moments are better when shared! Think of others next time.'
+      }
+    }
+  }
+];
 
 // ── Numeracy Games ──────────────────────────────────────────────────────────
 const MATH_GAMES = [
@@ -229,6 +552,8 @@ async function main() {
     await seedCollection('objectrecognitions', ObjectRecognition, OBJECT_RECOGNITION);
     await seedCollection('fluencypassages', FluencyPassage, FLUENCY);
     await seedCollection('challenges', Challenge, CHALLENGES);
+    await seedCollection('cognitiveselgames', CognitiveSelGame, COGNITIVE_GAMES);
+    await seedCollection('cognitivestories', CognitiveStory, COGNITIVE_STORIES);
 
     console.log('\n🎉 Database seeding complete!');
   } catch (err) {

@@ -3,11 +3,12 @@
  * Story Choice World: branching narratives with 3 endings each
  * Adapted for integration-lead
  */
-import { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import FloatingElements from '../../components/animations/FloatingElements';
 import ConfettiEffect from '../../components/animations/ConfettiEffect';
+import { getBranchingStories } from '../../api/cognitiveSelService';
 
 const staggerContainer = {
   initial: {},
@@ -21,130 +22,9 @@ const staggerItem = {
 /* ═══════════════════════════════════════════════════════
    BRANCHING STORY ENGINE
 ═══════════════════════════════════════════════════════ */
-const STORIES = {
-  'lost-puppy': {
-    title: 'The Lost Puppy',
-    emoji: '🐶',
-    color: '#F59E0B',
-    nodes: {
-      start: {
-        text: 'You find a little puppy sitting alone in the park, looking sad and lost. What do you do?',
-        scene: '🌳🐶😢',
-        choices: [
-          { text: '🏠 Take the puppy home and look after it', next: 'home' },
-          { text: '📣 Ask around the park if anyone lost it', next: 'ask' },
-        ],
-      },
-      home: {
-        text: 'You bring the puppy home and give it water and food. It wags its tail happily! What next?',
-        scene: '🏠🐶💧🍖',
-        choices: [
-          { text: '📋 Make "Found Dog" posters and put them up', next: 'poster' },
-          { text: '🤗 Keep it as your own pet', next: 'keep' },
-        ],
-      },
-      ask: {
-        text: 'You ask around and find an old lady crying — it\'s her puppy! She is so relieved. What do you say?',
-        scene: '👵🐶😊',
-        choices: [
-          { text: '😊 "I\'m so glad I found it for you!"', next: 'kindEnding' },
-          { text: '💰 "Can I have a reward please?"', next: 'rewardEnding' },
-        ],
-      },
-      poster: {
-        text: 'Your posters work! The owner calls and comes to pick up the puppy. They thank you gratefully.',
-        scene: '📋✅🐶👨',
-        ending: true,
-        emotion: 'proud',
-        message: '🌟 You are responsible and kind! The puppy is home safe.',
-      },
-      keep: {
-        text: 'A few days later a child comes looking for their puppy. They had been crying all week.',
-        scene: '👦😢🐶',
-        choices: [
-          { text: '❤️ Return the puppy to the child', next: 'returnEnding' },
-          { text: '😐 Pretend you don\'t know about any puppy', next: 'dishonestEnding' },
-        ],
-      },
-      kindEnding: {
-        text: 'The old lady hugs you and calls you a true hero. She gives you a beautiful flower from her garden.',
-        scene: '🌸👵🐶😊',
-        ending: true,
-        emotion: 'happy',
-        message: '💛 Your kindness made the whole day brighter!',
-      },
-      rewardEnding: {
-        text: 'The old lady gives you a coin but looks a little sad. True kindness doesn\'t need a reward!',
-        scene: '💰👵🐶😐',
-        ending: true,
-        emotion: 'neutral',
-        message: '🤔 Helping others feels even better when you don\'t expect anything back!',
-      },
-      returnEnding: {
-        text: 'The child cries happy tears and hugs the puppy tightly. You feel a warm glow in your heart!',
-        scene: '👦🐶❤️😊',
-        ending: true,
-        emotion: 'proud',
-        message: '🌟 Doing the right thing always feels amazing. You\'re a hero!',
-      },
-      dishonestEnding: {
-        text: 'The child leaves sad and the puppy misses its family. Honesty is always the right choice.',
-        scene: '👦😢🚶',
-        ending: true,
-        emotion: 'sad',
-        message: '💙 It\'s never too late to be honest. Next time, you\'ll know what to do!',
-      },
-    },
-  },
-  'magic-garden': {
-    title: 'The Magic Garden',
-    emoji: '🌸',
-    color: '#10B981',
-    nodes: {
-      start: {
-        text: 'You discover a beautiful hidden garden full of glowing flowers. A fairy appears and offers you a gift. Which do you choose?',
-        scene: '🌺✨🧚',
-        choices: [
-          { text: '🌱 A magic seed that grows a wish tree', next: 'wishTree' },
-          { text: '📚 A book that teaches you all about plants', next: 'book' },
-        ],
-      },
-      wishTree: {
-        text: 'The tree grows! It can grant ONE wish. What do you wish for?',
-        scene: '🌳✨⭐',
-        choices: [
-          { text: '🌍 A healthier planet with more trees', next: 'planetEnding' },
-          { text: '🍭 All the sweets I want forever!', next: 'sweetsEnding' },
-        ],
-      },
-      book: {
-        text: 'You learn to grow beautiful gardens everywhere. Your village becomes the greenest in the country!',
-        scene: '📚🌿🏡',
-        ending: true,
-        emotion: 'proud',
-        message: '🌿 Knowledge is the greatest gift! You made the world greener.',
-      },
-      planetEnding: {
-        text: 'Trees sprout across the world! Birds sing, rivers flow clear, and everyone breathes fresh air.',
-        scene: '🌍🌳🐦💨',
-        ending: true,
-        emotion: 'happy',
-        message: '🌟 You thought of everyone, not just yourself. True hero!',
-      },
-      sweetsEnding: {
-        text: 'The sweets are delicious but you feel sick after too many. Perhaps a wish for others lasts longer!',
-        scene: '🍭😋🤢',
-        ending: true,
-        emotion: 'neutral',
-        message: '🍬 Sweet moments are better when shared! Think of others next time.',
-      },
-    },
-  },
-};
-
-function StoryPlayer({ storyId }) {
+function StoryPlayer({ storyId, storiesData }) {
   const navigate = useNavigate();
-  const story = STORIES[storyId];
+  const story = storiesData.find(s => s.story_id === storyId);
   const [currentNode, setCurrentNode] = useState('start');
   const [history, setHistory] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -227,15 +107,20 @@ function StoryPlayer({ storyId }) {
 /* ═══════════════════════════════════════════════════════
    STORY WORLD HOME
 ═══════════════════════════════════════════════════════ */
-const StoryWorldHome = () => {
+const StoryWorldHome = ({ storiesData }) => {
   const navigate = useNavigate();
 
-  const stories = [
-    { id: 'lost-puppy',    title: 'The Lost Puppy',     description: 'Help find a puppy that wandered away', emoji: '🐶', color: '#F59E0B', endings: 4 },
-    { id: 'magic-garden',  title: 'The Magic Garden',   description: 'Discover the secrets of an enchanted garden', emoji: '🌸', color: '#10B981', endings: 3 },
+  const stories = (storiesData || []).map(s => ({
+    id: s.story_id,
+    title: s.title,
+    description: s.story_id === 'lost-puppy' ? 'Help find a puppy that wandered away' : 'Discover the secrets of an enchanted garden',
+    emoji: s.emoji || '📖',
+    color: s.color || '#10B981',
+    endings: Object.values(s.nodes || {}).filter(n => n.ending).length
+  })).concat([
     { id: 'treasure-hunt', title: 'Treasure Hunt',      description: 'Follow the map to find hidden treasure', emoji: '🗺️', color: '#3B82F6', comingSoon: true, endings: 3 },
     { id: 'space-explorer',title: 'Space Explorer',     description: 'Journey through the stars and meet aliens', emoji: '🚀', color: '#8B5CF6', comingSoon: true, endings: 3 },
-  ];
+  ]);
 
   return (
     <div style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -288,19 +173,39 @@ const StoryWorldHome = () => {
    ROUTER
 ═══════════════════════════════════════════════════════ */
 const StoryWorldPage = () => {
-  const navigate = useNavigate();
+  const [storiesData, setStoriesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getBranchingStories()
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setStoriesData(data);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-lg font-black" style={{ color: 'var(--text-primary)' }}>
+        Loading Stories... 📖
+      </div>
+    );
+  }
+
   return (
     <Routes>
-      <Route index element={<StoryWorldHome />} />
-      <Route path=":storyId" element={<StoryPlayerWrapper />} />
-      <Route path="*" element={<StoryWorldHome />} />
+      <Route index element={<StoryWorldHome storiesData={storiesData} />} />
+      <Route path=":storyId" element={<StoryPlayerWrapper storiesData={storiesData} />} />
+      <Route path="*" element={<StoryWorldHome storiesData={storiesData} />} />
     </Routes>
   );
 };
 
-function StoryPlayerWrapper() {
-  const { storyId } = { storyId: window.location.pathname.split('/').pop() };
-  return <StoryPlayer storyId={storyId} />;
+function StoryPlayerWrapper({ storiesData }) {
+  const { storyId } = useParams();
+  return <StoryPlayer storyId={storyId} storiesData={storiesData} />;
 }
 
 export default StoryWorldPage;

@@ -5,6 +5,7 @@ import { useUser } from '../../context/UserContext';
 import FloatingElements from '../../components/animations/FloatingElements';
 import ConfettiEffect from '../../components/animations/ConfettiEffect';
 import { getTranslation } from '../../utils/translations';
+import { getCognitiveSelGames } from '../../api/cognitiveSelService';
 import './BrainWorldPage.css';
 
 /* ─── Animation variants ─── */
@@ -20,9 +21,8 @@ const staggerItem = {
 /* ============================================================
    1. MEMORY MATCH GAME
    ============================================================ */
-const CARD_EMOJIS = ['🐶','🐱','🦁','🐯','🦊','🐺','🦝','🐻'];
-
-function MemoryMatchGame() {
+function MemoryMatchGame({ cardEmojis }) {
+  const CARD_EMOJIS = cardEmojis;
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
@@ -121,10 +121,9 @@ function MemoryMatchGame() {
 /* ============================================================
    2. SEQUENCE BUILDER GAME
    ============================================================ */
-const SEQ_COLORS = ['#3B82F6','#EF4444','#22C55E','#F59E0B'];
-const SEQ_EMOJIS = ['🔵','🔴','🟢','🟡'];
-
-function SequenceBuilderGame() {
+function SequenceBuilderGame({ seqColors, seqEmojis }) {
+  const SEQ_COLORS = seqColors;
+  const SEQ_EMOJIS = seqEmojis;
   const navigate = useNavigate();
   const [sequence, setSequence] = useState([]);
   const [playerSeq, setPlayerSeq] = useState([]);
@@ -208,15 +207,8 @@ function SequenceBuilderGame() {
 /* ============================================================
    3. PATTERN FINDER GAME (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-const PATTERN_SETS = [
-  { common: '🐱', odd: '🐶' },
-  { common: '🍎', odd: '🍏' },
-  { common: '🚗', odd: '🚲' },
-  { common: '🦁', odd: '🐯' },
-  { common: '🎈', odd: '🎨' },
-];
-
-function PatternFinderGame() {
+function PatternFinderGame({ patternSets }) {
+  const PATTERN_SETS = patternSets;
   const navigate = useNavigate();
   const [level, setLevel] = useState(1);
   const [items, setItems] = useState([]);
@@ -302,15 +294,8 @@ function PatternFinderGame() {
 /* ============================================================
    4. MAZE CHALLENGE GAME (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-const MAZE_LAYOUT = [
-  [0, 0, 1, 0, 0],
-  [1, 0, 1, 0, 1],
-  [0, 0, 0, 0, 0],
-  [0, 1, 1, 1, 0],
-  [0, 0, 0, 1, 0],
-]; // 0: path, 1: wall
-
-function MazeChallengeGame() {
+function MazeChallengeGame({ mazeLayout }) {
+  const MAZE_LAYOUT = mazeLayout;
   const navigate = useNavigate();
   const [playerPos, setPlayerPos] = useState({ r: 0, c: 0 });
   const [won, setWon] = useState(false);
@@ -527,17 +512,13 @@ const MascotCompanion = () => {
 /* ============================================================
    5. BRAIN WORLD INDEX / HOMEPAGE
    ============================================================ */
-const BrainWorldHome = () => {
+/* ============================================================
+   5. BRAIN WORLD INDEX / HOMEPAGE
+   ============================================================ */
+const BrainWorldHome = ({ activities }) => {
   const navigate = useNavigate();
   const { profile } = useUser();
   const currentLang = profile?.language || localStorage.getItem('spaceece_language') || 'English';
-
-  const activities = [
-    { id: 'memory-match',      title: 'Memory Match',      description: 'Flip cards and find matching pairs', emoji: '🃏', color: '#3B82F6' },
-    { id: 'sequence-builder',  title: 'Sequence Builder',  description: 'Remember and repeat the color pattern', emoji: '✨', color: '#8B5CF6' },
-    { id: 'pattern-finder',    title: 'Pattern Finder',    description: 'Find the odd emoji out in the grid', emoji: '🔍', color: '#F59E0B' },
-    { id: 'maze-challenge',    title: 'Maze Challenge',    description: 'Navigate the rocket safely to the planet', emoji: '🏝️', color: '#10B981' },
-  ];
 
   return (
     <div className="brain-world-container">
@@ -604,15 +585,78 @@ const BrainWorldHome = () => {
 /* ============================================================
    ROUTER PATH COMPONENT
    ============================================================ */
-const BrainWorldPage = () => (
-  <Routes>
-    <Route index element={<BrainWorldHome />} />
-    <Route path="memory-match"     element={<MemoryMatchGame />} />
-    <Route path="sequence-builder" element={<SequenceBuilderGame />} />
-    <Route path="pattern-finder"   element={<PatternFinderGame />} />
-    <Route path="maze-challenge"   element={<MazeChallengeGame />} />
-    <Route path="*"                element={<BrainWorldHome />} />
-  </Routes>
-);
+const BrainWorldPage = () => {
+  const [gamesData, setGamesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCognitiveSelGames('brain')
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setGamesData(data);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const mmGame = gamesData.find(g => g.game_id === 'memory-match');
+  const mmEmojis = mmGame?.config?.card_emojis || ['🐶','🐱','🦁','🐯','🦊','🐺','🦝','🐻'];
+
+  const sbGame = gamesData.find(g => g.game_id === 'sequence-builder');
+  const sbColors = sbGame?.config?.colors || ['#3B82F6','#EF4444','#22C55E','#F59E0B'];
+  const sbEmojis = sbGame?.config?.emojis || ['🔵','🔴','🟢','🟡'];
+
+  const pfGame = gamesData.find(g => g.game_id === 'pattern-finder');
+  const pfSets = pfGame?.config?.sets || [
+    { common: '🐱', odd: '🐶' },
+    { common: '🍎', odd: '🍏' },
+    { common: '🚗', odd: '🚲' },
+    { common: '🦁', odd: '🐯' },
+    { common: '🎈', odd: '🎨' }
+  ];
+
+  const mcGame = gamesData.find(g => g.game_id === 'maze-challenge');
+  const mcLayout = mcGame?.config?.layout || [
+    [0, 0, 1, 0, 0],
+    [1, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 0],
+    [0, 0, 0, 1, 0]
+  ];
+
+  const activities = gamesData.length > 0
+    ? gamesData.map(g => ({
+        id: g.game_id,
+        title: g.title,
+        description: g.description,
+        emoji: g.emoji || '🧠',
+        color: g.color || '#3B82F6'
+      }))
+    : [
+        { id: 'memory-match',      title: 'Memory Match',      description: 'Flip cards and find matching pairs', emoji: '🃏', color: '#3B82F6' },
+        { id: 'sequence-builder',  title: 'Sequence Builder',  description: 'Remember and repeat the color pattern', emoji: '✨', color: '#8B5CF6' },
+        { id: 'pattern-finder',    title: 'Pattern Finder',    description: 'Find the odd emoji out in the grid', emoji: '🔍', color: '#F59E0B' },
+        { id: 'maze-challenge',    title: 'Maze Challenge',    description: 'Navigate the rocket safely to the planet', emoji: '🏝️', color: '#10B981' }
+      ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-lg font-black" style={{ color: 'var(--color-text)' }}>
+        Loading Brain World... 🧠
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route index element={<BrainWorldHome activities={activities} />} />
+      <Route path="memory-match"     element={<MemoryMatchGame cardEmojis={mmEmojis} />} />
+      <Route path="sequence-builder" element={<SequenceBuilderGame seqColors={sbColors} seqEmojis={sbEmojis} />} />
+      <Route path="pattern-finder"   element={<PatternFinderGame patternSets={pfSets} />} />
+      <Route path="maze-challenge"   element={<MazeChallengeGame mazeLayout={mcLayout} />} />
+      <Route path="*"                element={<BrainWorldHome activities={activities} />} />
+    </Routes>
+  );
+};
 
 export default BrainWorldPage;

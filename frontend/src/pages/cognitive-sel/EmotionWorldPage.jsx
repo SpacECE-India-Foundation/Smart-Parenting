@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../context/UserContext';
 import FloatingElements from '../../components/animations/FloatingElements';
 import ConfettiEffect from '../../components/animations/ConfettiEffect';
 import { getTranslation } from '../../utils/translations';
+import { getCognitiveSelGames } from '../../api/cognitiveSelService';
 import './BrainWorldPage.css';
 
 const staggerContainer = {
@@ -19,16 +20,8 @@ const staggerItem = {
 /* ============================================================
    1. EMOTION CHECK-IN
    ============================================================ */
-const MOODS = [
-  { emoji: '😊', label: 'Happy',    color: '#F59E0B', message: 'Wonderful! Keep that smile going! 🌟' },
-  { emoji: '😐', label: 'Okay',     color: '#6B7280', message: "That's alright. Every day is different! 💪" },
-  { emoji: '😢', label: 'Sad',      color: '#3B82F6', message: "It's okay to feel sad. You are loved! 💙" },
-  { emoji: '😠', label: 'Angry',    color: '#EF4444', message: 'Take a deep breath. You can calm down! 🍃' },
-  { emoji: '😨', label: 'Scared',   color: '#8B5CF6', message: "It's brave to share how you feel! 💜" },
-  { emoji: '🤩', label: 'Excited',  color: '#EC4899', message: 'Your excitement is contagious! 🎉' },
-];
-
-function EmotionCheckIn() {
+function EmotionCheckIn({ moods }) {
+  const MOODS = moods;
   const navigate = useNavigate();
   const [chosen, setChosen] = useState(null);
 
@@ -77,16 +70,8 @@ function EmotionCheckIn() {
 /* ============================================================
    2. EMOTION RECOGNITION
    ============================================================ */
-const EMOTION_SCENARIOS = [
-  { face: '😊', correct: 'Happy', options: ['Happy', 'Sad', 'Angry', 'Scared'] },
-  { face: '😢', correct: 'Sad', options: ['Happy', 'Sad', 'Excited', 'Okay'] },
-  { face: '😠', correct: 'Angry', options: ['Happy', 'Angry', 'Excited', 'Scared'] },
-  { face: '😨', correct: 'Scared', options: ['Sad', 'Okay', 'Scared', 'Happy'] },
-  { face: '🤩', correct: 'Excited', options: ['Angry', 'Excited', 'Sad', 'Scared'] },
-  { face: '😐', correct: 'Okay', options: ['Okay', 'Happy', 'Angry', 'Sad'] },
-];
-
-function EmotionRecognition() {
+function EmotionRecognition({ scenarios }) {
+  const EMOTION_SCENARIOS = scenarios;
   const navigate = useNavigate();
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -170,34 +155,8 @@ function EmotionRecognition() {
 /* ============================================================
    3. FRIENDSHIP STORIES
    ============================================================ */
-const FRIENDSHIP_SCENARIOS = [
-  {
-    scene: '🏫',
-    story: 'Ananya sees a new student sitting alone at lunch. What should she do?',
-    choices: [
-      { text: '😊 Invite them to sit with her friends', correct: true, response: 'Wonderful! You made a new friend feel welcome! 🌟' },
-      { text: '😐 Ignore them and continue eating', correct: false, response: 'Hmm, they might feel lonely. Try being more welcoming next time!' },
-    ],
-  },
-  {
-    scene: '🎨',
-    story: 'Rohan accidentally breaks his friend\'s pencil. What should he do?',
-    choices: [
-      { text: 'Apologize and offer to replace it 🙏', correct: true, response: 'Great! Saying sorry and making it right is very kind! 💙' },
-      { text: 'Pretend it didn\'t happen 🏃', correct: false, response: 'It\'s better to be honest and apologise. Friends trust each other!' },
-    ],
-  },
-  {
-    scene: '⚽',
-    story: 'During a game, Priya\'s team loses. Her friend starts crying. What should Priya do?',
-    choices: [
-      { text: '🤗 Comfort them and say "We played well!"', correct: true, response: 'You are such a caring friend! 🤗' },
-      { text: '😤 Tell them "Stop crying, it\'s just a game"', correct: false, response: 'Feelings matter! Comforting friends is always better.' },
-    ],
-  },
-];
-
-function FriendshipStories() {
+function FriendshipStories({ scenarios }) {
+  const FRIENDSHIP_SCENARIOS = scenarios;
   const navigate = useNavigate();
   const [round, setRound] = useState(0);
   const [chosen, setChosen] = useState(null);
@@ -284,13 +243,13 @@ function FriendshipStories() {
 /* ============================================================
    4. KINDNESS CHALLENGE (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-function KindnessChallenge() {
+function KindnessChallenge({ actsList }) {
   const navigate = useNavigate();
-  const [acts, setActs] = useState([
-    { id: 1, text: 'Share a snack or treat with someone today 🍎', done: false },
-    { id: 2, text: 'Give a warm hug or high-five to a family member 🤗', done: false },
-    { id: 3, text: 'Say a big "Thank you" to a parent or teacher 🙏', done: false },
-  ]);
+  const [acts, setActs] = useState(actsList);
+
+  useEffect(() => {
+    setActs(actsList);
+  }, [actsList]);
   const [showConfetti, setShowConfetti] = useState(false);
 
   const toggleAct = (id) => {
@@ -354,24 +313,8 @@ function KindnessChallenge() {
 /* ============================================================
    5. DECISION MAKING (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-const DECISION_SCENARIOS = [
-  {
-    scenario: 'You want to play with the red truck, but your classmate is using it. What is the best choice?',
-    choices: [
-      { text: 'Wait for my turn patiently ⌛', correct: true, feedback: 'Excellent! Sharing and taking turns makes playtime fun for everyone!' },
-      { text: 'Snatch the toy when they look away 😤', correct: false, feedback: 'Oops, snatching is not nice and could hurt their feelings.' }
-    ]
-  },
-  {
-    scenario: 'You find a pencil lying alone on the school hallway floor. What is the best choice?',
-    choices: [
-      { text: 'Give it to the classroom teacher 👩‍🏫', correct: true, feedback: 'Superb! Returning lost things is the honest and right thing to do!' },
-      { text: 'Keep it and hide it in my pencil box 🎒', correct: false, feedback: 'Hmm, the person who lost it might be looking for it.' }
-    ]
-  }
-];
-
-function DecisionMaking() {
+function DecisionMaking({ scenarios }) {
+  const DECISION_SCENARIOS = scenarios;
   const navigate = useNavigate();
   const [level, setLevel] = useState(0);
   const [choiceChosen, setChoiceChosen] = useState(null);
@@ -609,18 +552,13 @@ const MascotCompanion = () => {
 /* ============================================================
    EMOTION WORLD HOME
    ============================================================ */
-const EmotionWorldHome = () => {
+/* ============================================================
+   EMOTION WORLD HOME
+   ============================================================ */
+const EmotionWorldHome = ({ activities }) => {
   const navigate = useNavigate();
   const { profile } = useUser();
   const currentLang = profile?.language || localStorage.getItem('spaceece_language') || 'English';
-
-  const activities = [
-    { id: 'emotion-checkin',      title: 'Emotion Check-In',    description: 'How are you feeling today?',             emoji: '😊', color: '#F59E0B' },
-    { id: 'emotion-recognition',  title: 'Emotion Recognition',  description: 'Learn to identify different emotions',   emoji: '👀', color: '#EF4444' },
-    { id: 'friendship-stories',   title: 'Friendship Stories',   description: 'Make caring choices in social stories',  emoji: '❤️', color: '#EC4899' },
-    { id: 'kindness-challenge',   title: 'Kindness Challenge',   description: 'Complete daily acts of kindness',        emoji: '🎁', color: '#8B5CF6' },
-    { id: 'decision-making',      title: 'Decision Making',      description: 'Practice making thoughtful choices',     emoji: '💡', color: '#10B981' },
-  ];
 
   return (
     <div className="brain-world-container">
@@ -688,16 +626,128 @@ const EmotionWorldHome = () => {
 /* ============================================================
    ROUTER PATH COMPONENT
    ============================================================ */
-const EmotionWorldPage = () => (
-  <Routes>
-    <Route index element={<EmotionWorldHome />} />
-    <Route path="emotion-checkin"     element={<EmotionCheckIn />} />
-    <Route path="emotion-recognition" element={<EmotionRecognition />} />
-    <Route path="friendship-stories"  element={<FriendshipStories />} />
-    <Route path="kindness-challenge"  element={<KindnessChallenge />} />
-    <Route path="decision-making"      element={<DecisionMaking />} />
-    <Route path="*"                   element={<EmotionWorldHome />} />
-  </Routes>
-);
+const EmotionWorldPage = () => {
+  const [gamesData, setGamesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCognitiveSelGames('emotion')
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setGamesData(data);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const ecGame = gamesData.find(g => g.game_id === 'emotion-checkin');
+  const ecMoods = ecGame?.config?.moods || [
+    { emoji: '😊', label: 'Happy',    color: '#F59E0B', message: 'Wonderful! Keep that smile going! 🌟' },
+    { emoji: '😐', label: 'Okay',     color: '#6B7280', message: "That's alright. Every day is different! 💪" },
+    { emoji: '😢', label: 'Sad',      color: '#3B82F6', message: "It's okay to feel sad. You are loved! 💙" },
+    { emoji: '😠', label: 'Angry',    color: '#EF4444', message: 'Take a deep breath. You can calm down! 🍃' },
+    { emoji: '😨', label: 'Scared',   color: '#8B5CF6', message: "It's brave to share how you feel! 💜" },
+    { emoji: '🤩', label: 'Excited',  color: '#EC4899', message: 'Your excitement is contagious! 🎉' }
+  ];
+
+  const erGame = gamesData.find(g => g.game_id === 'emotion-recognition');
+  const erScenarios = erGame?.config?.scenarios || [
+    { face: '😊', correct: 'Happy', options: ['Happy', 'Sad', 'Angry', 'Scared'] },
+    { face: '😢', correct: 'Sad', options: ['Happy', 'Sad', 'Excited', 'Okay'] },
+    { face: '😠', correct: 'Angry', options: ['Happy', 'Angry', 'Excited', 'Scared'] },
+    { face: '😨', correct: 'Scared', options: ['Sad', 'Okay', 'Scared', 'Happy'] },
+    { face: '🤩', correct: 'Excited', options: ['Angry', 'Excited', 'Sad', 'Scared'] },
+    { face: '😐', correct: 'Okay', options: ['Okay', 'Happy', 'Angry', 'Sad'] }
+  ];
+
+  const fsGame = gamesData.find(g => g.game_id === 'friendship-stories');
+  const fsScenarios = fsGame?.config?.scenarios || [
+    {
+      scene: '🏫',
+      story: 'Ananya sees a new student sitting alone at lunch. What should she do?',
+      choices: [
+        { text: '😊 Invite them to sit with her friends', correct: true, response: 'Wonderful! You made a new friend feel welcome! 🌟' },
+        { text: '😐 Ignore them and continue eating', correct: false, response: 'Hmm, they might feel lonely. Try being more welcoming next time!' }
+      ]
+    },
+    {
+      scene: '🎨',
+      story: 'Rohan accidentally breaks his friend\'s pencil. What should he do?',
+      choices: [
+        { text: 'Apologize and offer to replace it 🙏', correct: true, response: 'Great! Saying sorry and making it right is very kind! 💙' },
+        { text: 'Pretend it didn\'t happen 🏃', correct: false, response: 'It\'s better to be honest and apologise. Friends trust each other!' }
+      ]
+    },
+    {
+      scene: '⚽',
+      story: 'During a game, Priya\'s team loses. Her friend starts crying. What should Priya do?',
+      choices: [
+        { text: '🤗 Comfort them and say "We played well!"', correct: true, response: 'You are such a caring friend! 🤗' },
+        { text: '😤 Tell them "Stop crying, it\'s just a game"', correct: false, response: 'Feelings matter! Comforting friends is always better.' }
+      ]
+    }
+  ];
+
+  const kcGame = gamesData.find(g => g.game_id === 'kindness-challenge');
+  const kcActs = kcGame?.config?.acts || [
+    { id: 1, text: 'Share a snack or treat with someone today 🍎', done: false },
+    { id: 2, text: 'Give a warm hug or high-five to a family member 🤗', done: false },
+    { id: 3, text: 'Say a big "Thank you" to a parent or teacher 🙏', done: false }
+  ];
+
+  const dmGame = gamesData.find(g => g.game_id === 'decision-making');
+  const dmScenarios = dmGame?.config?.scenarios || [
+    {
+      scenario: 'You want to play with the red truck, but your classmate is using it. What is the best choice?',
+      choices: [
+        { text: 'Wait for my turn patiently ⌛', correct: true, feedback: 'Excellent! Sharing and taking turns makes playtime fun for everyone!' },
+        { text: 'Snatch the toy when they look away 😤', correct: false, feedback: 'Oops, snatching is not nice and could hurt their feelings.' }
+      ]
+    },
+    {
+      scenario: 'You find a pencil lying alone on the school hallway floor. What is the best choice?',
+      choices: [
+        { text: 'Give it to the classroom teacher 👩‍🏫', correct: true, feedback: 'Superb! Returning lost things is the honest and right thing to do!' },
+        { text: 'Keep it and hide it in my pencil box 🎒', correct: false, feedback: 'Hmm, the person who lost it might be looking for it.' }
+      ]
+    }
+  ];
+
+  const activities = gamesData.length > 0
+    ? gamesData.map(g => ({
+        id: g.game_id,
+        title: g.title,
+        description: g.description,
+        emoji: g.emoji || '❤️',
+        color: g.color || '#EC4899'
+      }))
+    : [
+        { id: 'emotion-checkin',      title: 'Emotion Check-In',    description: 'How are you feeling today?',             emoji: '😊', color: '#F59E0B' },
+        { id: 'emotion-recognition',  title: 'Emotion Recognition',  description: 'Learn to identify different emotions',   emoji: '👀', color: '#EF4444' },
+        { id: 'friendship-stories',   title: 'Friendship Stories',   description: 'Make caring choices in social stories',  emoji: '❤️', color: '#EC4899' },
+        { id: 'kindness-challenge',   title: 'Kindness Challenge',   description: 'Complete daily acts of kindness',        emoji: '🎁', color: '#8B5CF6' },
+        { id: 'decision-making',      title: 'Decision Making',      description: 'Practice making thoughtful choices',     emoji: '💡', color: '#10B981' }
+      ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-lg font-black" style={{ color: 'var(--color-text)' }}>
+        Loading Emotion World... ❤️
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route index element={<EmotionWorldHome activities={activities} />} />
+      <Route path="emotion-checkin"     element={<EmotionCheckIn moods={ecMoods} />} />
+      <Route path="emotion-recognition" element={<EmotionRecognition scenarios={erScenarios} />} />
+      <Route path="friendship-stories"  element={<FriendshipStories scenarios={fsScenarios} />} />
+      <Route path="kindness-challenge"  element={<KindnessChallenge actsList={kcActs} />} />
+      <Route path="decision-making"      element={<DecisionMaking scenarios={dmScenarios} />} />
+      <Route path="*"                   element={<EmotionWorldHome activities={activities} />} />
+    </Routes>
+  );
+};
 
 export default EmotionWorldPage;

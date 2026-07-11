@@ -45,8 +45,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadStats = async () => {
-      setLoading(true);
+    let isMounted = true;
+    const loadStats = async (initial = false) => {
+      if (initial) setLoading(true);
       try {
         const [usersResult, sessionsResult, statusResult, notifsResult] = await Promise.all([
           getAllUsers(),
@@ -54,6 +55,7 @@ const AdminDashboard = () => {
           getSystemStatus(),
           getAllNotifications()
         ]);
+        if (!isMounted) return;
         const users    = usersResult.data    || [];
         const sessions = sessionsResult.data || [];
         const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -72,10 +74,18 @@ const AdminDashboard = () => {
         }
       } catch (err) {
         console.error('AdminDashboard stats error:', err);
+      } finally {
+        if (isMounted && initial) setLoading(false);
       }
-      setLoading(false);
     };
-    loadStats();
+
+    loadStats(true);
+    const interval = setInterval(() => loadStats(false), 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const statItems = [

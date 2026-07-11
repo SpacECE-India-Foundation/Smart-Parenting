@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { Refresh as RefreshIcon, Cancel as TerminateIcon, History as HistoryIcon, Wifi as ActiveIcon } from '@mui/icons-material';
 import { formatDateTime } from '../../utils/helpers';
-import { getActiveSessions, getUserSessions, endSession, getAllUsers } from '../../api/userService';
+import { getActiveSessions, getUserSessions, endSession, getAllUsers, getAllSessions } from '../../api/userService';
 import SkeletonLoader from '../../components/shared/SkeletonLoader';
 import ModalDialog from '../../components/shared/ModalDialog';
 
@@ -48,7 +48,17 @@ const SessionManagement = () => {
     try {
       const { data: active, error: activeErr } = await getActiveSessions();
       if (activeErr) throw new Error(activeErr);
-      setActiveSessions(active || []);
+      const mapped = (active || []).map((s) => ({
+        id: s._id,
+        uid: s.user_id?._id || s.user_id,
+        displayName: s.user_id?.displayName || 'User',
+        userEmail: s.user_id?.email || '',
+        login_time: s.started_at,
+        logout_time: s.ended_at,
+        device_info: s.device_info,
+        is_active: s.is_active,
+      }));
+      setActiveSessions(mapped);
     } catch (err) {
       setError('Failed to load active sessions: ' + err.message);
     }
@@ -58,50 +68,29 @@ const SessionManagement = () => {
   const loadLoginHistory = async () => {
     setHistoryLoading(true); setError('');
     try {
-      // ── TRACE 1: Users returned by getAllUsers() ──────────────────────────
-      const { data: users, error: usersErr } = await getAllUsers();
-      console.log('[LoginHistory] TRACE 1 — getAllUsers() result:', users, '| error:', usersErr);
-      if (usersErr) throw new Error(usersErr);
+      const { data: sessions, error: sessErr } = await getAllSessions();
+      if (sessErr) throw new Error(sessErr);
+      const mapped = (sessions || []).map((s) => ({
+        id: s._id,
+        uid: s.user_id?._id || s.user_id,
+        displayName: s.user_id?.displayName || 'User',
+        userEmail: s.user_id?.email || '',
+        login_time: s.started_at,
+        logout_time: s.ended_at,
+        device_info: s.device_info,
+        is_active: s.is_active,
+      }));
 
-      // ── TRACE 2: IDs passed into getUserSessions() ────────────────────────
-      const slicedUsers = (users || []).slice(0, 10);
-      console.log('[LoginHistory] TRACE 2 — IDs passed to getUserSessions():',
-        slicedUsers.map((u) => ({ id: u.id, email: u.email }))
-      );
-
-      const sessionPromises = slicedUsers.map((u) =>
-        getUserSessions(u.id).then(({ data, error: sessErr }) => {
-          // ── TRACE 3: Raw sessions per user from database (logged inside getUserSessions too) ──
-          if (sessErr) console.warn(`[LoginHistory] TRACE 3 — getUserSessions error for uid=${u.id}:`, sessErr);
-          const mapped = (data || []).map((s) => ({
-            ...s,
-            userEmail: u.email,
-            userRole: u.role,
-            displayName: u.displayName,
-          }));
-          return mapped;
-        })
-      );
-
-      const nestedSessions = await Promise.all(sessionPromises);
-      const flatSessions = nestedSessions.flat();
-
-      // ── TRACE 4: Sessions after logout_time filtering ─────────────────────
-      console.log('[LoginHistory] TRACE 4 — All sessions before filter (count:', flatSessions.length, '):', flatSessions);
-      const allSessions = flatSessions
-        .filter((s) => s.logout_time !== null && s.logout_time !== undefined)
+      const endedSessions = mapped
+        .filter((s) => !s.is_active || s.logout_time)
         .sort((a, b) => {
-          const aTime = a.login_time?.toDate ? a.login_time.toDate() : (a.login_time ? new Date(a.login_time) : new Date(0));
-          const bTime = b.login_time?.toDate ? b.login_time.toDate() : (b.login_time ? new Date(b.login_time) : new Date(0));
+          const aTime = a.login_time ? new Date(a.login_time) : new Date(0);
+          const bTime = b.login_time ? new Date(b.login_time) : new Date(0);
           return bTime.getTime() - aTime.getTime();
         });
-      console.log('[LoginHistory] TRACE 4 — After logout_time filter (count:', allSessions.length, '):', allSessions);
 
-      // ── TRACE 5: Final array rendered by Login History ────────────────────
-      console.log('[LoginHistory] TRACE 5 — Final loginHistory to render (count:', allSessions.length, '):', allSessions);
-      setLoginHistory(allSessions);
+      setLoginHistory(endedSessions);
     } catch (err) {
-      console.error('[LoginHistory] FATAL ERROR in loadLoginHistory:', err);
       setError('Failed to load login history: ' + err.message);
     }
     setHistoryLoading(false);

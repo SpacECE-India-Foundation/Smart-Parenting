@@ -102,6 +102,15 @@ export const getUserSessions = async (userId) => {
   }
 };
 
+export const getAllSessions = async () => {
+  try {
+    const { data } = await client.get('/sessions');
+    return { data: data.data || [], error: null };
+  } catch (e) {
+    return { data: [], error: e.response?.data?.error || e.message };
+  }
+};
+
 // ── Scores ───────────────────────────────────────────────────────────────────
 export const saveActivityScore = async (scoreData) => {
   try {

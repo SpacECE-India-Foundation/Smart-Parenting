@@ -129,7 +129,7 @@ export const saveNumeracyScore = async (scoreData) => {
 
 export const getNumeracyScores = async (childId) => {
   try {
-    const { data } = await client.get('/scores', { params: { childId, activityType: 'numeracy' } });
+    const { data } = await client.get('/scores', { params: { childId, activityType: 'numeracy,logic,puzzle' } });
     return { data: data.data, error: null };
   } catch (e) {
     return { data: [], error: e.response?.data?.error || e.message };

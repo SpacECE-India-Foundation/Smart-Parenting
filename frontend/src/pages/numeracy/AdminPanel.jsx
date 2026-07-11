@@ -496,26 +496,30 @@ export default function AdminPanel() {
                 </TableRow>
               ) : (
                 scores.map((s, i) => (
-                  <TableRow key={s.id || i} sx={{ '&:hover': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 700 }}>{s.game_id}</TableCell>
+                  <TableRow key={s.id || s._id || i} sx={{ '&:hover': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
+                    <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize' }}>
+                      {s.activity_id || s.activity_type || 'numeracy'}
+                    </TableCell>
                     <TableCell>
                       <Chip label={`⭐ ${s.score} pts`} size="small" sx={{
                         fontWeight: 800, fontSize: '0.65rem', bgcolor: '#FFF8E1', color: '#F5A623', border: '1px solid rgba(245,166,35,0.2)'
                       }} />
                     </TableCell>
                     <TableCell>
-                      <Chip label={`Level ${s.level || 1}`} size="small" sx={{
+                      <Chip label={s.accuracy !== undefined ? `${s.accuracy}%` : '—'} size="small" sx={{
                         fontWeight: 800, fontSize: '0.65rem', bgcolor: 'rgba(124,77,255,0.08)', color: '#7C4DFF'
                       }} />
                     </TableCell>
-                    <TableCell sx={{ fontSize: '0.78rem', fontWeight: 600 }}>{s.time_taken ? `${s.time_taken}s` : 'Untimed'}</TableCell>
+                    <TableCell sx={{ fontSize: '0.78rem', fontWeight: 600 }}>
+                      {s.time_spent ? `${s.time_spent}s` : 'Untimed'}
+                    </TableCell>
                     <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.72rem', color: 'text.secondary' }}>
-                      👤 {s.child_id ? `${s.child_id.slice(0, 10)}…` : 'Guest Mode'}
+                      👤 {s.display_name || s.username || (s.child_id ? `${s.child_id.slice(0, 10)}…` : 'Guest Mode')}
                     </TableCell>
                     <TableCell sx={{ fontSize: '0.75rem', color: 'text.secondary', fontWeight: 600 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CalendarIcon sx={{ fontSize: 14, color: '#9CA3AF' }} />
-                        {s.date?.toDate ? s.date.toDate().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Local Mode'}
+                        {s.date ? new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Local Mode'}
                       </Box>
                     </TableCell>
                   </TableRow>

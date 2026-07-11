@@ -28,7 +28,13 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const filter = {};
     if (req.query.childId)      filter.child_id      = req.query.childId;
-    if (req.query.activityType) filter.activity_type = req.query.activityType;
+    if (req.query.activityType) {
+      if (req.query.activityType.includes(',')) {
+        filter.activity_type = { $in: req.query.activityType.split(',') };
+      } else {
+        filter.activity_type = req.query.activityType;
+      }
+    }
 
     const scores = await ActivityScore.find(filter)
       .sort({ date: -1 })

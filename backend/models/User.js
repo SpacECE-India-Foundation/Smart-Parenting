@@ -22,6 +22,12 @@ const UserSchema = new mongoose.Schema(
     is_active:   { type: Boolean, default: true },
     emailVerified: { type: Boolean, default: false },
     linked_child_profiles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ChildProfile' }],
+    notifPrefs: {
+      emailNotifs:    { type: Boolean, default: true },
+      pushNotifs:     { type: Boolean, default: true },
+      activityAlerts: { type: Boolean, default: true },
+      weeklyReport:   { type: Boolean, default: false },
+    },
 
     // Password reset support (replaces Firebase sendPasswordResetEmail)
     resetPasswordToken:   { type: String, select: false },
@@ -52,6 +58,7 @@ UserSchema.methods.toPublic = function () {
     is_active:   this.is_active,
     emailVerified: this.emailVerified,
     linked_child_profiles: this.linked_child_profiles,
+    notifPrefs:  this.notifPrefs || { emailNotifs: true, pushNotifs: true, activityAlerts: true, weeklyReport: false },
     created_at:  this.created_at,
     updated_at:  this.updated_at,
   };

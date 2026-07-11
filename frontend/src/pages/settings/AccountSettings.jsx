@@ -30,15 +30,13 @@ const SectionCard = ({ emoji, title, subtitle, children }) => (
 );
 
 const AccountSettings = () => {
-  const { currentUser, userAccount } = useAuth();
+  const { currentUser, refreshUser } = useAuth();
 
   const [success, setSuccess] = useState('');
   const [error,   setError]   = useState('');
   const [loading, setLoading] = useState('');
 
-  const [profileForm, setProfileForm] = useState({
-    displayName: currentUser?.displayName || userAccount?.displayName || '',
-  });
+    displayName: currentUser?.displayName || '',
   const [emailForm, setEmailForm] = useState({ newEmail: '', currentPassword: '' });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
@@ -54,18 +52,18 @@ const AccountSettings = () => {
   const [verificationSending, setVerificationSending] = useState(false);
   const [reloading, setReloading] = useState(false);
 
-  // Sync notifPrefs when userAccount arrives from database
+  // Sync notifPrefs when currentUser arrives from database
   useEffect(() => {
-    if (userAccount?.notifPrefs) {
-      setNotifPrefs((prev) => ({ ...prev, ...userAccount.notifPrefs }));
+    if (currentUser?.notifPrefs) {
+      setNotifPrefs((prev) => ({ ...prev, ...currentUser.notifPrefs }));
     }
-  }, [userAccount]);
+  }, [currentUser]);
 
-  // Sync displayName when userAccount/currentUser loads
+  // Sync displayName when currentUser loads
   useEffect(() => {
-    const name = currentUser?.displayName || userAccount?.displayName || '';
+    const name = currentUser?.displayName || '';
     if (name) setProfileForm({ displayName: name });
-  }, [currentUser?.displayName, userAccount?.displayName]);
+  }, [currentUser?.displayName]);
 
   const isEmailVerified = currentUser?.emailVerified ?? false;
 
@@ -114,9 +112,12 @@ const AccountSettings = () => {
     if (!profileForm.displayName.trim()) return showFeedback('Display name cannot be empty.', true);
     setLoading('profile');
     try {
-      if (auth.currentUser) await updateProfile(auth.currentUser, { displayName: profileForm.displayName.trim() });
-      if (currentUser?.uid) await updateUserAccount(currentUser.uid, { displayName: profileForm.displayName.trim() });
-      showFeedback('Profile updated successfully! ✅');
+      if (currentUser?.uid) {
+        const result = await updateUserAccount(currentUser.uid, { displayName: profileForm.displayName.trim() });
+        if (result.error) throw new Error(result.error);
+        await refreshUser();
+        showFeedback('Profile updated successfully! ✅');
+      }
     } catch (err) {
       showFeedback(err.message || 'Failed to update profile.', true);
     }
@@ -161,6 +162,7 @@ const AccountSettings = () => {
     if (result.error) {
       showFeedback('Failed to save preferences: ' + result.error, true);
     } else {
+      await refreshUser();
       showFeedback('Notification preferences saved! ✅');
     }
   };

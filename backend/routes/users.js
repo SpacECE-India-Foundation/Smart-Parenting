@@ -11,6 +11,8 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const User   = require('../models/User');
+require('../models/Score');
+require('../models/ChildProfile');
 const { verifyToken, requireRole } = require('../middleware/auth');
 
 // GET all users — admin only
@@ -65,9 +67,9 @@ router.get('/system-status', verifyToken, requireRole('admin'), async (req, res)
           { label: 'Local Storage',      status: 'Active',     ok: true  },
         ],
         metrics: [
-          { label: 'User Retention', value: userRetention || 87, color: '#3B82F6' },
-          { label: 'Activity Rate',  value: activityRate || 73, color: '#22C55E' },
-          { label: 'Badge Unlocks',  value: badgeUnlocksRate || 94, color: '#D97706' },
+          { label: 'User Retention', value: userRetention !== undefined && userRetention !== null ? userRetention : 87, color: '#3B82F6' },
+          { label: 'Activity Rate',  value: activityRate !== undefined && activityRate !== null ? activityRate : 73, color: '#22C55E' },
+          { label: 'Badge Unlocks',  value: badgeUnlocksRate !== undefined && badgeUnlocksRate !== null ? badgeUnlocksRate : 94, color: '#D97706' },
         ]
       },
       error: null

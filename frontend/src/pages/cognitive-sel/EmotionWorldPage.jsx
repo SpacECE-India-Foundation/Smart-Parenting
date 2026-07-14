@@ -6,6 +6,8 @@ import FloatingElements from '../../components/animations/FloatingElements';
 import ConfettiEffect from '../../components/animations/ConfettiEffect';
 import { getTranslation } from '../../utils/translations';
 import { getCognitiveSelGames } from '../../api/cognitiveSelService';
+import { saveNumeracyScore, awardProgress } from '../../api/services';
+import './BrainWorldPage.css';
 import './BrainWorldPage.css';
 
 const staggerContainer = {
@@ -20,15 +22,33 @@ const staggerItem = {
 /* ============================================================
    1. EMOTION CHECK-IN
    ============================================================ */
-function EmotionCheckIn({ moods }) {
+function EmotionCheckIn({ moods, profile, refreshProfile }) {
   const MOODS = moods;
   const navigate = useNavigate();
   const [chosen, setChosen] = useState(null);
+  const hasSaved = useRef(false);
 
   const handleSelect = (mood) => {
     setChosen(mood);
     localStorage.setItem('spaceece_last_mood', mood.emoji);
   };
+
+  useEffect(() => {
+    if (chosen && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'emotion-checkin',
+        score: 100,
+        accuracy: 100,
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 10, stars: 1, coins: 2, module: 'emotionWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [chosen, profile, refreshProfile]);
 
   return (
     <div className="game-container">
@@ -70,7 +90,7 @@ function EmotionCheckIn({ moods }) {
 /* ============================================================
    2. EMOTION RECOGNITION
    ============================================================ */
-function EmotionRecognition({ scenarios }) {
+function EmotionRecognition({ scenarios, profile, refreshProfile }) {
   const EMOTION_SCENARIOS = scenarios;
   const navigate = useNavigate();
   const [round, setRound] = useState(0);
@@ -78,6 +98,7 @@ function EmotionRecognition({ scenarios }) {
   const [feedback, setFeedback] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [done, setDone] = useState(false);
+  const hasSaved = useRef(false);
 
   const q = EMOTION_SCENARIOS[round % EMOTION_SCENARIOS.length];
 
@@ -101,6 +122,23 @@ function EmotionRecognition({ scenarios }) {
     }, 1100);
   };
 
+  useEffect(() => {
+    if (done && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'emotion-recognition',
+        score: score,
+        accuracy: Math.round((score / (EMOTION_SCENARIOS.length * 20)) * 100),
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: Math.floor(score / 2), stars: Math.min(5, Math.floor(score / 20)), coins: 5, module: 'emotionWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [done, score, profile, EMOTION_SCENARIOS.length, refreshProfile]);
+
   if (done) return (
     <div className="game-container text-center">
       <ConfettiEffect active />
@@ -110,7 +148,7 @@ function EmotionRecognition({ scenarios }) {
         Score: <strong>{score}</strong> / {EMOTION_SCENARIOS.length * 20}
       </p>
       <div className="flex gap-3 justify-center">
-        <button onClick={() => { setRound(0); setScore(0); setDone(false); }} className="btn-orange" style={{ padding: '10px 24px', borderRadius: '999px' }}>Play Again 🔄</button>
+        <button onClick={() => { hasSaved.current = false; setRound(0); setScore(0); setDone(false); }} className="btn-orange" style={{ padding: '10px 24px', borderRadius: '999px' }}>Play Again 🔄</button>
         <button onClick={() => navigate('/child/emotion-world')} className="btn-ghost" style={{ padding: '10px 24px', borderRadius: '999px' }}>Back</button>
       </div>
     </div>
@@ -155,13 +193,14 @@ function EmotionRecognition({ scenarios }) {
 /* ============================================================
    3. FRIENDSHIP STORIES
    ============================================================ */
-function FriendshipStories({ scenarios }) {
+function FriendshipStories({ scenarios, profile, refreshProfile }) {
   const FRIENDSHIP_SCENARIOS = scenarios;
   const navigate = useNavigate();
   const [round, setRound] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [done, setDone] = useState(false);
   const [score, setScore] = useState(0);
+  const hasSaved = useRef(false);
 
   const q = FRIENDSHIP_SCENARIOS[round % FRIENDSHIP_SCENARIOS.length];
 
@@ -180,6 +219,23 @@ function FriendshipStories({ scenarios }) {
     }, 2000);
   };
 
+  useEffect(() => {
+    if (done && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'friendship-stories',
+        score: score,
+        accuracy: Math.round((score / (FRIENDSHIP_SCENARIOS.length * 30)) * 100),
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: Math.floor(score / 2), stars: Math.min(5, Math.floor(score / 20)), coins: 5, module: 'emotionWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [done, score, profile, FRIENDSHIP_SCENARIOS.length, refreshProfile]);
+
   if (done) return (
     <div className="game-container text-center">
       <ConfettiEffect active />
@@ -189,7 +245,7 @@ function FriendshipStories({ scenarios }) {
         Kindness score: <strong>{score}</strong> / {FRIENDSHIP_SCENARIOS.length * 30}
       </p>
       <div className="flex gap-3 justify-center">
-        <button onClick={() => { setRound(0); setScore(0); setChosen(null); setDone(false); }} className="btn-orange" style={{ padding: '10px 24px', borderRadius: '999px' }}>Play Again 🔄</button>
+        <button onClick={() => { hasSaved.current = false; setRound(0); setScore(0); setChosen(null); setDone(false); }} className="btn-orange" style={{ padding: '10px 24px', borderRadius: '999px' }}>Play Again 🔄</button>
         <button onClick={() => navigate('/child/emotion-world')} className="btn-ghost" style={{ padding: '10px 24px', borderRadius: '999px' }}>Back</button>
       </div>
     </div>
@@ -243,12 +299,14 @@ function FriendshipStories({ scenarios }) {
 /* ============================================================
    4. KINDNESS CHALLENGE (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-function KindnessChallenge({ actsList }) {
+function KindnessChallenge({ actsList, profile, refreshProfile }) {
   const navigate = useNavigate();
   const [acts, setActs] = useState(actsList);
+  const hasSaved = useRef(false);
 
   useEffect(() => {
     setActs(actsList);
+    hasSaved.current = false;
   }, [actsList]);
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -260,6 +318,24 @@ function KindnessChallenge({ actsList }) {
       localStorage.setItem('spaceece_kindness_challenge', 'Completed! 🌟');
     }
   };
+
+  const allDone = acts.every(a => a.done);
+  useEffect(() => {
+    if (allDone && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'kindness-challenge',
+        score: 100,
+        accuracy: 100,
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 20, stars: 3, coins: 5, module: 'emotionWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [allDone, profile, refreshProfile]);
 
   return (
     <div className="game-container">
@@ -313,13 +389,14 @@ function KindnessChallenge({ actsList }) {
 /* ============================================================
    5. DECISION MAKING (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-function DecisionMaking({ scenarios }) {
+function DecisionMaking({ scenarios, profile, refreshProfile }) {
   const DECISION_SCENARIOS = scenarios;
   const navigate = useNavigate();
   const [level, setLevel] = useState(0);
   const [choiceChosen, setChoiceChosen] = useState(null);
   const [won, setWon] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const hasSaved = useRef(false);
 
   const curr = DECISION_SCENARIOS[level];
 
@@ -341,6 +418,23 @@ function DecisionMaking({ scenarios }) {
     }
   };
 
+  useEffect(() => {
+    if (won && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'decision-making',
+        score: 100,
+        accuracy: 100,
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 20, stars: 4, coins: 5, module: 'emotionWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [won, profile, refreshProfile]);
+
   return (
     <div className="game-container">
       <ConfettiEffect active={showConfetti} />
@@ -358,7 +452,7 @@ function DecisionMaking({ scenarios }) {
           <h3 className="brain-card-title" style={{ fontSize: '1.5rem' }}>Thoughtful Thinker!</h3>
           <p style={{ color: 'var(--color-text-secondary)', fontWeight: 700 }}>You made great choices in all scenarios!</p>
           <button 
-            onClick={() => { setLevel(0); setWon(false); setChoiceChosen(null); }} 
+            onClick={() => { hasSaved.current = false; setLevel(0); setWon(false); setChoiceChosen(null); }} 
             className="btn-orange" 
             style={{ padding: '10px 24px', borderRadius: '999px', marginTop: '12px' }}
           >
@@ -627,6 +721,7 @@ const EmotionWorldHome = ({ activities }) => {
    ROUTER PATH COMPONENT
    ============================================================ */
 const EmotionWorldPage = () => {
+  const { profile, refreshProfile } = useUser();
   const [gamesData, setGamesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -740,11 +835,11 @@ const EmotionWorldPage = () => {
   return (
     <Routes>
       <Route index element={<EmotionWorldHome activities={activities} />} />
-      <Route path="emotion-checkin"     element={<EmotionCheckIn moods={ecMoods} />} />
-      <Route path="emotion-recognition" element={<EmotionRecognition scenarios={erScenarios} />} />
-      <Route path="friendship-stories"  element={<FriendshipStories scenarios={fsScenarios} />} />
-      <Route path="kindness-challenge"  element={<KindnessChallenge actsList={kcActs} />} />
-      <Route path="decision-making"      element={<DecisionMaking scenarios={dmScenarios} />} />
+      <Route path="emotion-checkin"     element={<EmotionCheckIn moods={ecMoods} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="emotion-recognition" element={<EmotionRecognition scenarios={erScenarios} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="friendship-stories"  element={<FriendshipStories scenarios={fsScenarios} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="kindness-challenge"  element={<KindnessChallenge actsList={kcActs} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="decision-making"      element={<DecisionMaking scenarios={dmScenarios} profile={profile} refreshProfile={refreshProfile} />} />
       <Route path="*"                   element={<EmotionWorldHome activities={activities} />} />
     </Routes>
   );

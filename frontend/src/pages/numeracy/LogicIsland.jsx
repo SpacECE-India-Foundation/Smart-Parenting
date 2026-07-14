@@ -434,11 +434,11 @@ function WordProblemsGame({ onBack }) {
 const getLogicSlug = (game) => {
   if (!game) return '';
   const title = game.title.toLowerCase();
-  if (title.includes('multiplication')) return 'multiplication-quest';
+  if (title.includes('multiplication') || title.includes('multiply')) return 'multiplication-quest';
   if (title.includes('maze')) return 'maze-challenge';
   if (title.includes('pattern') || title.includes('sequence')) return 'sequence-complete';
   if (title.includes('odd')) return 'odd-one-out';
-  if (title.includes('word')) return 'word-problems';
+  if (title.includes('word') || title.includes('story')) return 'word-problems';
   return game.id || game._id || '';
 };
 

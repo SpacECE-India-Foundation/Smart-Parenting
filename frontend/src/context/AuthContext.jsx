@@ -8,7 +8,18 @@ import {
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUserVal] = useState(null);
+  const setCurrentUser = useCallback((val) => {
+    if (val) {
+      const mapped = { ...val };
+      if (!mapped.uid && mapped._id) {
+        mapped.uid = mapped._id.toString();
+      }
+      setCurrentUserVal(mapped);
+    } else {
+      setCurrentUserVal(null);
+    }
+  }, []);
   const [loading, setLoading]         = useState(true);
   const bootDone = useRef(false);
 

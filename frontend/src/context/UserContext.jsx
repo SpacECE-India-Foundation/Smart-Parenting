@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getUserProfile, updateDayStreak, startSession, endSession } from '../api/services';
 import { useAuth } from './AuthContext';
 import { getChildProfile } from '../api/childProfileService';
@@ -7,8 +7,30 @@ const UserContext = createContext();
 
 export function UserProvider({ children }) {
   const { currentUser, uid, userRole } = useAuth();
-  const [user, setUser]         = useState(null);
-  const [profile, setProfile]   = useState(null);
+  const [user, setUserVal]         = useState(null);
+  const setUser = useCallback((val) => {
+    if (val) {
+      const mapped = { ...val };
+      if (!mapped.uid && mapped._id) {
+        mapped.uid = mapped._id.toString();
+      }
+      setUserVal(mapped);
+    } else {
+      setUserVal(null);
+    }
+  }, []);
+  const [profile, setProfileVal]   = useState(null);
+  const setProfile = useCallback((val) => {
+    if (val) {
+      const mapped = { ...val };
+      if (!mapped.uid && mapped._id) {
+        mapped.uid = mapped._id.toString();
+      }
+      setProfileVal(mapped);
+    } else {
+      setProfileVal(null);
+    }
+  }, []);
   const [loading, setLoading]   = useState(true);
   const [newAchievements, setNewAchievements] = useState([]);
   const sessionId   = useRef(null);

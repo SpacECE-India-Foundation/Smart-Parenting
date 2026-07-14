@@ -123,6 +123,8 @@ const mapActivityTypeToDomain = (type: string): Assessment['domain'] => {
     math:          'Numeracy',
     puzzle:        'Cognitive',
     logic:         'Cognitive',
+    creativity:    'Creativity',
+    emotional:     'Emotional',
   };
   return map[type] || 'Cognitive';
 };

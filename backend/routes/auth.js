@@ -221,7 +221,41 @@ router.post('/forgot-password', async (req, res) => {
     // TODO: Send email with reset link
     console.log(`[DEV] Reset token for ${email}: ${resetToken}`);
 
-    res.json({ message: 'If that email exists, a reset link has been sent.' });
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
+
+    res.json({
+      message: 'If that email exists, a reset link has been sent.',
+      resetLink
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/auth/reset-password ────────────────────────────────────────
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and new password are required.' });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired password reset token.' });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ message: 'Password has been reset successfully. You can now login.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -257,7 +291,7 @@ router.post('/send-verification', verifyToken, async (req, res) => {
     
     // In our simplified setup, sending verification marks it verified
     user.emailVerified = true;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
     
     console.log(`[DEV] Verification email sent to ${user.email}`);
     res.json({ message: 'Verification email sent successfully.' });

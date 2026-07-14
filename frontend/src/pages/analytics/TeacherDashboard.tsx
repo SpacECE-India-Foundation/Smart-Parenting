@@ -400,7 +400,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onRefresh })
                 </div>
               )}
               <div>
-                <button type="submit" className="btn" style={{ padding: '10px 20px', borderRadius: '50px', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 800 }}>
                   <Send size={16} style={{ marginRight: '8px', display: 'inline' }} />Send Assignment Notification
                 </button>
               </div>

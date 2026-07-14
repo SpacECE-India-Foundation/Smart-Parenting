@@ -6,6 +6,8 @@ import FloatingElements from '../../components/animations/FloatingElements';
 import ConfettiEffect from '../../components/animations/ConfettiEffect';
 import { getTranslation } from '../../utils/translations';
 import { getCognitiveSelGames } from '../../api/cognitiveSelService';
+import { saveNumeracyScore, awardProgress } from '../../api/services';
+import './BrainWorldPage.css';
 import './BrainWorldPage.css';
 
 const staggerContainer = {
@@ -20,7 +22,7 @@ const staggerItem = {
 /* ============================================================
    1. DRAWING PAD
    ============================================================ */
-function DrawingPad({ palette, brushSizes }) {
+function DrawingPad({ palette, brushSizes, profile, refreshProfile }) {
   const PALETTE = palette;
   const BRUSH_SIZES = brushSizes;
   const navigate = useNavigate();
@@ -90,6 +92,20 @@ function DrawingPad({ palette, brushSizes }) {
     const total = Number(localStorage.getItem('spaceece_drawings_count') || 0) + 1;
     localStorage.setItem('spaceece_drawings_count', String(total));
 
+    if (profile?.uid) {
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'drawing-pad',
+        score: 100,
+        accuracy: 100,
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 15, stars: 2, coins: 5, module: 'creativityWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -149,7 +165,7 @@ function DrawingPad({ palette, brushSizes }) {
 /* ============================================================
    2. STORY CREATOR
    ============================================================ */
-function StoryCreator({ stickers }) {
+function StoryCreator({ stickers, profile, refreshProfile }) {
   const STICKERS = stickers;
   const navigate = useNavigate();
   const [panels, setPanels] = useState([[], [], []]);
@@ -170,6 +186,19 @@ function StoryCreator({ stickers }) {
     setDone(true);
     const total = Number(localStorage.getItem('spaceece_stories_count') || 0) + 1;
     localStorage.setItem('spaceece_stories_count', String(total));
+    if (profile?.uid) {
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'story-creator',
+        score: 100,
+        accuracy: 100,
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 20, stars: 3, coins: 5, module: 'creativityWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
   };
 
   return (
@@ -252,7 +281,7 @@ function StoryCreator({ stickers }) {
 /* ============================================================
    3. COLOR STUDIO (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-function ColorStudio({ shapes, palette }) {
+function ColorStudio({ shapes, palette, profile, refreshProfile }) {
   const SHAPES = shapes;
   const PALETTE = palette;
   const navigate = useNavigate();
@@ -260,6 +289,7 @@ function ColorStudio({ shapes, palette }) {
   const [fillColor, setFillColor] = useState('#EF4444');
   const [coloredParts, setColoredParts] = useState({}); // shapeId -> color
   const [done, setDone] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
 
   const handleColorClick = (shapeId) => {
     setColoredParts({
@@ -268,11 +298,26 @@ function ColorStudio({ shapes, palette }) {
     });
     setDone(true);
     localStorage.setItem('spaceece_color_studio_sessions', 'Active 🎨');
+    if (profile?.uid && !hasSaved) {
+      setHasSaved(true);
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'coloring-studio',
+        score: 100,
+        accuracy: 100,
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 15, stars: 2, coins: 5, module: 'creativityWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
   };
 
   const reset = () => {
     setColoredParts({});
     setDone(false);
+    setHasSaved(false);
   };
 
   return (
@@ -585,6 +630,7 @@ const CreativityWorldHome = ({ activities }) => {
    ROUTER PATH COMPONENT
    ============================================================ */
 const CreativityWorldPage = () => {
+  const { profile, refreshProfile } = useUser();
   const [gamesData, setGamesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -639,9 +685,9 @@ const CreativityWorldPage = () => {
   return (
     <Routes>
       <Route index element={<CreativityWorldHome activities={activities} />} />
-      <Route path="drawing-pad"     element={<DrawingPad palette={dpPalette} brushSizes={dpBrushSizes} />} />
-      <Route path="story-creator"   element={<StoryCreator stickers={scStickers} />} />
-      <Route path="coloring-studio" element={<ColorStudio shapes={csShapes} palette={csPalette} />} />
+      <Route path="drawing-pad"     element={<DrawingPad palette={dpPalette} brushSizes={dpBrushSizes} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="story-creator"   element={<StoryCreator stickers={scStickers} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="coloring-studio" element={<ColorStudio shapes={csShapes} palette={csPalette} profile={profile} refreshProfile={refreshProfile} />} />
       <Route path="gallery"         element={<MyGallery />} />
       <Route path="*"               element={<CreativityWorldHome activities={activities} />} />
     </Routes>

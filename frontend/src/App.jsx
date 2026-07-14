@@ -36,6 +36,7 @@ import TeacherLogin from './pages/auth/TeacherLogin';
 import AdminLogin from './pages/auth/AdminLogin';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import PrivacyPolicy from './pages/auth/PrivacyPolicy';
 import TermsOfService from './pages/auth/TermsOfService';
 
@@ -196,6 +197,7 @@ export default function App() {
                         <Route path="/login/admin"      element={<AdminLogin />} />
                         <Route path="/register"         element={<Register />} />
                         <Route path="/forgot-password"  element={<ForgotPassword />} />
+                        <Route path="/reset-password"   element={<ResetPassword />} />
                         <Route path="/privacy"          element={<PrivacyPolicy />} />
                         <Route path="/terms"            element={<TermsOfService />} />
                       </Route>

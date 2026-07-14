@@ -19,6 +19,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(false);
+  const [resetLink, setResetLink] = useState('');
 
   const sendReset = async (targetEmail) => {
     setError('');
@@ -27,6 +28,9 @@ const ForgotPassword = () => {
     if (result.error) {
       setError(result.error);
     } else {
+      if (result.resetLink) {
+        setResetLink(result.resetLink);
+      }
       setSuccess(true);
     }
     setLoading(false);
@@ -79,6 +83,17 @@ const ForgotPassword = () => {
             Follow the instructions in the email to reset your password.
             If you don't see it, check your spam/junk folder.
           </Typography>
+
+          {resetLink && (
+            <Box sx={{ mb: 3, p: 2, borderRadius: '14px', bgcolor: 'rgba(255,149,0,0.1)', border: '1px dashed #FF9500', textAlign: 'left' }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={700} display="block" sx={{ mb: 0.5 }}>
+                ⚡ Testing Mode Reset Link:
+              </Typography>
+              <a href={resetLink} style={{ color: '#FF9500', fontWeight: 800, fontSize: '0.85rem', wordBreak: 'break-all', textDecoration: 'underline' }}>
+                Click here to reset your password →
+              </a>
+            </Box>
+          )}
 
           {error && <Alert severity="error" sx={{ mb: 2, borderRadius: '14px', textAlign: 'left' }}>{error}</Alert>}
 

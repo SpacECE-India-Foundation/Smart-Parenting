@@ -120,7 +120,25 @@ export const deleteLogicGame = async (id) => {
 // ── Numeracy Scores ─────────────────────────────────────────────────────────
 export const saveNumeracyScore = async (scoreData) => {
   try {
-    const { data } = await client.post('/scores', { ...scoreData, activity_type: scoreData.activity_type || 'numeracy' });
+    let activity_type = scoreData.activity_type;
+    if (!activity_type && scoreData.game_id) {
+      const gid = scoreData.game_id;
+      // Puzzle World games map to 'puzzle' (Cognitive domain)
+      if (gid === 'shape-match' || gid === 'jigsaw' || gid === 'logic-puzzles' || gid === 'shape-match-3d') {
+        activity_type = 'puzzle';
+      }
+      // Logic Island games map to 'logic' (Cognitive domain)
+      else if (gid === 'maze-challenge' || gid === 'pattern-recognition' || gid === 'odd-one-out' || gid === 'word-problems') {
+        activity_type = 'logic';
+      }
+      // Other numeracy/math games map to 'math' (Numeracy domain)
+      else {
+        activity_type = 'math';
+      }
+    }
+    if (!activity_type) activity_type = 'numeracy';
+
+    const { data } = await client.post('/scores', { ...scoreData, activity_type });
     return { data: data.data, error: null };
   } catch (e) {
     return { data: null, error: e.response?.data?.error || e.message };

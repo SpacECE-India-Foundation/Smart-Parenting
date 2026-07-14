@@ -6,6 +6,7 @@ import FloatingElements from '../../components/animations/FloatingElements';
 import ConfettiEffect from '../../components/animations/ConfettiEffect';
 import { getTranslation } from '../../utils/translations';
 import { getCognitiveSelGames } from '../../api/cognitiveSelService';
+import { saveNumeracyScore, awardProgress } from '../../api/services';
 import './BrainWorldPage.css';
 
 /* ─── Animation variants ─── */
@@ -21,7 +22,7 @@ const staggerItem = {
 /* ============================================================
    1. MEMORY MATCH GAME
    ============================================================ */
-function MemoryMatchGame({ cardEmojis }) {
+function MemoryMatchGame({ cardEmojis, profile, refreshProfile }) {
   const CARD_EMOJIS = cardEmojis;
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
@@ -31,6 +32,7 @@ function MemoryMatchGame({ cardEmojis }) {
   const [won, setWon] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const lockRef = useRef(false);
+  const hasSaved = useRef(false);
 
   const initCards = useCallback(() => {
     const pairs = [...CARD_EMOJIS, ...CARD_EMOJIS]
@@ -42,9 +44,27 @@ function MemoryMatchGame({ cardEmojis }) {
     setMoves(0);
     setWon(false);
     setShowConfetti(false);
-  }, []);
+    hasSaved.current = false;
+  }, [CARD_EMOJIS]);
 
   useEffect(() => { initCards(); }, [initCards]);
+
+  useEffect(() => {
+    if (won && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'memory-match',
+        score: Math.max(10, 100 - moves),
+        accuracy: Math.max(20, Math.round((CARD_EMOJIS.length / (moves || 1)) * 100)),
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 15, stars: 3, coins: 5, module: 'brainWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [won, moves, profile, CARD_EMOJIS.length, refreshProfile]);
 
   const handleFlip = (card) => {
     if (lockRef.current) return;
@@ -121,7 +141,7 @@ function MemoryMatchGame({ cardEmojis }) {
 /* ============================================================
    2. SEQUENCE BUILDER GAME
    ============================================================ */
-function SequenceBuilderGame({ seqColors, seqEmojis }) {
+function SequenceBuilderGame({ seqColors, seqEmojis, profile, refreshProfile }) {
   const SEQ_COLORS = seqColors;
   const SEQ_EMOJIS = seqEmojis;
   const navigate = useNavigate();
@@ -131,6 +151,24 @@ function SequenceBuilderGame({ seqColors, seqEmojis }) {
   const [activeIdx, setActiveIdx] = useState(-1);
   const [score, setScore] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const hasSaved = useRef(false);
+
+  useEffect(() => {
+    if (phase === 'fail' && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'sequence-builder',
+        score: score,
+        accuracy: Math.min(100, sequence.length * 10),
+        level: sequence.length,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: Math.floor(score / 2), stars: Math.min(5, Math.floor(sequence.length / 2)), coins: 5, module: 'brainWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [phase, score, sequence.length, profile, refreshProfile]);
 
   const addAndShow = useCallback((prev) => {
     const next = [...prev, Math.floor(Math.random() * 4)];
@@ -194,7 +232,7 @@ function SequenceBuilderGame({ seqColors, seqEmojis }) {
       </div>
       {phase === 'fail' && (
         <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} whileHover={{ scale: 1.05 }}
-          onClick={() => { setScore(0); addAndShow([]); }}
+          onClick={() => { hasSaved.current = false; setScore(0); addAndShow([]); }}
           className="btn-orange w-full mt-6" style={{ borderRadius: '12px', padding: '10px' }}
         >
           Try Again 🔄
@@ -207,13 +245,14 @@ function SequenceBuilderGame({ seqColors, seqEmojis }) {
 /* ============================================================
    3. PATTERN FINDER GAME (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-function PatternFinderGame({ patternSets }) {
+function PatternFinderGame({ patternSets, profile, refreshProfile }) {
   const PATTERN_SETS = patternSets;
   const navigate = useNavigate();
   const [level, setLevel] = useState(1);
   const [items, setItems] = useState([]);
   const [won, setWon] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const hasSaved = useRef(false);
 
   const initLevel = useCallback((lvl) => {
     const currentSet = PATTERN_SETS[(lvl - 1) % PATTERN_SETS.length];
@@ -228,9 +267,27 @@ function PatternFinderGame({ patternSets }) {
     setItems(shuffled);
     setWon(false);
     setShowConfetti(false);
-  }, []);
+    hasSaved.current = false;
+  }, [PATTERN_SETS]);
 
   useEffect(() => { initLevel(level); }, [level, initLevel]);
+
+  useEffect(() => {
+    if (won && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'pattern-finder',
+        score: 100,
+        accuracy: 100,
+        level: 5,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 20, stars: 5, coins: 5, module: 'brainWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [won, profile, refreshProfile]);
 
   const handleSelect = (item) => {
     if (item.isOdd) {
@@ -294,18 +351,37 @@ function PatternFinderGame({ patternSets }) {
 /* ============================================================
    4. MAZE CHALLENGE GAME (Previously "Coming Soon" - Now Fully Active!)
    ============================================================ */
-function MazeChallengeGame({ mazeLayout }) {
+function MazeChallengeGame({ mazeLayout, profile, refreshProfile }) {
   const MAZE_LAYOUT = mazeLayout;
   const navigate = useNavigate();
   const [playerPos, setPlayerPos] = useState({ r: 0, c: 0 });
   const [won, setWon] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const hasSaved = useRef(false);
 
   const initGame = () => {
     setPlayerPos({ r: 0, c: 0 });
     setWon(false);
     setShowConfetti(false);
+    hasSaved.current = false;
   };
+
+  useEffect(() => {
+    if (won && !hasSaved.current && profile?.uid) {
+      hasSaved.current = true;
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'maze-challenge',
+        score: 100,
+        accuracy: 100,
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 25, stars: 5, coins: 10, module: 'brainWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  }, [won, profile, refreshProfile]);
 
   const movePlayer = (dr, dc) => {
     if (won) return;
@@ -586,6 +662,7 @@ const BrainWorldHome = ({ activities }) => {
    ROUTER PATH COMPONENT
    ============================================================ */
 const BrainWorldPage = () => {
+  const { profile, refreshProfile } = useUser();
   const [gamesData, setGamesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -650,10 +727,10 @@ const BrainWorldPage = () => {
   return (
     <Routes>
       <Route index element={<BrainWorldHome activities={activities} />} />
-      <Route path="memory-match"     element={<MemoryMatchGame cardEmojis={mmEmojis} />} />
-      <Route path="sequence-builder" element={<SequenceBuilderGame seqColors={sbColors} seqEmojis={sbEmojis} />} />
-      <Route path="pattern-finder"   element={<PatternFinderGame patternSets={pfSets} />} />
-      <Route path="maze-challenge"   element={<MazeChallengeGame mazeLayout={mcLayout} />} />
+      <Route path="memory-match"     element={<MemoryMatchGame cardEmojis={mmEmojis} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="sequence-builder" element={<SequenceBuilderGame seqColors={sbColors} seqEmojis={sbEmojis} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="pattern-finder"   element={<PatternFinderGame patternSets={pfSets} profile={profile} refreshProfile={refreshProfile} />} />
+      <Route path="maze-challenge"   element={<MazeChallengeGame mazeLayout={mcLayout} profile={profile} refreshProfile={refreshProfile} />} />
       <Route path="*"                element={<BrainWorldHome activities={activities} />} />
     </Routes>
   );

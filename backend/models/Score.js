@@ -17,7 +17,7 @@ const ActivityScoreSchema = new mongoose.Schema(
     activity_type: {
       type: String,
       enum: ['story', 'picture_match', 'word_builder', 'flashcard',
-             'sound_match', 'phonics', 'fluency', 'numeracy', 'logic', 'puzzle', 'literacy'],
+             'sound_match', 'phonics', 'fluency', 'numeracy', 'logic', 'puzzle', 'literacy', 'math', 'creativity', 'emotional'],
     },
     score:         { type: Number, default: 0 },
     accuracy:      { type: Number, default: 0 },   // percentage 0-100

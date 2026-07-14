@@ -163,9 +163,9 @@ export const isAuthenticated = () => !!localStorage.getItem('token');
 export const sendPasswordReset = async (email) => {
   try {
     const { data } = await client.post('/auth/forgot-password', { email });
-    return { message: data.message, error: null };
+    return { message: data.message, resetLink: data.resetLink, error: null };
   } catch (err) {
-    return { message: null, error: err.response?.data?.error || err.message };
+    return { message: null, resetLink: null, error: err.response?.data?.error || err.message };
   }
 };
 
@@ -199,6 +199,15 @@ export const reloadUser = async () => {
     return { user, error: null };
   } catch (err) {
     return { user: null, error: err.response?.data?.error || err.message };
+  }
+};
+
+export const resetPassword = async (token, password) => {
+  try {
+    const { data } = await client.post('/auth/reset-password', { token, password });
+    return { message: data.message, error: null };
+  } catch (err) {
+    return { message: null, error: err.response?.data?.error || err.message };
   }
 };
 

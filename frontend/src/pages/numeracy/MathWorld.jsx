@@ -653,7 +653,7 @@ function TimesTablesGame({ onBack }) {
     const mult = Math.floor(Math.random() * 10) + 1;
     const ans = table * mult;
     const opts = new Set([ans]);
-    while (opts.size < 4) { const w = ans + (Math.floor(Math.random() * 6) - 3) * table; if (w > 0) opts.add(w); }
+    while (opts.size < 4) { const w = ans + (Math.floor(Math.random() * 12) - 6) * table; if (w > 0) opts.add(w); }
     return { table, mult, ans, opts: [...opts].sort(() => Math.random() - 0.5) };
   }, []);
 

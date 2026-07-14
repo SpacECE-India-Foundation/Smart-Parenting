@@ -32,9 +32,9 @@ function getAvatarEmoji(avatarId) {
     'Ari': '🧒🏾', 'Benny': '👶', 'Amara': '👧🏾', 'Leo': '👦🏼', 'Zara': '👧🏽', 'Niko': '🧒🏽'
   };
   const muiAvatars = {
-    avatar1: '🧑‍🚀', avatar2: '🚀', avatar3: '⭐', avatar4: '🪐', avatar5: '🌙',
-    avatar6: '☀️', avatar7: '🌈', avatar8: '🦋', avatar9: '🧸', avatar10: '🤖',
-    avatar11: '🦄', avatar12: '🐉'
+    avatar1: '🧒', avatar2: '👦', avatar3: '👧', avatar4: '🧑', avatar5: '👶',
+    avatar6: '🦸', avatar7: '🧙', avatar8: '🦊', avatar9: '🐼', avatar10: '🦁',
+    avatar11: '🐸', avatar12: '🚀'
   };
   return characters[avatarId] || muiAvatars[avatarId] || '👤';
 }

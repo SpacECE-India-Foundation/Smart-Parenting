@@ -44,7 +44,6 @@ const calculateAgeGroupFromDob = (dobString) => {
   if (ageYears < 1) return '1-3';
   return '7-10';
 };
-
 // ── Milestone helpers (Age 1–3 only) ─────────────────────────────────────
 /**
  * Calculates the child's age in whole months from their date of birth,
@@ -390,22 +389,47 @@ const ChildProfileManager = () => {
             ))}
           </Box>
 
-          {/* Date of Birth Calendar */}
-          <Typography variant="caption" fontWeight={900} sx={{ mt: 3, mb: 1.25, display: 'block', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Date of Birth (Auto-selects Age Group)
-          </Typography>
-          <TextField
-            fullWidth
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={formData.date_of_birth || ''}
-            onChange={(e) => {
-              const dob = e.target.value;
-              const calculatedGroup = calculateAgeGroupFromDob(dob);
-              setFormData((p) => ({ ...p, date_of_birth: dob, age_group: calculatedGroup }));
-            }}
-            sx={{ mb: 1 }}
-          />
+          {/* Date of Birth — shown for Age 1-3 and 4-6 */}
+          {['1-3', '4-6'].includes(formData.age_group) && (() => {
+            const now = new Date();
+            const toISO = (d) => d.toISOString().split('T')[0];
+            let minDate, maxDate, helperMsg;
+
+            if (formData.age_group === '1-3') {
+              // Child must be 1–3 years old
+              minDate = toISO(new Date(now.getFullYear() - 3, now.getMonth(), now.getDate()));
+              maxDate = toISO(new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()));
+              helperMsg = "Used to auto-calculate the child's milestone level (1–6)";
+            } else {
+              // Age 4-6: child must be 3–7 years old
+              minDate = toISO(new Date(now.getFullYear() - 7, now.getMonth(), now.getDate()));
+              maxDate = toISO(new Date(now.getFullYear() - 3, now.getMonth(), now.getDate()));
+              helperMsg = "Helps personalize your child's learning journey (age 3–6)";
+            }
+
+            return (
+              <>
+                <Typography
+                  variant="caption" fontWeight={900}
+                  sx={{ mt: 2.5, mb: 1.25, display: 'block', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                >
+                  Date of Birth
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={(e) => setFormData((p) => ({ ...p, date_of_birth: e.target.value }))}
+                  inputProps={{
+                    max: maxDate,
+                    min: minDate,
+                  }}
+                  helperText={helperMsg}
+                  sx={{ mt: 1 }}
+                />
+              </>
+            );
+          })()}
         </DialogContent>
         <DialogActions sx={{ p: 2.5, gap: 1 }}>
           <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>

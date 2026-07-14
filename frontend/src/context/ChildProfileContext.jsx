@@ -165,7 +165,6 @@ export const ChildProfileProvider = ({ children }) => {
   const coinCount = userRole === 'child'
     ? (activeChild?.coins || 0)
     : childProfiles.reduce((sum, p) => sum + (p.coins || 0), 0);
-
   return (
     <ChildProfileContext.Provider value={{
       childProfiles,

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+
 import { useTheme } from '../../context/ThemeContext';
 import { Users, Send, AlertTriangle, Award, CheckCircle, FileSpreadsheet, Trophy, Sparkles } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as ChartTooltip, CartesianGrid, Legend } from 'recharts';
@@ -37,7 +38,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onRefresh })
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
-  const { setTheme } = useTheme();
+  const [theme, setTheme] = useState('dark');
+  
 
   useEffect(() => {
     setTheme('light');

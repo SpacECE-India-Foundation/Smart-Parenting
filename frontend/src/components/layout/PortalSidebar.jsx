@@ -11,6 +11,7 @@ import {
   ToggleOn as ToggleIcon, Logout as LogoutIcon, ChevronLeft as ChevronLeftIcon,
   MonetizationOn as CoinIcon, MenuBook as MenuBookIcon, Calculate as CalculateIcon,
   Warning as WarningIcon, Send as SendIcon, Chat as ChatIcon,
+
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { useChildProfile } from '../../context/ChildProfileContext';
@@ -27,7 +28,9 @@ const iconMap = {
   Settings: SettingsIcon, Person: PersonIcon, People: PeopleIcon,
   History: HistoryIcon, Notifications: NotificationsIcon, ToggleOn: ToggleIcon,
   MenuBook: MenuBookIcon, Calculate: CalculateIcon,
+
   Warning: WarningIcon, Send: SendIcon, Chat: ChatIcon,
+
 };
 
 const EMOJI_ICONS = {

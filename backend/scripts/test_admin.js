@@ -1,8 +1,11 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
-const User = require('./models/User');
+const User = require('../models/User');
 
-mongoose.connect(process.env.MONGODB_URI).then(async () => {
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/spaceece';
+
+mongoose.connect(MONGODB_URI).then(async () => {
   const admin = await User.findOne({ email: 'admin@spaceece.com' }).select('+password');
   if (!admin) {
     console.log('❌ No admin user found in database!');

@@ -88,6 +88,7 @@ import LanguageChallengesPage from './pages/literacy/LanguageChallengesPage';
 
 // Cognitive, Creativity & Emotional Worlds
 import BrainWorldPage from './pages/cognitive-sel/BrainWorldPage';
+import SpatialBrainPage from './pages/cognitive-sel/SpatialBrainPage';
 import CreativityWorldPage from './pages/cognitive-sel/CreativityWorldPage';
 import EmotionWorldPage from './pages/cognitive-sel/EmotionWorldPage';
 import CognitiveStoryWorldPage from './pages/cognitive-sel/StoryWorldPage';
@@ -259,6 +260,7 @@ export default function App() {
                         <Route path="/child/language-challenges" element={<LanguageChallengesPage />} />
 
                         <Route path="/child/brain-world/*"        element={<BrainWorldPage />} />
+                        <Route path="/child/spatial-brain"        element={<SpatialBrainPage />} />
                         <Route path="/child/creativity-world/*"   element={<CreativityWorldPage />} />
                         <Route path="/child/emotion-world/*"      element={<EmotionWorldPage />} />
                         <Route path="/child/story-choice-world/*" element={<CognitiveStoryWorldPage />} />

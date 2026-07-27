@@ -190,7 +190,7 @@ const ForgotPassword = () => {
       <Box sx={{ textAlign: 'center', mt: 3 }}>
         <Button
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/roles')}
           sx={{
             color: '#718096', fontWeight: 700,
             bgcolor: 'rgba(255,255,255,0.6)',

@@ -147,7 +147,7 @@ const ParentLogin = () => {
             Register Free →
           </Typography>
         </Typography>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/roles')}
           sx={{ mt: 1.5, color: '#718096', fontWeight: 700, bgcolor: 'rgba(255,255,255,0.6)', borderRadius: 50, px: 2.5 }}
           size="small">
           Back to Role Selection

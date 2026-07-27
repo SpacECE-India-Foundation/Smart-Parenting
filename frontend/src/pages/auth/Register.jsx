@@ -350,13 +350,13 @@ const Register = () => {
               color: '#FF9500', fontWeight: 900, cursor: 'pointer',
               bgcolor: 'rgba(255,149,0,0.1)', px: 1.5, py: 0.25, borderRadius: 10,
             }}
-            onClick={() => navigate('/')}>
+            onClick={() => navigate('/roles')}>
             Sign In →
           </Typography>
         </Typography>
         <Button
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/roles')}
           sx={{
             mt: 1.5, color: '#718096', fontWeight: 700,
             bgcolor: 'rgba(255,255,255,0.6)',

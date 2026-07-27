@@ -496,7 +496,7 @@ export default function LandingPage() {
          ==================================================================== */}
       <nav className={`landing-nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="nav-inner">
-          <div className="nav-brand" onClick={() => handleAction('/roles')}>
+          <div className="nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             <img src={logoImg} alt="SpacECE India Foundation Official Logo" className="brand-logo-img" />
             <div>
               <h1 className="brand-title">Spac<span>ECE</span></h1>

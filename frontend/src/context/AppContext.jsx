@@ -28,7 +28,7 @@ const DEFAULT_FLAGS = {
 const AppStateProvider = ({ children }) => {
   const [currentActivity, setCurrentActivity] = useState(null);
   const [featureFlags, setFeatureFlags] = useState(DEFAULT_FLAGS);
-  const [flagsLoaded, setFlagsLoaded] = useState(false);
+  const [flagsLoaded, setFlagsLoaded] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Subscribe to feature flags in real-time

@@ -141,8 +141,8 @@ const RoleSelector = () => {
   const [lang, setLang] = useState('en');
   const [selected, setSelected] = useState(null);
   const [hovering, setHovering] = useState(null);
-  const [started, setStarted] = useState(false);
-  const [showLoading, setShowLoading] = useState(true);
+  const [started, setStarted] = useState(true);
+  const [showLoading, setShowLoading] = useState(false);
 
   const t = rolesContent[lang] || rolesContent.en;
   const rolesList = getRoleDefinitions(t);

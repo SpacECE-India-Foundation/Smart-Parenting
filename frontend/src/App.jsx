@@ -192,11 +192,11 @@ export default function App() {
                     <NavigationSetter />
                     <MaintenanceGate>
                     <Routes>
-                      {/* Public Landing Page */}
-                      <Route path="/" element={<LandingPage />} />
+                      {/* Public Landing Page & Auth Routes */}
+                      <Route path="/landing" element={<LandingPage />} />
 
-                      {/* Public Auth Routes */}
                       <Route element={<AuthLayout />}>
+                        <Route path="/"                 element={<RoleSelector />} />
                         <Route path="/roles"            element={<RoleSelector />} />
                         <Route path="/login/child"      element={<ChildLogin />} />
                         <Route path="/login/parent"     element={<ParentLogin />} />

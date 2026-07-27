@@ -40,6 +40,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import PrivacyPolicy from './pages/auth/PrivacyPolicy';
 import TermsOfService from './pages/auth/TermsOfService';
+import CenterRegistration from './pages/auth/CenterRegistration';
 
 // Layout guards
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -201,6 +202,7 @@ export default function App() {
                         <Route path="/login/teacher"    element={<TeacherLogin />} />
                         <Route path="/login/admin"      element={<AdminLogin />} />
                         <Route path="/register"         element={<Register />} />
+                        <Route path="/register-center"  element={<CenterRegistration />} />
                         <Route path="/forgot-password"  element={<ForgotPassword />} />
                         <Route path="/reset-password"   element={<ResetPassword />} />
                         <Route path="/privacy"          element={<PrivacyPolicy />} />

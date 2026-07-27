@@ -6,30 +6,80 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import SpacECELogo from '../../components/shared/SpacECELogo';
 import logoImg from '../../assets/spaceece-logo.png';
 import LoadingScreen from './LoadingScreen';
-import { useApp } from '../../context/AppContext';
 
-const roles = [
-  {
-    key: 'child',
-    label: "I'm a Child!",
-    subtitle: 'Ages 1–10',
-    emoji: '🧒',
-    description: 'Play games, earn coins & go on amazing learning adventures every day!',
-    path: '/login/child',
-    gradient: 'linear-gradient(145deg, #FFF3DC 0%, #FFE4A0 60%, #FFCC60 100%)',
-    border: '#FFB84D',
-    accent: '#FF9500',
-    glow: 'rgba(255,149,0,0.35)',
-    bg: 'rgba(255,248,220,0.9)',
-    floatEmoji: ['⭐', '🎮', '🪙'],
-    badgeBg: 'rgba(255,193,7,0.15)',
+const rolesContent = {
+  en: {
+    heroTitle: "Explore, Learn & Grow Through Fun Adventures",
+    chooseRoleBadge: "✨ Who are you today? Pick your role to begin!",
+    continueBtn: "Continue to Portal →",
+    selectFirstBtn: "Choose Your Role First 👆",
+    newToText: "New to SpacECE?",
+    createFreeAccount: "Create a free account →",
+    registerCenterLink: "Register Center or Anganwadi →",
+    parentTitle: "I'm a Parent",
+    parentSub: "For Families",
+    parentDesc: "Track your child's learning at home & celebrate achievements!",
+    teacherTitle: "I'm a Teacher",
+    teacherSub: "For Educators",
+    teacherDesc: "Manage your classroom's progress & guide little learners!",
+    centerTitle: "Center Coordinator",
+    centerSub: "Anganwadi & Centers",
+    centerDesc: "Register & manage your Anganwadi or learning center!",
+    adminTitle: "Administrator",
+    adminSub: "Platform Admin",
+    adminDesc: "Platform administration, security & system settings.",
   },
+  hi: {
+    heroTitle: "मजेदार कारनामों के माध्यम से खोजें, सीखें और बढ़ें",
+    chooseRoleBadge: "✨ आज आप कौन हैं? शुरू करने के लिए अपनी भूमिका चुनें!",
+    continueBtn: "पोर्टल पर आगे बढ़ें →",
+    selectFirstBtn: "पहले अपनी भूमिका चुनें 👆",
+    newToText: "SpacECE में नए हैं?",
+    createFreeAccount: "नि:शुल्क खाता बनाएं →",
+    registerCenterLink: "केंद्र या आंगनवाड़ी पंजीकृत करें →",
+    parentTitle: "मैं माता-पिता हूं",
+    parentSub: "परिवारों के लिए",
+    parentDesc: "घर पर अपने बच्चे की शिक्षा को ट्रैक करें और प्रगति का जश्न मनाएं!",
+    teacherTitle: "मैं शिक्षक हूं",
+    teacherSub: "शिक्षकों के लिए",
+    teacherDesc: "अपनी कक्षा की प्रगति प्रबंधित करें और छोटे शिक्षार्थियों का मार्गदर्शन करें!",
+    centerTitle: "केंद्र समन्वयक",
+    centerSub: "आंगनवाड़ी और केंद्र",
+    centerDesc: "अपनी आंगनवाड़ी या शिक्षण केंद्र को पंजीकृत और प्रबंधित करें!",
+    adminTitle: "प्रशासक",
+    adminSub: "प्लेटफ़ॉर्म व्यवस्थापक",
+    adminDesc: "प्लेटफ़ॉर्म प्रशासन, सुरक्षा और सिस्टम सेटिंग्स।",
+  },
+  mr: {
+    heroTitle: "रंजक खेळांच्या माध्यमातून शोधा, शिका आणि प्रगती करा",
+    chooseRoleBadge: "✨ आज तुम्ही कोण आहात? सुरू करण्यासाठी तुमची भूमिका निवडा!",
+    continueBtn: "पोर्टलवर पुढे जा →",
+    selectFirstBtn: "आधी तुमची भूमिका निवडा 👆",
+    newToText: "SpacECE वर नवीन आहात?",
+    createFreeAccount: "मोफत खाते तयार करा →",
+    registerCenterLink: "बालवाडी किंवा अंगणवाडी केंद्र नोंदवा →",
+    parentTitle: "मी पालक आहे",
+    parentSub: "कुटुंबांसाठी",
+    parentDesc: "घरी आपल्या पाल्याचा शिकण्याचा प्रवास ट्रॅक करा आणि प्रगती साजरी करा!",
+    teacherTitle: "मी शिक्षक आहे",
+    teacherSub: "शिक्षकांसाठी",
+    teacherDesc: "तुमच्या वर्गाची प्रगती व्यवस्थापित करा आणि लहान मुलांना मार्गदर्शन करा!",
+    centerTitle: "केंद्र समन्वयक",
+    centerSub: "अंगणवाडी व केंद्रे",
+    centerDesc: "तुमची अंगणवाडी किंवा शिक्षण केंद्र नोंदवा व व्यवस्थापित करा!",
+    adminTitle: "प्रशासक",
+    adminSub: "प्लॅटफॉर्म प्रशासक",
+    adminDesc: "प्लॅटफॉर्म प्रशासन, सुरक्षा आणि प्रणाली सेटिंग्ज.",
+  }
+};
+
+const getRoleDefinitions = (t) => [
   {
     key: 'parent',
-    label: "I'm a Parent",
-    subtitle: 'For Families',
+    label: t.parentTitle,
+    subtitle: t.parentSub,
     emoji: '👨‍👩‍👧',
-    description: "Track your child's progress, manage profiles & celebrate achievements!",
+    description: t.parentDesc,
     path: '/login/parent',
     gradient: 'linear-gradient(145deg, #DCFCE7 0%, #BBF7D0 60%, #86EFAC 100%)',
     border: '#4ADE80',
@@ -41,10 +91,10 @@ const roles = [
   },
   {
     key: 'teacher',
-    label: "I'm a Teacher",
-    subtitle: 'For Educators',
+    label: t.teacherTitle,
+    subtitle: t.teacherSub,
     emoji: '👩‍🏫',
-    description: 'Guide students, assign fun activities & watch little learners grow!',
+    description: t.teacherDesc,
     path: '/login/teacher',
     gradient: 'linear-gradient(145deg, #DBEAFE 0%, #BFDBFE 60%, #93C5FD 100%)',
     border: '#60A5FA',
@@ -55,11 +105,26 @@ const roles = [
     badgeBg: 'rgba(66,153,225,0.15)',
   },
   {
+    key: 'center',
+    label: t.centerTitle,
+    subtitle: t.centerSub,
+    emoji: '🏫',
+    description: t.centerDesc,
+    path: '/register-center',
+    gradient: 'linear-gradient(145deg, #FEF3C7 0%, #FDE68A 60%, #F59E0B 100%)',
+    border: '#FBBF24',
+    accent: '#D97706',
+    glow: 'rgba(217,119,6,0.35)',
+    bg: 'rgba(254,243,199,0.9)',
+    floatEmoji: ['🏫', '📋', '🌟'],
+    badgeBg: 'rgba(217,119,6,0.15)',
+  },
+  {
     key: 'admin',
-    label: 'Administrator',
-    subtitle: 'Platform Admin',
+    label: t.adminTitle,
+    subtitle: t.adminSub,
     emoji: '🔐',
-    description: 'Manage the platform, users, sessions & system settings securely.',
+    description: t.adminDesc,
     path: '/login/admin',
     gradient: 'linear-gradient(145deg, #F3E8FF 0%, #E9D5FF 60%, #D8B4FE 100%)',
     border: '#C084FC',
@@ -73,17 +138,14 @@ const roles = [
 
 const RoleSelector = () => {
   const navigate = useNavigate();
-  const { featureFlags } = useApp();
+  const [lang, setLang] = useState('en');
   const [selected, setSelected] = useState(null);
   const [hovering, setHovering] = useState(null);
   const [started, setStarted] = useState(false);
   const [showLoading, setShowLoading] = useState(true);
 
-  const availableRoles = roles.filter(role => {
-    if (role.key === 'child') return featureFlags?.enableChildDashboard !== false;
-    if (role.key === 'teacher') return featureFlags?.enableTeacherDashboard !== false;
-    return true;
-  });
+  const t = rolesContent[lang] || rolesContent.en;
+  const rolesList = getRoleDefinitions(t);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -118,19 +180,37 @@ const RoleSelector = () => {
       mx: 'auto',
     }}>
 
+      {/* Language Toggle bar */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, mb: 2 }}>
+        {['en', 'hi', 'mr'].map((l) => (
+          <Button
+            key={l}
+            size="small"
+            onClick={() => setLang(l)}
+            sx={{
+              borderRadius: 8, px: 1.5, py: 0.2, fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase',
+              bgcolor: lang === l ? 'white' : 'rgba(241,245,249,0.8)', color: lang === l ? '#1F3A68' : '#64748B',
+              boxShadow: lang === l ? '0 2px 6px rgba(0,0,0,0.1)' : 'none',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            {l}
+          </Button>
+        ))}
+      </Box>
+
       {!started ? (
-        /* ── Splash Welcome Intro Screen ── */
+        /* Splash Welcome Intro Screen */
         <Box sx={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           animation: 'fadeIn 0.6s ease-out',
         }}>
-          {/* Official SpacECE Logo inside Glassmorphic Card */}
           <Box sx={{
             position: 'relative',
-            width: 160,
-            height: 160,
+            width: 150,
+            height: 150,
             mb: 3,
             background: 'rgba(255, 255, 255, 0.25)',
             backdropFilter: 'blur(20px)',
@@ -143,23 +223,14 @@ const RoleSelector = () => {
             justifyContent: 'center',
             animation: 'float 4s ease-in-out infinite',
           }}>
-            <Box sx={{
-              position: 'absolute',
-              inset: -15,
-              background: 'radial-gradient(circle, rgba(245,166,35,0.25) 0%, transparent 70%)',
-              borderRadius: '50%',
-              animation: 'pulse 3s ease-in-out infinite',
-              zIndex: -1,
-            }} />
             <Box
               component="img"
               src={logoImg}
               alt="SpacECE Logo"
               sx={{
-                width: 120,
-                height: 120,
+                width: 110,
+                height: 110,
                 objectFit: 'contain',
-                animation: 'bounce 2.5s ease-in-out infinite',
                 borderRadius: '16px',
               }}
             />
@@ -169,79 +240,73 @@ const RoleSelector = () => {
             Spac<span style={{ color: '#FF9500' }}>ECE</span>
           </Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 700, mb: 4, maxWidth: 360, mx: 'auto' }}>
-            Explore, Learn &amp; Grow Through Fun Adventures
+            {t.heroTitle}
           </Typography>
 
-          {/* Pulsing CTA Button */}
           <Button
             variant="contained"
             onClick={() => setStarted(true)}
             sx={{
-              px: 5, py: 2, fontSize: '1.1rem', fontWeight: 900,
+              px: 5, py: 1.8, fontSize: '1.1rem', fontWeight: 900,
               borderRadius: 50,
               background: 'linear-gradient(135deg, #FF9500 0%, #FFC107 100%)',
               color: 'white',
               boxShadow: '0 10px 32px rgba(255,149,0,0.45)',
               transition: 'all 0.3s ease',
-              animation: 'pulse 2.5s infinite',
               '&:hover': {
-                transform: 'scale(1.06) translateY(-2px)',
+                transform: 'scale(1.05) translateY(-2px)',
                 boxShadow: '0 14px 40px rgba(255,149,0,0.6)',
               },
             }}
           >
-            Start Learning Adventure →
+            Start Learning Journey →
           </Button>
 
-          {/* Trust Badges matching SpacECE_Website_Workflow */}
           <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, mt: 5, opacity: 0.85 }}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" fontWeight={900} color="primary">1000+</Typography>
-              <Typography variant="caption" color="text.secondary" fontWeight={800}>Activities</Typography>
+              <Typography variant="h6" fontWeight={900} color="primary">50,000+</Typography>
+              <Typography variant="caption" color="text.secondary" fontWeight={800}>Children</Typography>
             </Box>
             <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(31,58,104,0.1)' }} />
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" fontWeight={900} color="secondary">500+</Typography>
-              <Typography variant="caption" color="text.secondary" fontWeight={800}>Stories</Typography>
+              <Typography variant="h6" fontWeight={900} color="secondary">250+</Typography>
+              <Typography variant="caption" color="text.secondary" fontWeight={800}>Centers</Typography>
             </Box>
             <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(31,58,104,0.1)' }} />
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" fontWeight={900} sx={{ color: '#3BB77E' }}>Personalized</Typography>
-              <Typography variant="caption" color="text.secondary" fontWeight={800}>Learning Paths</Typography>
+              <Typography variant="h6" fontWeight={900} sx={{ color: '#3BB77E' }}>NEP 2020</Typography>
+              <Typography variant="caption" color="text.secondary" fontWeight={800}>Aligned</Typography>
             </Box>
           </Box>
         </Box>
       ) : (
-        /* ── Role Selection Grid ── */
+        /* Role Selection Grid */
         <Box sx={{ animation: 'slideInUp 0.5s ease-out' }}>
-          {/* ── Official SpacECE Logo — glassmorphism card ── */}
           <Box sx={{ mx: 'auto', mb: 3, display: 'flex', justifyContent: 'center' }}>
-            <SpacECELogo variant="glass" width={160} />
+            <SpacECELogo variant="glass" width={150} />
           </Box>
 
-          {/* ── Heading ── */}
-          <Typography variant="h4" fontWeight={900} sx={{ mb: 0.5, color: '#111111', lineHeight: 1.2 }}>
+          <Typography variant="h4" fontWeight={900} sx={{ mb: 0.5, color: '#111111', lineHeight: 1.2, fontFamily: '"Outfit", sans-serif' }}>
             Welcome to Spac<span style={{ color: '#F5A623' }}>ECE</span>
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5, fontWeight: 600 }}>
-            Explore, Learn &amp; Grow Through Fun Adventures
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>
+            {t.heroTitle}
           </Typography>
           <Typography variant="body2" sx={{
             color: '#FF9500', fontWeight: 800, mb: 3,
             display: 'inline-flex', alignItems: 'center', gap: 0.5,
             bgcolor: 'rgba(255,149,0,0.1)', px: 2, py: 0.5, borderRadius: 10,
           }}>
-            ✨ Who are you today? Pick your role to begin!
+            {t.chooseRoleBadge}
           </Typography>
 
-          {/* ── Role Cards: 2×2 Grid ── */}
           <Box sx={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: 2,
             mb: 3,
           }}>
-            {availableRoles.map((role, index) => {
+            {rolesList.map((role, index) => {
               const isSelected = selected?.key === role.key;
               const isHovered  = hovering === role.key;
 
@@ -254,10 +319,10 @@ const RoleSelector = () => {
                   sx={{
                     borderRadius: '24px',
                     cursor: 'pointer',
-                    background: isSelected ? role.gradient : `rgba(255,255,255,0.72)`,
+                    background: isSelected ? role.gradient : `rgba(255,255,255,0.85)`,
                     backdropFilter: 'blur(16px)',
                     WebkitBackdropFilter: 'blur(16px)',
-                    border: `2.5px solid ${isSelected ? role.accent : isHovered ? role.border + '80' : 'rgba(255,255,255,0.7)'}`,
+                    border: `2.5px solid ${isSelected ? role.accent : isHovered ? role.border + '80' : 'rgba(226,232,240,0.8)'}`,
                     boxShadow: isSelected
                       ? `0 12px 36px ${role.glow}, 0 4px 12px rgba(0,0,0,0.06)`
                       : isHovered
@@ -274,52 +339,27 @@ const RoleSelector = () => {
                     overflow: 'hidden',
                   }}
                 >
-                  {/* Selected checkmark */}
                   {isSelected && (
                     <CheckCircleIcon sx={{
                       position: 'absolute', top: 10, right: 10,
                       fontSize: 22, color: role.accent,
                       bgcolor: 'white', borderRadius: '50%',
                       boxShadow: `0 2px 8px ${role.glow}`,
-                      animation: 'scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                     }} />
                   )}
 
-                  {/* Background gradient on hover/select */}
-                  {(isSelected || isHovered) && (
-                    <Box sx={{
-                      position: 'absolute', inset: 0, borderRadius: '22px',
-                      background: role.gradient, opacity: isSelected ? 1 : 0.5,
-                      zIndex: 0, transition: 'opacity 0.3s ease',
-                    }} />
-                  )}
-
-                  {/* Floating emoji decorations */}
-                  {role.floatEmoji.map((e, i) => (
-                    <Box key={i} sx={{
-                      position: 'absolute', fontSize: '0.8rem', opacity: 0.18,
-                      top: `${[8, 72, 42][i]}%`, right: `${[6, 9, 82][i]}%`,
-                      animation: `twinkle ${2.8 + i * 0.6}s ease-in-out infinite`,
-                      animationDelay: `${i * 0.7}s`,
-                      zIndex: 1,
-                    }}>{e}</Box>
-                  ))}
-
-                  {/* Content */}
                   <Box sx={{ position: 'relative', zIndex: 2 }}>
-                    {/* Emoji */}
                     <Box sx={{
-                      fontSize: { xs: '2.8rem', sm: '3.4rem' }, mb: 1,
+                      fontSize: { xs: '2.6rem', sm: '3.2rem' }, mb: 1,
                       lineHeight: 1, display: 'block',
-                      animation: isHovered ? 'wobble 0.7s ease-in-out' : 'none',
-                      filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
+                      filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.12))',
                     }}>
                       {role.emoji}
                     </Box>
 
                     <Typography fontWeight={900} sx={{
-                      fontSize: { xs: '0.85rem', sm: '0.95rem' },
-                      color: isSelected ? role.accent : 'text.primary',
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      color: isSelected ? role.accent : '#0F2942',
                       mb: 0.25, lineHeight: 1.2,
                     }}>
                       {role.label}
@@ -327,8 +367,7 @@ const RoleSelector = () => {
 
                     <Typography variant="caption" sx={{
                       color: role.accent, fontWeight: 800,
-                      mb: { xs: 0.25, sm: 0.5 },
-                      fontSize: '0.7rem',
+                      mb: 0.5, fontSize: '0.7rem',
                       bgcolor: role.badgeBg,
                       borderRadius: 10, px: 1.5, py: 0.25,
                       display: 'inline-block',
@@ -337,8 +376,8 @@ const RoleSelector = () => {
                     </Typography>
 
                     <Typography variant="caption" sx={{
-                      color: 'text.secondary', lineHeight: 1.4, fontWeight: 600,
-                      display: { xs: 'none', sm: 'block' }, fontSize: '0.72rem',
+                      color: '#64748B', lineHeight: 1.4, fontWeight: 600,
+                      display: 'block', fontSize: '0.73rem', mt: 0.5,
                     }}>
                       {role.description}
                     </Typography>
@@ -348,7 +387,6 @@ const RoleSelector = () => {
             })}
           </Box>
 
-          {/* ── CTA Button ── */}
           <Button
             variant="contained"
             size="large"
@@ -363,41 +401,43 @@ const RoleSelector = () => {
                 : 'linear-gradient(135deg, #CBD5E0 0%, #E2E8F0 100%)',
               color: selected ? 'white' : 'text.secondary',
               boxShadow: selected ? `0 8px 28px ${selected?.glow || 'rgba(0,0,0,0.15)'}` : 'none',
-              transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              transform: selected ? 'scale(1.02)' : 'scale(1)',
+              transition: 'all 0.3s ease',
               letterSpacing: '0.01em',
               '&:hover': {
-                transform: selected ? 'scale(1.05) translateY(-3px)' : 'none',
+                transform: selected ? 'scale(1.04) translateY(-3px)' : 'none',
                 boxShadow: selected ? `0 14px 36px ${selected?.glow}` : 'none',
-              },
-              '&.Mui-disabled': {
-                background: 'rgba(255,255,255,0.5)',
-                color: '#A0AEC0',
-                backdropFilter: 'blur(8px)',
               },
             }}
           >
-            {selected
-              ? `Start as ${selected.label.replace("I'm a ", '').replace("I'm ", '')} →`
-              : 'Choose Your Role First 👆'}
+            {selected ? `${t.continueBtn}` : `${t.selectFirstBtn}`}
           </Button>
 
-          {/* ── Register link ── */}
-          <Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
             <Typography variant="body2" color="text.secondary" fontWeight={600}>
-              New to SpacECE?{' '}
+              {t.newToText}{' '}
               <Typography
                 component="span" variant="body2"
                 sx={{
                   color: '#FF9500', fontWeight: 900, cursor: 'pointer',
                   bgcolor: 'rgba(255,149,0,0.1)', px: 1.5, py: 0.25, borderRadius: 10,
                   '&:hover': { bgcolor: 'rgba(255,149,0,0.2)', textDecoration: 'underline' },
-                  transition: 'all 0.2s ease',
                 }}
                 onClick={() => navigate('/register')}
               >
-                Create a free account →
+                {t.createFreeAccount}
               </Typography>
+            </Typography>
+
+            <Typography
+              variant="caption"
+              sx={{
+                color: '#047857', fontWeight: 800, cursor: 'pointer',
+                bgcolor: 'rgba(16,185,129,0.1)', px: 1.5, py: 0.3, borderRadius: 10,
+                '&:hover': { textDecoration: 'underline' }
+              }}
+              onClick={() => navigate('/register-center')}
+            >
+              🏫 {t.registerCenterLink}
             </Typography>
           </Box>
         </Box>

@@ -6,8 +6,8 @@ import LoadingScreen from '../auth/LoadingScreen';
 import './LandingPage.css';
 
 /**
- * Full Multilingual Dictionary for SpacECE NGO Landing Page (EN, HI, MR)
- * Strictly aligned with SpacECE_Intern_Task_Allocation.pdf
+ * Complete Multilingual Dictionary for SpacECE NGO Landing Page (EN, HI, MR)
+ * Strictly aligned with SpacECE_Intern_Task_Allocation.pdf (Phase 1 & Phase 2)
  */
 const content = {
   en: {
@@ -17,6 +17,7 @@ const content = {
     navLearn: "What Kids Learn",
     navPrograms: "Our Programs",
     navCenters: "For Centers",
+    navFaq: "FAQ",
     navLogin: "Portal Login",
     navRegister: "Get Started",
 
@@ -87,6 +88,21 @@ const content = {
     prog3Title: "Parent-Toddler Program",
     prog3Desc: "Home-as-a-Learning-SPACE — Practical toolkits empowering parents to turn everyday household moments into rich learning opportunities for ages 0–8.",
 
+    // FAQ Section (Team Member 2)
+    faqTag: "Frequently Asked Questions",
+    faqTitle: "Everything You Need to Know",
+    faqSubtitle: "Clear answers to common questions from parents and educators.",
+    q1: "Is this platform really free?",
+    a1: "Yes, 100% free! SpacECE is a non-profit foundation dedicated to early childhood education for all families, teachers, and Anganwadis.",
+    q2: "Do I need an internet connection at home?",
+    a2: "Initial loading requires internet connection, but once opened, activities work smoothly even on low-bandwidth or offline sessions.",
+    q3: "What if my child doesn't speak English?",
+    a3: "No problem at all! The platform supports full English, Hindi, and Marathi languages, with audio-visual cues tailored for young children.",
+    q4: "How is my child's data protected?",
+    a4: "Your privacy is sacred. All data is encrypted, strictly private, and used solely for tracking learning readiness. We never sell or share data.",
+    q5: "What age group is this platform designed for?",
+    a5: "SpacECE is specifically designed for early childhood development for children aged 0 to 8 years old, aligned with NEP 2020 frameworks.",
+
     // Stats
     statsChildren: "Children Impacted",
     statsCenters: "Anganwadis & Centers",
@@ -112,6 +128,9 @@ const content = {
     centersSubtitle: "Bring standardized early assessment, digital progress tracking, and NEP 2020-compliant learning modules to your children.",
     centersBtn: "🏫 Register Center / Anganwadi →",
 
+    // Trust Line (Team Member 2)
+    trustReassurance: "🔒 Your child's data is 100% private, encrypted & secure — strictly protected under SpacECE Foundation privacy standards, never shared or sold.",
+
     // Final CTA & Footer
     ctaTitle: "Start your child's learning journey today — takes 2 minutes.",
     ctaSubtitle: "Selecting your role takes less than 2 minutes and unlocks age-appropriate activities instantly.",
@@ -129,7 +148,8 @@ const content = {
     footerTerms: "Terms of Service",
     footerPortalLink: "Choose Role & Enter Portal →",
     footerCopyright: "© 2026 SpacECE India Foundation (NGO). All rights reserved.",
-    footerCompliance: "NEP 2020 & ICDS Compliant Platform"
+    footerCompliance: "NEP 2020 & ICDS Compliant Platform",
+    mobileStickyCta: "🚀 Get Started"
   },
   hi: {
     // Nav
@@ -138,6 +158,7 @@ const content = {
     navLearn: "बच्चे क्या सीखते हैं",
     navPrograms: "हमारे कार्यक्रम",
     navCenters: "केंद्रों के लिए",
+    navFaq: "सवाल-जवाब",
     navLogin: "पोर्टल लॉगिन",
     navRegister: "शुरू करें",
 
@@ -208,6 +229,21 @@ const content = {
     prog3Title: "पेरेंट-टॉडलर प्रोग्राम",
     prog3Desc: "होम-ऐज-ए-लर्निंग-स्पेस — 0–8 वर्ष के बच्चों के लिए हर दिन के घरेलू क्षणों को समृद्ध शिक्षण अवसरों में बदलने के लिए व्यावहारिक टूलकिट।",
 
+    // FAQ Section
+    faqTag: "अक्सर पूछे जाने वाले प्रश्न",
+    faqTitle: "सब कुछ जो आपको जानना आवश्यक है",
+    faqSubtitle: "माता-पिता और शिक्षकों के आम सवालों के स्पष्ट जवाब।",
+    q1: "क्या यह मंच वाकई मुफ़्त है?",
+    a1: "हां, 100% मुफ़्त! SpacECE एक गैर-लाभकारी फाउंडेशन है जो सभी परिवारों, शिक्षकों और आंगनवाड़ियों के लिए समर्पित है।",
+    q2: "क्या मुझे घर पर इंटरनेट कनेक्शन की आवश्यकता है?",
+    a2: "शुरुआती लोडिंग के लिए इंटरनेट कनेक्शन आवश्यक है, लेकिन एक बार खुलने के बाद गतिविधियां कम स्पीड या ऑफलाइन सेशन में भी सुचारू रूप से काम करती हैं।",
+    q3: "क्या होगा यदि मेरा बच्चा अंग्रेजी नहीं बोलता है?",
+    a3: "कोई समस्या नहीं! यह प्लेटफ़ॉर्म अंग्रेजी, हिंदी और मराठी भाषाओं का पूर्ण समर्थन करता है, जिसमें छोटे बच्चों के लिए ऑडियो-विजुअल संकेत भी शामिल हैं।",
+    q4: "मेरे बच्चे का डेटा कैसे सुरक्षित है?",
+    a4: "आपकी गोपनीयता पवित्र है। सभी डेटा एन्क्रिप्टेड, पूरी तरह से निजी है और केवल सीखने की तत्परता को ट्रैक करने के लिए उपयोग किया जाता है। हम कभी भी डेटा नहीं बेचते हैं।",
+    q5: "यह मंच किस आयु वर्ग के लिए डिज़ाइन किया गया है?",
+    a5: "SpacECE को विशेष रूप से 0 से 8 वर्ष की आयु के बच्चों के विकास के लिए डिज़ाइन किया गया है, जो NEP 2020 ढाँचे के साथ संरेखित है।",
+
     // Stats
     statsChildren: "लाभान्वित बच्चे",
     statsCenters: "आंगनवाड़ी और केंद्र",
@@ -233,6 +269,9 @@ const content = {
     centersSubtitle: "मानकीकृत प्रारंभिक मूल्यांकन, डिजिटल प्रगति ट्रैकिंग और NEP 2020-अनुपालन शिक्षण मॉड्यूल अपने बच्चों के लिए लाएं।",
     centersBtn: "🏫 केंद्र / आंगनवाड़ी पंजीकृत करें →",
 
+    // Trust Line
+    trustReassurance: "🔒 आपके बच्चे का डेटा 100% निजी, एन्क्रिप्टेड और सुरक्षित है — SpacECE फाउंडेशन गोपनीयता मानकों के तहत पूरी तरह से संरक्षित, कभी भी बेचा नहीं जाता।",
+
     // Final CTA & Footer
     ctaTitle: "आज ही अपने बच्चे की सीखने की यात्रा शुरू करें — 2 मिनट लगते हैं।",
     ctaSubtitle: "अपनी भूमिका का चयन करने में 2 मिनट से कम समय लगता है और यह तुरंत आयु-उपयुक्त गतिविधियों को अनलॉक करता है।",
@@ -250,7 +289,8 @@ const content = {
     footerTerms: "सेवा की शर्तें",
     footerPortalLink: "भूमिका चुनें और पोर्टल में प्रवेश करें →",
     footerCopyright: "© 2026 SpacECE इंडिया फाउंडेशन (NGO)। सर्वाधिकार सुरक्षित।",
-    footerCompliance: "NEP 2020 और ICDS अनुपालन मंच"
+    footerCompliance: "NEP 2020 और ICDS अनुपालन मंच",
+    mobileStickyCta: "🚀 शुरू करें"
   },
   mr: {
     // Nav
@@ -259,6 +299,7 @@ const content = {
     navLearn: "मुले काय शिकतात",
     navPrograms: "आमचे उपक्रम",
     navCenters: "केंद्रांसाठी",
+    navFaq: "प्रश्न-उत्तरे",
     navLogin: "पोर्टल लॉगिन",
     navRegister: "सुरू करा",
 
@@ -329,6 +370,21 @@ const content = {
     prog3Title: "पालक-बालक कार्यक्रम",
     prog3Desc: "होम-ॲज-अ-लर्निंग-स्पेस — ० ते ८ वर्षांच्या मुलांसाठी घरातील दैनंदिन प्रसंगांचे शिकण्याच्या संधींमध्ये रूपांतर करणारे टूलकिट.",
 
+    // FAQ Section
+    faqTag: "सतत विचारले जाणारे प्रश्न",
+    faqTitle: "तुम्हाला माहित असावे असे सर्व काही",
+    faqSubtitle: "पालक आणि शिक्षकांच्या सामान्य प्रश्नांची स्पष्ट उत्तरे.",
+    q1: "हे प्लॅटफॉर्म खरंच मोफत आहे का?",
+    a1: "होय, १००% मोफत! SpacECE ही एक ना-नफा संस्था आहे जी सर्व कुटुंबांना, शिक्षकांना आणि अंगणवाड्यांना समर्पित आहे.",
+    q2: "मला घरी इंटरनेट कनेक्शन आवश्यक आहे का?",
+    a2: "शुरुवातीला इंटरनेट कनेक्शन आवश्यक आहे, परंतु एकदा उघडल्यानंतर उपक्रम कमी स्पीडवर किंवा ऑफलाइन देखील सुरळीत चालतात.",
+    q3: "माझे मूल इंग्रजी बोलत नसेल तर काय?",
+    a3: "काहीच अडचण नाही! व्यासपीठ इंग्रजी, हिंदी आणि मराठी भाषांना पूर्ण पाठिंबा देते, लहान मुलांसाठी स्पष्ट श्राव्य-दृष्य संकेत समाविष्ट आहेत.",
+    q4: "माझ्या मुलाचा डेटा कसा सुरक्षित आहे?",
+    a4: "तुमची गोपनीयता अत्यंत महत्त्वाची आहे. सर्व माहिती एनक्रिप्टेड आणि पूर्णपणे खाजगी आहे. आम्ही कोणतीही माहिती विक्री किंवा शेअर करत नाही.",
+    q5: "हे प्लॅटफॉर्म कोणत्या वयोगटासाठी बनवले आहे?",
+    a5: "SpacECE विशेषतः ० ते ८ वर्षे वयोगटातील मुलांच्या बालविकासासाठी डिझाइन केलेले आहे, जे NEP २०२० च्या चौकटीशी सुसंगत आहे.",
+
     // Stats
     statsChildren: "लाभार्थी मुले",
     statsCenters: "अंगणवाड्या व केंद्रे",
@@ -354,6 +410,9 @@ const content = {
     centersSubtitle: "डिजिटल प्रगती ट्रॅकिंग आणि NEP 2020 वर आधारित बालशिक्षण आपल्या केंद्रात आणा.",
     centersBtn: "🏫 बालवाडी / अंगणवाडी केंद्र नोंदणी करा →",
 
+    // Trust Line
+    trustReassurance: "🔒 तुमच्या मुलाचा डेटा १००% खाजगी, एनक्रिप्टेड आणि सुरक्षित आहे — SpacECE फाउंडेशन गोपनीयतेच्या मानकांनुसार पूर्णपणे सुरक्षित, कधीही विकला जात नाही.",
+
     // Final CTA & Footer
     ctaTitle: "आजच तुमच्या पाल्याचा शिकण्याचा प्रवास सुरू करा — २ मिनिटे लागतात.",
     ctaSubtitle: "भूमिका निवडण्यासाठी २ मिनिटांपेक्षा कमी वेळ लागतो आणि तात्काळ शैक्षणिक खेळ उपलब्ध होतात.",
@@ -371,7 +430,8 @@ const content = {
     footerTerms: "सेवा अटी",
     footerPortalLink: "भूमिका निवडा व पोर्टलमध्ये प्रवेश करा →",
     footerCopyright: "© 2026 SpacECE इंडिया फाउंडेशन (NGO). सर्व हक्क राखीव.",
-    footerCompliance: "NEP 2020 आणि ICDS प्रमाणित व्यासपीठ"
+    footerCompliance: "NEP 2020 आणि ICDS प्रमाणित व्यासपीठ",
+    mobileStickyCta: "🚀 सुरू करा"
   }
 };
 
@@ -380,6 +440,7 @@ export default function LandingPage() {
   const [lang, setLang] = useState('en');
   const [scrolled, setScrolled] = useState(false);
   const [pendingPath, setPendingPath] = useState(null);
+  const [openFaq, setOpenFaq] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -403,7 +464,19 @@ export default function LandingPage() {
     }
   };
 
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
   const t = content[lang] || content.en;
+
+  const faqItems = [
+    { q: t.q1, a: t.a1 },
+    { q: t.q2, a: t.a2 },
+    { q: t.q3, a: t.a3 },
+    { q: t.q4, a: t.a4 },
+    { q: t.q5, a: t.a5 },
+  ];
 
   if (pendingPath) {
     return <LoadingScreen onComplete={handleLoadingComplete} />;
@@ -411,13 +484,20 @@ export default function LandingPage() {
 
   return (
     <div className="landing-container">
+      {/* Mobile Sticky Floating CTA (Team Member 3) */}
+      <div className="mobile-sticky-bar">
+        <button className="btn-mobile-sticky" onClick={() => handleAction('/roles')}>
+          {t.mobileStickyCta}
+        </button>
+      </div>
+
       {/* ====================================================================
           1. STICKY TOP NAVIGATION BAR (Team Member 1)
          ==================================================================== */}
       <nav className={`landing-nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="nav-inner">
           <div className="nav-brand" onClick={() => handleAction('/roles')}>
-            <img src={logoImg} alt="SpacECE Foundation Logo" className="brand-logo-img" />
+            <img src={logoImg} alt="SpacECE India Foundation Official Logo" className="brand-logo-img" />
             <div>
               <h1 className="brand-title">Spac<span>ECE</span></h1>
               <span className="brand-subtitle">India Foundation • NGO</span>
@@ -430,6 +510,7 @@ export default function LandingPage() {
             <li className="nav-link-item"><a href="#domains">{t.navLearn}</a></li>
             <li className="nav-link-item"><a href="#programs">{t.navPrograms}</a></li>
             <li className="nav-link-item"><a href="#centers">{t.navCenters}</a></li>
+            <li className="nav-link-item"><a href="#faq">{t.navFaq}</a></li>
           </ul>
 
           <div className="nav-actions">
@@ -524,7 +605,7 @@ export default function LandingPage() {
 
           <div className="hero-visual">
             <div className="hero-mascot-card">
-              <img src={heroMascotImg} alt="SpacECE AI Learning Mascot Illustration" className="hero-mascot-img" />
+              <img src={heroMascotImg} alt="SpacECE AI Learning Mascot 3D Illustration" className="hero-mascot-img" />
               <div className="hero-mascot-info">
                 <h3 className="hero-card-title">{t.mascotTitle}</h3>
                 <p className="hero-card-text">{t.mascotDesc}</p>
@@ -686,7 +767,34 @@ export default function LandingPage() {
       </section>
 
       {/* ====================================================================
-          5. SOCIAL PROOF, STATS & ANGANWADI CALLOUT (Team Member 4)
+          5. FAQ ACCORDION SECTION (Team Member 2 & 5)
+         ==================================================================== */}
+      <section className="section-padding faq-section" id="faq">
+        <div className="section-header">
+          <span className="section-tag">{t.faqTag}</span>
+          <h3 className="section-title">{t.faqTitle}</h3>
+          <p className="section-subtitle">{t.faqSubtitle}</p>
+        </div>
+
+        <div className="faq-container">
+          {faqItems.map((item, idx) => (
+            <div key={idx} className={`faq-item ${openFaq === idx ? 'open' : ''}`}>
+              <button className="faq-question" onClick={() => toggleFaq(idx)}>
+                <span>{item.q}</span>
+                <span className="faq-icon">{openFaq === idx ? '−' : '+'}</span>
+              </button>
+              {openFaq === idx && (
+                <div className="faq-answer">
+                  <p>{item.a}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ====================================================================
+          6. SOCIAL PROOF, STATS & ANGANWADI CALLOUT (Team Member 4)
          ==================================================================== */}
       <section className="stats-strip" id="impact-stats">
         <div className="stats-grid">
@@ -762,7 +870,7 @@ export default function LandingPage() {
           </div>
           <button
             className="btn-center-register"
-            onClick={() => handleAction('/roles')}
+            onClick={() => navigate('/register-center')}
           >
             {t.centersBtn}
           </button>
@@ -770,10 +878,13 @@ export default function LandingPage() {
       </section>
 
       {/* ====================================================================
-          6. FINAL CALL-TO-ACTION & FOOTER (Team Member 5)
+          7. TRUST REASSURANCE LINE & FINAL CTA (Team Member 2 & 5)
          ==================================================================== */}
       <section className="final-cta-section">
         <div className="final-cta-inner">
+          <div className="trust-reassurance-bar">
+            <p>{t.trustReassurance}</p>
+          </div>
           <h3 className="final-cta-title">{t.ctaTitle}</h3>
           <p className="final-cta-subtitle">{t.ctaSubtitle}</p>
 
@@ -810,6 +921,7 @@ export default function LandingPage() {
               <li><a href="#domains">{t.navLearn}</a></li>
               <li><a href="#programs">{t.footerPrograms}</a></li>
               <li><a href="#centers">{t.navCenters}</a></li>
+              <li><a href="#faq">{t.navFaq}</a></li>
               <li><span onClick={() => handleAction('/roles')} style={{ cursor: 'pointer', color: '#94A3B8' }}>{t.footerDonate}</span></li>
             </ul>
           </div>

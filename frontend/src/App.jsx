@@ -62,6 +62,7 @@ import { TeacherDashboard } from './pages/analytics/TeacherDashboard';
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
+import CenterManagement from './pages/admin/CenterManagement';
 import SessionManagement from './pages/admin/SessionManagement';
 import NotificationManager from './pages/admin/NotificationManager';
 import FeatureFlags from './pages/admin/FeatureFlags';
@@ -234,6 +235,7 @@ export default function App() {
                       <Route element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><MainLayout /></RoleRoute></ProtectedRoute>}>
                         <Route path="/admin/dashboard"     element={<AdminDashboard />} />
                         <Route path="/admin/users"         element={<UserManagement />} />
+                        <Route path="/admin/centers"       element={<CenterManagement />} />
                         <Route path="/admin/sessions"      element={<SessionManagement />} />
                         <Route path="/admin/notifications" element={<NotificationManager />} />
                         <Route path="/admin/features"      element={<FeatureFlags />} />

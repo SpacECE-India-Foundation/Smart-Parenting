@@ -35,6 +35,7 @@ export const ROUTES = {
   ADMIN_DASHBOARD:     '/admin/dashboard',
   ADMIN_USERS:         '/admin/users',
   ADMIN_SESSIONS:      '/admin/sessions',
+  ADMIN_CENTERS:       '/admin/centers',
   ADMIN_NOTIFICATIONS: '/admin/notifications',
   ADMIN_FEATURES:      '/admin/features',
   ADMIN_SETTINGS:      '/admin/settings',
@@ -77,6 +78,7 @@ export const NAV_MENUS = {
   [ROLES.ADMIN]: [
     { label: 'Dashboard',     path: ROUTES.ADMIN_DASHBOARD,     icon: 'Dashboard'     },
     { label: 'Users',         path: ROUTES.ADMIN_USERS,         icon: 'People'        },
+    { label: 'Centers & Anganwadis', path: '/admin/centers',    icon: 'People'        },
     { label: 'Sessions',      path: ROUTES.ADMIN_SESSIONS,      icon: 'History'       },
     { label: 'Notifications', path: ROUTES.ADMIN_NOTIFICATIONS, icon: 'Notifications' },
     { label: 'Features',      path: ROUTES.ADMIN_FEATURES,      icon: 'ToggleOn'      },

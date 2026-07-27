@@ -180,25 +180,6 @@ const RoleSelector = () => {
       mx: 'auto',
     }}>
 
-      {/* Language Toggle bar */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, mb: 2 }}>
-        {['en', 'hi', 'mr'].map((l) => (
-          <Button
-            key={l}
-            size="small"
-            onClick={() => setLang(l)}
-            sx={{
-              borderRadius: 8, px: 1.5, py: 0.2, fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase',
-              bgcolor: lang === l ? 'white' : 'rgba(241,245,249,0.8)', color: lang === l ? '#1F3A68' : '#64748B',
-              boxShadow: lang === l ? '0 2px 6px rgba(0,0,0,0.1)' : 'none',
-              border: '1px solid #E2E8F0',
-            }}
-          >
-            {l}
-          </Button>
-        ))}
-      </Box>
-
       {!started ? (
         /* Splash Welcome Intro Screen */
         <Box sx={{

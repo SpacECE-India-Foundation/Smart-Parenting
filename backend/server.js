@@ -37,6 +37,7 @@ const numeracyRoutes  = require('./routes/numeracy');
 const milestonesRoutes = require('./routes/milestones');
 const notificationsRoutes = require('./routes/notifications');
 const cognitiveSelRoutes = require('./routes/cognitiveSel');
+const centersRoutes      = require('./routes/centers');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -62,6 +63,7 @@ app.use('/api/numeracy',  numeracyRoutes);
 app.use('/api/milestones', milestonesRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/cognitive-sel', cognitiveSelRoutes);
+app.use('/api/centers',       centersRoutes);
 
 // ── Global error handler ───────────────────────────────────────────────────
 app.use((err, req, res, _next) => {

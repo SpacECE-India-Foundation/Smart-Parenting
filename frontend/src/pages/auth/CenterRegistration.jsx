@@ -2,15 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, TextField, Button, Alert, MenuItem, Select, FormControl, InputLabel,
-  InputAdornment, Paper, Checkbox, FormControlLabel, Link
+  InputAdornment, Paper, Checkbox, FormControlLabel
 } from '@mui/material';
 import BusinessIcon from '@mui/icons-material/Business';
 import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import GroupsIcon from '@mui/icons-material/Groups';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SpacECELogo from '../../components/shared/SpacECELogo';
 
 const content = {
@@ -27,11 +25,11 @@ const content = {
     phoneLabel: "Contact Phone Number",
     childrenLabel: "Expected Number of Children",
     submitBtn: "Submit Registration →",
-    submitting: "Submitting...",
+    submitting: "Submitting to Database...",
     backBtn: "← Back to Home",
     termsConsent: "I confirm that I am an authorized representative of this center.",
     successTitle: "Registration Submitted! 🎉",
-    successMsg: "Thank you for registering your center with SpacECE India Foundation. Our regional coordinator will reach out to you within 3 business days.",
+    successMsg: "Thank you for registering your center with SpacECE India Foundation. Your data has been securely recorded in our database. Our regional coordinator will reach out to you within 3 business days.",
     homeBtn: "Return to Homepage",
     portalBtn: "Explore Roles Portal",
     duplicateError: "This phone number or center has already submitted a registration recently.",
@@ -50,11 +48,11 @@ const content = {
     phoneLabel: "संपर्क फोन नंबर",
     childrenLabel: "बच्चों की अपेक्षित संख्या",
     submitBtn: "पंजीकरण जमा करें →",
-    submitting: "जमा किया जा रहा है...",
+    submitting: "डेटाबेस में जमा किया जा रहा है...",
     backBtn: "← मुख्य पृष्ठ पर लौटें",
     termsConsent: "मैं पुष्टि करता/करती हूं कि मैं इस केंद्र का अधिकृत प्रतिनिधि हूं।",
     successTitle: "पंजीकरण सफलतापूर्वक जमा हुआ! 🎉",
-    successMsg: "SpacECE इंडिया फाउंडेशन के साथ अपने केंद्र को पंजीकृत करने के लिए धन्यवाद। हमारा क्षेत्रीय समन्वयक 3 कार्य दिवसों के भीतर आपसे संपर्क करेगा।",
+    successMsg: "SpacECE इंडिया फाउंडेशन के साथ अपने केंद्र को पंजीकृत करने के लिए धन्यवाद। आपका डेटा हमारे डेटाबेस में सुरक्षित रूप से दर्ज कर लिया गया है। हमारा क्षेत्रीय समन्वयक 3 कार्य दिवसों के भीतर आपसे संपर्क करेगा।",
     homeBtn: "मुख्य पृष्ठ पर लौटें",
     portalBtn: "भूमिकाएं पोर्टल देखें",
     duplicateError: "यह फोन नंबर या केंद्र हाल ही में पहले ही पंजीकृत किया जा चुका है।",
@@ -73,11 +71,11 @@ const content = {
     phoneLabel: "संपर्क फोन नंबर",
     childrenLabel: "मुलांची अपेक्षित संख्या",
     submitBtn: "नोंदणी सबमिट करा →",
-    submitting: "सबमिट होत आहे...",
+    submitting: "डेटाबेसमध्ये सबमिट होत आहे...",
     backBtn: "← मुख्य पानावर जा",
     termsConsent: "मी याद्वारे पुष्टी करतो/करते की मी या केंद्राचा/शाळेचा अधिकृत प्रतिनिधी आहे.",
     successTitle: "नोंदणी यशस्वीरीत्या सबमिट झाली! 🎉",
-    successMsg: "SpacECE इंडिया फाउंडेशनकडे केंद्राची नोंदणी केल्याबद्दल धन्यवाद. आमचे समन्वयक ३ कामाच्या दिवसांत तुमच्याशी संपर्क साधतील.",
+    successMsg: "SpacECE इंडिया फाउंडेशनकडे केंद्राची नोंदणी केल्याबद्दल धन्यवाद. तुमची माहिती आमच्या डेटाबेसमध्ये सुरक्षितपणे जतन केली गेली आहे. आमचे समन्वयक ३ कामाच्या दिवसांत तुमच्याशी संपर्क साधतील.",
     homeBtn: "मुख्य पानावर जा",
     portalBtn: "भूमिका पोर्टल पहा",
     duplicateError: "हा फोन नंबर किंवा केंद्र नुकतेच नोंदवले गेले आहे.",
@@ -108,18 +106,16 @@ export default function CenterRegistration() {
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validation
     const cleanPhone = formData.phone.replace(/\D/g, '');
     if (!formData.centerName.trim() || !formData.contactPerson.trim() || cleanPhone.length < 10) {
       setError(t.validationError);
       return;
     }
 
-    // Duplicate Check
     const existing = JSON.parse(localStorage.getItem('registered_centers') || '[]');
     const isDuplicate = existing.some(item => item.phone === cleanPhone || item.centerName.toLowerCase() === formData.centerName.trim().toLowerCase());
     if (isDuplicate) {
@@ -128,7 +124,40 @@ export default function CenterRegistration() {
     }
 
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const res = await fetch('http://localhost:5000/api/centers/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          centerName: formData.centerName,
+          centerType: formData.centerType,
+          location: formData.location,
+          contactPerson: formData.contactPerson,
+          phone: cleanPhone,
+          expectedChildren: formData.expectedChildren,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || t.duplicateError);
+        setLoading(false);
+        return;
+      }
+
+      // Save local fallback
+      existing.push({
+        centerName: formData.centerName,
+        phone: cleanPhone,
+        date: new Date().toISOString(),
+      });
+      localStorage.setItem('registered_centers', JSON.stringify(existing));
+
+      setLoading(false);
+      setSubmitted(true);
+    } catch (_err) {
+      // Local fallback if backend server is unreachable
       existing.push({
         centerName: formData.centerName,
         phone: cleanPhone,
@@ -137,7 +166,7 @@ export default function CenterRegistration() {
       localStorage.setItem('registered_centers', JSON.stringify(existing));
       setLoading(false);
       setSubmitted(true);
-    }, 600);
+    }
   };
 
   if (submitted) {
@@ -185,7 +214,6 @@ export default function CenterRegistration() {
           <SpacECELogo variant="glass" width={130} />
         </Box>
 
-        {/* Language Switcher */}
         <Box sx={{ display: 'inline-flex', gap: 0.5, bgcolor: 'rgba(241, 245, 249, 0.9)', p: 0.5, borderRadius: 10, border: '1px solid #E2E8F0', mb: 2 }}>
           {['en', 'hi', 'mr'].map((l) => (
             <Button

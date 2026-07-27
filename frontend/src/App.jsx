@@ -30,6 +30,7 @@ import { useApp } from './context/AppContext';
 // Auth layouts & pages
 import AuthLayout from './components/layout/AuthLayout';
 import RoleSelector from './pages/auth/RoleSelector';
+import LandingPage from './pages/public/LandingPage';
 import ChildLogin from './pages/auth/ChildLogin';
 import ParentLogin from './pages/auth/ParentLogin';
 import TeacherLogin from './pages/auth/TeacherLogin';
@@ -189,9 +190,12 @@ export default function App() {
                     <NavigationSetter />
                     <MaintenanceGate>
                     <Routes>
+                      {/* Public Landing Page */}
+                      <Route path="/" element={<LandingPage />} />
+
                       {/* Public Auth Routes */}
                       <Route element={<AuthLayout />}>
-                        <Route path="/" element={<RoleSelector />} />
+                        <Route path="/roles"            element={<RoleSelector />} />
                         <Route path="/login/child"      element={<ChildLogin />} />
                         <Route path="/login/parent"     element={<ParentLogin />} />
                         <Route path="/login/teacher"    element={<TeacherLogin />} />

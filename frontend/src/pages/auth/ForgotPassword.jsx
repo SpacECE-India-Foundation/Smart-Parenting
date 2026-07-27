@@ -162,12 +162,14 @@ const ForgotPassword = () => {
             fullWidth label="Email Address" type="email" value={email}
             onChange={(e) => setEmail(e.target.value)} required
             sx={{ mb: 3 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
           <Button

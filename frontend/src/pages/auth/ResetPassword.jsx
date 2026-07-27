@@ -133,12 +133,14 @@ const ResetPassword = () => {
             required
             disabled={!token}
             sx={{ mb: 2.5 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LockOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
           <TextField
@@ -150,12 +152,14 @@ const ResetPassword = () => {
             required
             disabled={!token}
             sx={{ mb: 3 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LockOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockOutlinedIcon sx={{ color: '#FF9500', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
           <Button

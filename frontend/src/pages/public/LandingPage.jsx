@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import logoImg from '../../assets/spaceece-logo.png';
 import heroMascotImg from '../../assets/hero_mascot.png';

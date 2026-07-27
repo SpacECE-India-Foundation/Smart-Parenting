@@ -40,7 +40,7 @@ const PrivacyPolicy = () => {
         <Typography variant="subtitle1" fontWeight={800} color="primary" sx={{ mb: 1.5 }}>
           1. Introduction &amp; Commitment to Safety
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
           Welcome to **SpacECE** (operated by SpacECE India Foundation). We are dedicated to providing a secure, educational, and fun environment for children to develop numeracy, literacy, and cognitive skills. Your privacy, and the privacy of your children, is of paramount importance to us.
         </Typography>
 
@@ -53,21 +53,21 @@ const PrivacyPolicy = () => {
         <Typography variant="body2" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
           🇮🇳 India Digital Personal Data Protection Act (DPDPA 2023)
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
           Under Section 9 of the DPDPA 2023, we collect **verifiable parental consent** before processing any personal data of a child (individuals under 18 years of age in India). SpacECE **does not** engage in any tracking or behavioral monitoring of children, nor do we target advertisements or execute algorithms that could cause harm to a child.
         </Typography>
 
         <Typography variant="body2" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
           🇺🇸 Children's Online Privacy Protection Act (COPPA)
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
           We comply with COPPA guidelines. We do not permit children under the age of 13 to create accounts independently. All child profiles are created exclusively by authorized parents or legal guardians. We avoid collecting any Personally Identifiable Information (PII) from children.
         </Typography>
 
         <Typography variant="body2" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
           🇪🇺 GDPR-K (European Union)
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
           For users in the EU, we require parental authorization for processing data of children under 16 (or lower legal limits established by individual member states).
         </Typography>
 
@@ -76,14 +76,14 @@ const PrivacyPolicy = () => {
         <Typography variant="subtitle1" fontWeight={800} color="primary" sx={{ mb: 1.5 }}>
           3. Information Collection &amp; Use
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
           To maintain a safe zone, we divide information collection based on roles:
         </Typography>
         <Box sx={{ pl: 2, mb: 2 }}>
-          <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
             • **Parents &amp; Teachers**: During registration, we collect your full name, email address, password, and (optional) authentication profile via Google OAuth. This information is used strictly to secure accounts, manage child profiles, and compile progress reports.
           </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
             • **Children**: We do **NOT** collect children's email addresses, phone numbers, or location info. Parents are asked to create child profiles using only a **display name/nickname** (which need not be their real name) and an **avatar choice**. We collect progress metrics (scores, rewards, game coins, and completed learning levels) to customize the educational experience.
           </Typography>
         </Box>
@@ -93,7 +93,7 @@ const PrivacyPolicy = () => {
         <Typography variant="subtitle1" fontWeight={800} color="primary" sx={{ mb: 1.5 }}>
           4. Zero Tracking and Advertising Policy
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
           The SpacECE platform is entirely ad-free. We do not integrate third-party advertising SDKs or tracking pixels inside child portal sections. We do not build marketing profiles on children.
         </Typography>
 
@@ -102,17 +102,17 @@ const PrivacyPolicy = () => {
         <Typography variant="subtitle1" fontWeight={800} color="primary" sx={{ mb: 1.5 }}>
           5. Parental Rights and Data Erasure
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
           We fully respect your "Right to be Forgotten" and data autonomy:
         </Typography>
         <Box sx={{ pl: 2, mb: 2 }}>
-          <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
             • **Review**: Parents can log in to view child profiles and progress dashboard analytics.
           </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
             • **Update/Modify**: Parents can change nicknames or avatar selections at any time.
           </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph sx={{ lineHeight: 1.6, fontWeight: 500 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6, fontWeight: 500 }}>
             • **Complete Erasure**: Parents can permanently delete any child profile in the **Child Profiles Manager**. Deletion instantly wipes the child's profile, rewards history, and game metrics from our databases.
           </Typography>
         </Box>

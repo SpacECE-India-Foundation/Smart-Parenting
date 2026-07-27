@@ -20,6 +20,42 @@ const staggerItem = {
 };
 
 /* ============================================================
+   GALLERY STORAGE HELPERS
+   ============================================================ */
+const getGalleryItems = () => {
+  try {
+    const raw = localStorage.getItem('spaceece_gallery_creations');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.error("Error reading gallery items:", e);
+  }
+  return [
+    { id: 'sample-1', title: 'My Space Journey 🚀', date: 'Today', type: 'drawing', color: '#BFDBFE', emoji: '🎨' },
+    { id: 'sample-2', title: 'Forest Adventure 🦁🌳', date: 'Yesterday', type: 'story', color: '#FED7AA', emoji: '📖', stickers: ['🦁', '🌳', '🏰'] },
+    { id: 'sample-3', title: 'Beautiful Star 🌟', date: '2 days ago', type: 'coloring', color: '#FBCFE8', emoji: '⭐' }
+  ];
+};
+
+const saveGalleryItem = (item) => {
+  try {
+    const existing = getGalleryItems();
+    const newItem = {
+      id: 'gallery-' + Date.now(),
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      ...item
+    };
+    const updated = [newItem, ...existing];
+    localStorage.setItem('spaceece_gallery_creations', JSON.stringify(updated));
+    return newItem;
+  } catch (e) {
+    console.error("Error saving gallery item:", e);
+  }
+};
+
+/* ============================================================
    1. DRAWING PAD
    ============================================================ */
 function DrawingPad({ palette, brushSizes, profile, refreshProfile }) {
@@ -82,15 +118,27 @@ function DrawingPad({ palette, brushSizes, profile, refreshProfile }) {
   };
 
   const save = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL();
+
     const link = document.createElement('a');
-    link.download = 'my-drawing.png';
-    link.href = canvasRef.current.toDataURL();
+    link.download = `my-drawing-${Date.now()}.png`;
+    link.href = dataUrl;
     link.click();
     setSaved(true);
     
-    // Save to local count
+    // Save to local count & Gallery persistent storage
     const total = Number(localStorage.getItem('spaceece_drawings_count') || 0) + 1;
     localStorage.setItem('spaceece_drawings_count', String(total));
+
+    saveGalleryItem({
+      title: `My Drawing #${total}`,
+      type: 'drawing',
+      preview: dataUrl,
+      color: '#BFDBFE',
+      emoji: '🎨'
+    });
 
     if (profile?.uid) {
       saveNumeracyScore({
@@ -106,7 +154,7 @@ function DrawingPad({ palette, brushSizes, profile, refreshProfile }) {
       });
     }
 
-    setTimeout(() => setSaved(false), 2000);
+    setTimeout(() => setSaved(false), 5000);
   };
 
   return (
@@ -154,9 +202,19 @@ function DrawingPad({ palette, brushSizes, profile, refreshProfile }) {
         onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
         onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw} />
 
-      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-        <button onClick={clear} className="btn-ghost" style={{ padding: '8px 24px', borderRadius: '999px' }}>🗑️ Clear</button>
-        <button onClick={save} className="btn-orange" style={{ padding: '8px 24px', borderRadius: '999px' }}>💾 Save Drawing</button>
+      {saved && (
+        <div style={{ background: '#DEF7EC', color: '#03543F', padding: '12px 20px', borderRadius: '16px', fontWeight: 800, margin: '16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', border: '1.5px solid #31C48D' }}>
+          <span>🎉 Drawing Saved & Downloaded to your Gallery!</span>
+          <button onClick={() => navigate('/child/creativity-world/gallery')} className="btn-orange" style={{ padding: '6px 16px', fontSize: '0.85rem', borderRadius: '12px', cursor: 'pointer' }}>
+            View Gallery 🖼️
+          </button>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '16px' }}>
+        <button onClick={clear} className="btn-ghost" style={{ padding: '8px 24px', borderRadius: '999px', cursor: 'pointer' }}>🗑️ Clear</button>
+        <button onClick={save} className="btn-orange" style={{ padding: '8px 24px', borderRadius: '999px', cursor: 'pointer' }}>💾 Save Drawing</button>
+        <button onClick={() => navigate('/child/creativity-world/gallery')} className="btn-ghost" style={{ padding: '8px 24px', borderRadius: '999px', cursor: 'pointer' }}>My Gallery 🖼️</button>
       </div>
     </div>
   );
@@ -186,6 +244,19 @@ function StoryCreator({ stickers, profile, refreshProfile }) {
     setDone(true);
     const total = Number(localStorage.getItem('spaceece_stories_count') || 0) + 1;
     localStorage.setItem('spaceece_stories_count', String(total));
+
+    const allStickers = panels.flat();
+    const storyTitle = allStickers.length > 0 ? `Story of ${allStickers.slice(0, 3).join(' ')}` : `My Adventure Story #${total}`;
+
+    saveGalleryItem({
+      title: storyTitle,
+      type: 'story',
+      panels: panels,
+      stickers: allStickers,
+      color: '#FED7AA',
+      emoji: '📖'
+    });
+
     if (profile?.uid) {
       saveNumeracyScore({
         child_id: profile.uid,
@@ -214,13 +285,18 @@ function StoryCreator({ stickers, profile, refreshProfile }) {
       </div>
 
       {done ? (
-        <div className="game-board-card" style={{ width: '100%' }}>
+        <div className="game-board-card" style={{ width: '100%', textAlign: 'center', padding: '32px' }}>
           <div style={{ fontSize: '4.5rem' }}>🌈📖✨</div>
-          <h3 className="brain-card-title" style={{ fontSize: '1.5rem' }}>Story Published!</h3>
-          <p style={{ color: 'var(--color-text-secondary)', fontWeight: 700 }}>Your story was added to the gallery album!</p>
-          <button onClick={() => { setPanels([[], [], []]); setActivePanel(0); setDone(false); }} className="btn-orange" style={{ padding: '10px 24px', borderRadius: '999px', marginTop: '12px' }}>
-            Create New 🔄
-          </button>
+          <h3 className="brain-card-title" style={{ fontSize: '1.5rem', margin: '12px 0 6px 0' }}>Story Published!</h3>
+          <p style={{ color: 'var(--color-text-secondary)', fontWeight: 700 }}>Your story was successfully added to your Creativity Gallery!</p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '20px' }}>
+            <button onClick={() => { setPanels([[], [], []]); setActivePanel(0); setDone(false); }} className="btn-ghost" style={{ padding: '10px 24px', borderRadius: '999px', cursor: 'pointer' }}>
+              Create Another 🔄
+            </button>
+            <button onClick={() => navigate('/child/creativity-world/gallery')} className="btn-orange" style={{ padding: '10px 24px', borderRadius: '999px', cursor: 'pointer' }}>
+              View Gallery 🖼️
+            </button>
+          </div>
         </div>
       ) : (
         <>
@@ -314,6 +390,36 @@ function ColorStudio({ shapes, palette, profile, refreshProfile }) {
     }
   };
 
+  const handleSaveColoring = () => {
+    const activeColor = coloredParts[selectedShape.id] || fillColor;
+    setDone(true);
+    setHasSaved(true);
+
+    saveGalleryItem({
+      title: `Colored ${selectedShape.id.toUpperCase()} ${selectedShape.emoji}`,
+      type: 'coloring',
+      color: activeColor || '#FBCFE8',
+      emoji: selectedShape.emoji,
+      shapeId: selectedShape.id,
+      shapePath: selectedShape.path,
+      fillColor: activeColor
+    });
+
+    if (profile?.uid && !hasSaved) {
+      saveNumeracyScore({
+        child_id: profile.uid,
+        game_id: 'coloring-studio',
+        score: 100,
+        accuracy: 100,
+        level: 1,
+        time_taken: 0
+      });
+      awardProgress(profile.uid, { xp: 15, stars: 2, coins: 5, module: 'creativityWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
+    }
+  };
+
   const reset = () => {
     setColoredParts({});
     setDone(false);
@@ -347,7 +453,7 @@ function ColorStudio({ shapes, palette, profile, refreshProfile }) {
               key={s.id} 
               onClick={() => setSelectedShape(s)}
               className="btn-ghost"
-              style={{ padding: '8px 16px', fontSize: '1.3rem', border: selectedShape.id === s.id ? '2.5px solid #7C4DFF' : '2px solid var(--color-border)', borderRadius: '12px' }}
+              style={{ padding: '8px 16px', fontSize: '1.3rem', border: selectedShape.id === s.id ? '2.5px solid #7C4DFF' : '2px solid var(--color-border)', borderRadius: '12px', cursor: 'pointer' }}
             >
               {s.emoji} {s.id.toUpperCase()}
             </button>
@@ -370,9 +476,19 @@ function ColorStudio({ shapes, palette, profile, refreshProfile }) {
           />
         </svg>
 
+        {done && (
+          <div style={{ background: '#DEF7EC', color: '#03543F', padding: '12px 20px', borderRadius: '16px', fontWeight: 800, marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', border: '1.5px solid #31C48D' }}>
+            <span>🎨 Color Masterpiece Saved to Gallery!</span>
+            <button onClick={() => navigate('/child/creativity-world/gallery')} className="btn-orange" style={{ padding: '6px 16px', fontSize: '0.85rem', borderRadius: '12px', cursor: 'pointer' }}>
+              View Gallery 🖼️
+            </button>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-          <button onClick={reset} className="btn-ghost" style={{ padding: '8px 20px', borderRadius: '12px' }}>🗑️ Reset Shape</button>
-          <button onClick={() => navigate('/child/creativity-world')} className="btn-orange" style={{ padding: '8px 20px', borderRadius: '12px' }}>Done ✅</button>
+          <button onClick={reset} className="btn-ghost" style={{ padding: '8px 20px', borderRadius: '12px', cursor: 'pointer' }}>🗑️ Reset Shape</button>
+          <button onClick={handleSaveColoring} className="btn-orange" style={{ padding: '8px 20px', borderRadius: '12px', cursor: 'pointer' }}>💾 Save to Gallery</button>
+          <button onClick={() => navigate('/child/creativity-world/gallery')} className="btn-ghost" style={{ padding: '8px 20px', borderRadius: '12px', cursor: 'pointer' }}>My Gallery 🖼️</button>
         </div>
       </div>
     </div>
@@ -384,43 +500,112 @@ function ColorStudio({ shapes, palette, profile, refreshProfile }) {
    ============================================================ */
 function MyGallery() {
   const navigate = useNavigate();
-  
-  const sampleItems = [
-    { title: 'My Space Journey 🚀', date: 'Today', type: 'drawing', color: '#BFDBFE', emoji: '🎨' },
-    { title: 'Forest Adventure 🦁🌳', date: 'Yesterday', type: 'story', color: '#FED7AA', emoji: '📖' },
-    { title: 'Beautiful Rainbow 🌈', date: '2 days ago', type: 'colored', color: '#FBCFE8', emoji: '🎨' }
-  ];
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    setItems(getGalleryItems());
+  }, []);
+
+  const handleDelete = (id) => {
+    const updated = items.filter(item => item.id !== id);
+    setItems(updated);
+    localStorage.setItem('spaceece_gallery_creations', JSON.stringify(updated));
+  };
+
+  const handleClearAll = () => {
+    setItems([]);
+    localStorage.setItem('spaceece_gallery_creations', JSON.stringify([]));
+  };
 
   return (
     <div className="game-container">
       <button onClick={() => navigate('/child/creativity-world')} className="game-back-btn">
         ← Back to Creativity World
       </button>
-      <div className="game-header">
-        <h2 className="game-title">🖼️ My Gallery</h2>
-        <p style={{ color: 'var(--color-text-secondary)', fontWeight: 800 }}>Explore all the masterpieces you've built! 🌟</p>
+      <div className="game-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 className="game-title">🖼️ My Gallery</h2>
+          <p style={{ color: 'var(--color-text-secondary)', fontWeight: 800 }}>Explore all the masterpieces you've built! 🌟</p>
+        </div>
+        {items.length > 0 && (
+          <button onClick={handleClearAll} className="btn-ghost" style={{ padding: '6px 16px', fontSize: '0.82rem', borderRadius: '12px', color: '#EF4444', cursor: 'pointer' }}>
+            Clear Gallery 🗑️
+          </button>
+        )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px', marginTop: '16px' }}>
-        {sampleItems.map((item, idx) => (
-          <div 
-            key={idx} 
-            style={{ 
-              borderRadius: '20px', 
-              padding: '24px 16px', 
-              textAlign: 'center', 
-              border: '2px solid var(--color-border)', 
-              background: item.color,
-              boxShadow: 'var(--shadow-sm)',
-              position: 'relative'
-            }}
-          >
-            <div style={{ fontSize: '3rem', marginBottom: '8px' }}>{item.emoji}</div>
-            <h4 style={{ fontWeight: 800, color: '#1A1A1A', fontSize: '0.95rem', margin: '4px 0' }}>{item.title}</h4>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>Published {item.date}</span>
+      {items.length === 0 ? (
+        <div className="game-board-card" style={{ width: '100%', textAlign: 'center', padding: '48px 24px', marginTop: '24px' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '12px' }}>🎨✨🖼️</div>
+          <h3 className="brain-card-title" style={{ fontSize: '1.3rem', marginBottom: '8px' }}>Your Gallery is Empty!</h3>
+          <p style={{ color: 'var(--color-text-secondary)', fontWeight: 700, marginBottom: '24px' }}>
+            Start creating drawings, sticker stories, and colored artwork to build your personal collection!
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => navigate('/child/creativity-world/drawing-pad')} className="btn-orange" style={{ padding: '10px 20px', borderRadius: '16px', cursor: 'pointer' }}>
+              🖌️ Open Drawing Pad
+            </button>
+            <button onClick={() => navigate('/child/creativity-world/story-creator')} className="btn-orange" style={{ padding: '10px 20px', borderRadius: '16px', cursor: 'pointer' }}>
+              📖 Create a Story
+            </button>
+            <button onClick={() => navigate('/child/creativity-world/coloring-studio')} className="btn-orange" style={{ padding: '10px 20px', borderRadius: '16px', cursor: 'pointer' }}>
+              🎨 Open Color Studio
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px', marginTop: '20px' }}>
+          {items.map((item) => (
+            <motion.div 
+              key={item.id} 
+              whileHover={{ y: -4 }}
+              style={{ 
+                borderRadius: '24px', 
+                padding: '20px', 
+                textAlign: 'center', 
+                border: '2px solid var(--color-border)', 
+                background: item.color || 'var(--color-bg-elevated)',
+                boxShadow: 'var(--shadow-md)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justify: 'space-between',
+                position: 'relative'
+              }}
+            >
+              <button 
+                onClick={() => handleDelete(item.id)}
+                title="Delete item"
+                style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+              >
+                ❌
+              </button>
+
+              {/* Preview Rendering */}
+              <div style={{ width: '100%', height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFFFFF', borderRadius: '16px', margin: '8px 0 16px 0', border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', padding: '8px' }}>
+                {item.type === 'drawing' && item.preview ? (
+                  <img src={item.preview} alt={item.title} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }} />
+                ) : item.type === 'story' ? (
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center', fontSize: '1.6rem' }}>
+                    {item.stickers && item.stickers.length > 0 
+                      ? item.stickers.map((s, idx) => <span key={idx}>{s}</span>)
+                      : <span>📖✨</span>}
+                  </div>
+                ) : item.type === 'coloring' && item.shapePath ? (
+                  <svg viewBox="0 0 24 24" width="80" height="80" style={{ stroke: '#1A1A1A', strokeWidth: 0.8 }}>
+                    <path d={item.shapePath} fill={item.fillColor || item.color || '#EC4899'} />
+                  </svg>
+                ) : (
+                  <div style={{ fontSize: '3.5rem' }}>{item.emoji || '🎨'}</div>
+                )}
+              </div>
+
+              <h4 style={{ fontWeight: 800, color: '#1A1A1A', fontSize: '1rem', margin: '4px 0' }}>{item.title}</h4>
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(0,0,0,0.65)' }}>{item.date}</span>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

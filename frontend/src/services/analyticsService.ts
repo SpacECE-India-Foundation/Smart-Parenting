@@ -113,20 +113,24 @@ export const getChildren = async (): Promise<Child[]> => {
 
 // Map activity_type to domain
 const mapActivityTypeToDomain = (type: string): Assessment['domain'] => {
-  const map: Record<string, Assessment['domain']> = {
-    story:         'Literacy',
-    phonics:       'Literacy',
-    word_builder:  'Literacy',
-    picture_match: 'Literacy',
-    fluency:       'Literacy',
-    numeracy:      'Numeracy',
-    math:          'Numeracy',
-    puzzle:        'Cognitive',
-    logic:         'Cognitive',
-    creativity:    'Creativity',
-    emotional:     'Emotional',
-  };
-  return map[type] || 'Cognitive';
+  if (!type) return 'Cognitive';
+  const t = type.toLowerCase();
+  if (t.includes('literacy') || t.includes('story') || t.includes('phonics') || t.includes('word') || t.includes('reading') || t.includes('vocabulary') || t.includes('language') || t.includes('picture_match') || t.includes('fluency')) {
+    return 'Literacy';
+  }
+  if (t.includes('numeracy') || t.includes('math') || t.includes('number') || t.includes('count') || t.includes('arithmetic')) {
+    return 'Numeracy';
+  }
+  if (t.includes('emotion') || t.includes('friendship') || t.includes('kindness') || t.includes('decision') || t.includes('feeling')) {
+    return 'Emotional';
+  }
+  if (t.includes('creativ') || t.includes('art') || t.includes('drawing') || t.includes('color') || t.includes('melody') || t.includes('music')) {
+    return 'Creativity';
+  }
+  if (t.includes('puzzle') || t.includes('logic') || t.includes('brain') || t.includes('spatial') || t.includes('cognit')) {
+    return 'Cognitive';
+  }
+  return 'Cognitive';
 };
 
 // Get assessments (activity scores) for a child

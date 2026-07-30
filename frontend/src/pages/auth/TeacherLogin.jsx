@@ -127,7 +127,7 @@ const TeacherLogin = () => {
           Don't have an account?{' '}
           <Typography component="span" variant="body2"
             sx={{ color: '#FF9500', fontWeight: 900, cursor: 'pointer', bgcolor: 'rgba(255,149,0,0.1)', px: 1.5, py: 0.25, borderRadius: 10 }}
-            onClick={() => navigate('/register')}>
+            onClick={() => navigate('/register?role=teacher')}>
             Register Free →
           </Typography>
         </Typography>

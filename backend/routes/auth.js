@@ -300,4 +300,32 @@ router.post('/send-verification', verifyToken, async (req, res) => {
   }
 });
 
+// ── PUT /api/auth/change-email ───────────────────────────────────────────
+router.put('/change-email', verifyToken, async (req, res) => {
+  try {
+    const { newEmail, currentPassword } = req.body;
+    if (!newEmail || !currentPassword)
+      return res.status(400).json({ error: 'newEmail and currentPassword are required' });
+
+    const user = await User.findById(req.user.userId).select('+password');
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    const valid = await user.comparePassword(currentPassword);
+    if (!valid) return res.status(401).json({ error: 'Incorrect password.' });
+
+    const existing = await User.findOne({ email: newEmail });
+    if (existing && existing._id.toString() !== user._id.toString()) {
+      return res.status(409).json({ error: 'This email is already in use by another account.' });
+    }
+
+    user.email = newEmail;
+    user.emailVerified = true;
+    await user.save();
+
+    res.json({ message: 'Email updated successfully.', user: user.toPublic() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

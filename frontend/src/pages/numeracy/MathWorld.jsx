@@ -31,7 +31,8 @@ function CountingGame({ onBack }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [feedback, setFeedback] = useState(null);
-  const { user, refreshProfile } = useUser();
+  const { user, profile, refreshProfile } = useUser();
+  const childId = profile?._id || profile?.uid || user?.uid || user?._id;
 
   const questions = [
     { emoji: '🍎', count: 3, options: [2, 3, 4, 5] },
@@ -54,19 +55,38 @@ function CountingGame({ onBack }) {
     else { setFeedback('wrong'); gameState.onWrongAnswer(); }
     setTimeout(() => {
       setSelectedAnswer(null); setFeedback(null);
-      if (currentQuestion + 1 >= questions.length) { gameState.levelUp(); setCurrentQuestion(0); }
-      else setCurrentQuestion(c => c + 1);
+      if (currentQuestion + 1 >= questions.length) {
+        gameState.levelUp();
+        gameState.setIsComplete(true);
+      } else {
+        setCurrentQuestion(c => c + 1);
+      }
     }, 1200);
   }, [feedback, q.count, currentQuestion, questions.length, gameState]);
 
   const hasSaved = useRef(false);
   useEffect(() => {
-    if (gameState.isComplete && user && !hasSaved.current) {
+    if (gameState.isComplete && childId && !hasSaved.current) {
       hasSaved.current = true;
-      saveNumeracyScore({ child_id: user.uid, game_id: 'counting-1-3', score: gameState.score, level: gameState.level, time_taken: 0 });
-      awardProgress(user.uid, { xp: Math.floor(gameState.score / 2), stars: gameState.stars, coins: 5, module: 'mathWorld' }).then(() => refreshProfile());
+      saveNumeracyScore({ child_id: childId, game_id: 'counting-1-3', score: gameState.score, level: gameState.level, time_taken: 0 });
+      awardProgress(childId, { xp: Math.max(10, Math.floor(gameState.score / 2)), stars: Math.max(1, gameState.stars), coins: 5, module: 'mathWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+      });
     }
-  }, [gameState.isComplete, gameState.score, gameState.level, gameState.stars, user, refreshProfile]);
+  }, [gameState.isComplete, gameState.score, gameState.level, gameState.stars, childId, refreshProfile]);
+
+  const handleBack = () => {
+    if (gameState.score > 0 && childId && !hasSaved.current) {
+      hasSaved.current = true;
+      saveNumeracyScore({ child_id: childId, game_id: 'counting-1-3', score: gameState.score, level: gameState.level, time_taken: 0 });
+      awardProgress(childId, { xp: Math.max(10, Math.floor(gameState.score / 2)), stars: Math.max(1, gameState.stars), coins: 5, module: 'mathWorld' }).then(() => {
+        if (refreshProfile) refreshProfile();
+        onBack();
+      });
+    } else {
+      onBack();
+    }
+  };
 
   if (gameState.isComplete) return (
     <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
@@ -117,7 +137,7 @@ function CountingGame({ onBack }) {
           )}
         </AnimatePresence>
       </motion.div>
-      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onBack} className="btn-ghost w-full py-3">← Back to Math World</motion.button>
+      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleBack} className="btn-ghost w-full py-3">← Back to Math World</motion.button>
     </div>
   );
 }

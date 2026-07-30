@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import {
   Box, Typography, TextField, Button, Alert, InputAdornment, LinearProgress, Divider,
   FormControlLabel, Checkbox, Link,
@@ -11,7 +11,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PasswordField from '../../components/auth/PasswordField';
 import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
 import SpacECELogo from '../../components/shared/SpacECELogo';
-import { registerWithEmail, loginWithGoogle } from '../../api/authService';
+import { loginWithGoogle } from '../../api/authService';
 import { useAuth } from '../../context/AuthContext';
 import { getPasswordStrength } from '../../utils/helpers';
 
@@ -40,7 +40,8 @@ const roleOptions = [
 
 const Register = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, userRole } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { isAuthenticated, userRole, register } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated && userRole) {
@@ -48,9 +49,18 @@ const Register = () => {
     }
   }, [isAuthenticated, userRole, navigate]);
 
+  const initialRole = searchParams.get('role') || 'parent';
   const [formData, setFormData] = useState({
-    fullName: '', email: '', password: '', confirmPassword: '', role: 'parent',
+    fullName: '', email: '', password: '', confirmPassword: '', role: initialRole,
   });
+
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam && (roleParam === 'teacher' || roleParam === 'parent')) {
+      setFormData(prev => ({ ...prev, role: roleParam }));
+    }
+  }, [searchParams]);
+
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -86,7 +96,7 @@ const Register = () => {
       return;
     }
     setLoading(true);
-    const result = await registerWithEmail(
+    const result = await register(
       formData.email,
       formData.password,
       formData.fullName,

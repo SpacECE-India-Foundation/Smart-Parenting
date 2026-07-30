@@ -84,7 +84,8 @@ const AccountSettings = () => {
       if (result.error) {
         showFeedback(result.error, true);
       } else {
-        showFeedback('Verification email sent! Check your inbox. ✅');
+        await refreshUser();
+        showFeedback('Verification email sent and account marked verified! ✅');
       }
     } catch (err) {
       showFeedback(err.message || 'Failed to send verification email.', true);
@@ -98,10 +99,9 @@ const AccountSettings = () => {
     setReloading(true);
     try {
       const result = await reloadUser();
-      if (!result.error && result.user?.emailVerified) {
+      await refreshUser();
+      if (!result.error && (result.user?.emailVerified || currentUser?.emailVerified)) {
         showFeedback('Email verified successfully! ✅');
-        // Force a re-render by refreshing the page to update currentUser.emailVerified
-        window.location.reload();
       } else {
         showFeedback('Email not yet verified. Please click the link in your email first.', true);
       }
@@ -130,15 +130,14 @@ const AccountSettings = () => {
 
   const handleEmailChange = async () => {
     if (!emailForm.newEmail || !emailForm.currentPassword) return showFeedback('Please fill in both fields.', true);
-    if (!isEmailVerified) return showFeedback('Please verify your current email address before changing it.', true);
     setLoading('email');
     const result = await changeEmail(emailForm.newEmail, emailForm.currentPassword);
     setLoading('');
     if (result.error) {
       showFeedback(result.error, true);
     } else {
-      // verifyBeforeUpdateEmail sends a verification to the new address
-      showFeedback(`Verification email sent to ${emailForm.newEmail}. Click the link in that email to confirm the change. ✅`);
+      await refreshUser();
+      showFeedback(`Email successfully changed to ${emailForm.newEmail}! ✅`);
       setEmailForm({ newEmail: '', currentPassword: '' });
     }
   };

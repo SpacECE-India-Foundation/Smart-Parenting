@@ -211,4 +211,14 @@ export const resetPassword = async (token, password) => {
   }
 };
 
-export const changeEmail           = async () => ({ message: 'Contact support to change email.', error: null });
+export const changeEmail = async (newEmail, currentPassword) => {
+  try {
+    const { data } = await client.put('/auth/change-email', { newEmail, currentPassword });
+    if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+    return { message: data.message, error: null };
+  } catch (err) {
+    return { message: null, error: err.response?.data?.error || err.message };
+  }
+};

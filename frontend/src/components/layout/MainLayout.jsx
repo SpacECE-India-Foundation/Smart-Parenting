@@ -71,6 +71,9 @@ const MainLayout = () => {
 
         <Box sx={{
           flex: 1,
+          width: '100%',
+          maxWidth: '1600px',
+          mx: 'auto',
           p: { xs: 2, sm: 3, md: 3.5 },
           pb: isMobile ? 10 : 4,
           animation: 'fadeIn 0.4s ease-out',

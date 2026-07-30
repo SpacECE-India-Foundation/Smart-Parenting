@@ -30,7 +30,7 @@ function StoryPlayer({ storyId, storiesData }) {
   const [showConfetti, setShowConfetti] = useState(false);
 
   if (!story) {
-    navigate('/child/story-world');
+    navigate('/child/story-choice-world');
     return null;
   }
 
@@ -52,7 +52,7 @@ function StoryPlayer({ storyId, storiesData }) {
   return (
     <div style={{ width: '100%', maxWidth: '600px', margin: '0 auto', padding: '24px 16px' }}>
       <ConfettiEffect active={showConfetti} />
-      <button onClick={() => navigate('/child/story-world')} className="flex items-center gap-2 mb-6 font-semibold" style={{ color: 'var(--text-muted)' }}>
+      <button onClick={() => navigate('/child/story-choice-world')} className="flex items-center gap-2 mb-6 font-semibold" style={{ color: 'var(--text-muted)' }}>
         ← Back to Story World
       </button>
       <div className="flex items-center gap-3 mb-6">
@@ -83,7 +83,7 @@ function StoryPlayer({ storyId, storiesData }) {
               </div>
               <div className="flex gap-3 justify-center">
                 <motion.button whileHover={{ scale: 1.05 }} onClick={restart} className="btn-orange">Read Again 🔄</motion.button>
-                <motion.button whileHover={{ scale: 1.05 }} onClick={() => navigate('/child/story-world')} className="btn-ghost">More Stories</motion.button>
+                <motion.button whileHover={{ scale: 1.05 }} onClick={() => navigate('/child/story-choice-world')} className="btn-ghost">More Stories</motion.button>
               </div>
             </div>
           ) : (
@@ -138,7 +138,7 @@ const StoryWorldHome = ({ storiesData }) => {
           {stories.map(story => (
             <motion.div key={story.id} variants={staggerItem}
               whileHover={!story.comingSoon ? { y: -8, scale: 1.02 } : {}} whileTap={!story.comingSoon ? { scale: 0.98 } : {}}
-              onClick={() => !story.comingSoon && navigate(`/child/story-world/${story.id}`)}
+              onClick={() => !story.comingSoon && navigate(`/child/story-choice-world/${story.id}`)}
               className="card relative overflow-hidden"
               style={{ borderTop: `4px solid ${story.color}`, cursor: story.comingSoon ? 'not-allowed' : 'pointer', opacity: story.comingSoon ? 0.8 : 1 }}>
               {story.comingSoon && (

@@ -123,15 +123,27 @@ export const saveNumeracyScore = async (scoreData) => {
     let activity_type = scoreData.activity_type;
     if (!activity_type && scoreData.game_id) {
       const gid = scoreData.game_id;
-      // Puzzle World games map to 'puzzle' (Cognitive domain)
-      if (gid === 'shape-match' || gid === 'jigsaw' || gid === 'logic-puzzles' || gid === 'shape-match-3d') {
+      // Emotional World games
+      if (gid.startsWith('emotion') || gid === 'friendship-stories' || gid === 'kindness-challenge' || gid === 'decision-making') {
+        activity_type = 'emotional';
+      }
+      // Creativity World games
+      else if (gid.startsWith('creativity') || gid === 'drawing' || gid === 'color-splash' || gid === 'melody-creator') {
+        activity_type = 'creativity';
+      }
+      // Literacy / Reading games
+      else if (gid.startsWith('reading') || gid.startsWith('story') || gid.startsWith('vocabulary') || gid.startsWith('language') || gid.startsWith('phonics')) {
+        activity_type = 'story';
+      }
+      // Puzzle World games (Cognitive domain)
+      else if (gid === 'shape-match' || gid === 'jigsaw' || gid === 'logic-puzzles' || gid === 'shape-match-3d' || gid.startsWith('puzzle')) {
         activity_type = 'puzzle';
       }
-      // Logic Island games map to 'logic' (Cognitive domain)
-      else if (gid === 'maze-challenge' || gid === 'pattern-recognition' || gid === 'odd-one-out' || gid === 'word-problems') {
+      // Logic Island games (Cognitive domain)
+      else if (gid === 'maze-challenge' || gid === 'pattern-recognition' || gid === 'odd-one-out' || gid === 'word-problems' || gid.startsWith('logic') || gid.startsWith('brain') || gid.startsWith('spatial')) {
         activity_type = 'logic';
       }
-      // Other numeracy/math games map to 'math' (Numeracy domain)
+      // Other numeracy/math games (Numeracy domain)
       else {
         activity_type = 'math';
       }

@@ -44,14 +44,14 @@ const calculateAgeGroupFromDob = (dobString) => {
   if (ageYears < 1) return '1-3';
   return '7-10';
 };
-// ── Milestone helpers (Age 1–3 only) ─────────────────────────────────────
+// ── Milestone helpers (Age 1–3, 4–6, and 7–10 — full Level 1–18 range) ───
 /**
  * Calculates the child's age in whole months from their date of birth,
- * then maps it to a milestone level (1–6) matching milestones_0_3.json.
+ * then maps it to a milestone level (1–18) covering 0–9 years:
  *
- * Level 1 → 0–6 months   | Level 4 → 1.5–2 years
- * Level 2 → 6–12 months  | Level 5 → 2–2.5 years
- * Level 3 → 1–1.5 years  | Level 6 → 2.5–3 years
+ *  Level  1– 6 → 0–3 years   (milestones_0_3.json)
+ *  Level  7–12 → 3–6 years   (milestones_3_6.json)
+ *  Level 13–18 → 6–9 years   (milestones_6_9.json)
  */
 const getMilestoneInfo = (dateOfBirth) => {
   if (!dateOfBirth) return null;
@@ -61,12 +61,24 @@ const getMilestoneInfo = (dateOfBirth) => {
     (now.getFullYear() - dob.getFullYear()) * 12 +
     (now.getMonth() - dob.getMonth());
   let milestoneLevel;
-  if      (ageMonths < 6)  milestoneLevel = 1;
-  else if (ageMonths < 12) milestoneLevel = 2;
-  else if (ageMonths < 18) milestoneLevel = 3;
-  else if (ageMonths < 24) milestoneLevel = 4;
-  else if (ageMonths < 30) milestoneLevel = 5;
-  else                     milestoneLevel = 6;
+  if      (ageMonths < 6)   milestoneLevel = 1;
+  else if (ageMonths < 12)  milestoneLevel = 2;
+  else if (ageMonths < 18)  milestoneLevel = 3;
+  else if (ageMonths < 24)  milestoneLevel = 4;
+  else if (ageMonths < 30)  milestoneLevel = 5;
+  else if (ageMonths < 36)  milestoneLevel = 6;
+  else if (ageMonths < 42)  milestoneLevel = 7;
+  else if (ageMonths < 48)  milestoneLevel = 8;
+  else if (ageMonths < 54)  milestoneLevel = 9;
+  else if (ageMonths < 60)  milestoneLevel = 10;
+  else if (ageMonths < 66)  milestoneLevel = 11;
+  else if (ageMonths < 72)  milestoneLevel = 12;
+  else if (ageMonths < 78)  milestoneLevel = 13;
+  else if (ageMonths < 84)  milestoneLevel = 14;
+  else if (ageMonths < 90)  milestoneLevel = 15;
+  else if (ageMonths < 96)  milestoneLevel = 16;
+  else if (ageMonths < 102) milestoneLevel = 17;
+  else                      milestoneLevel = 18;
   return { ageMonths, milestoneLevel };
 };
 // ─────────────────────────────────────────────────────────────────────────────
@@ -113,8 +125,8 @@ const ChildProfileManager = () => {
     if (!formData.name.trim()) { setError('Please enter a name.'); return; }
     if (!formData.age_group) { setError('Please select an age group.'); return; }
 
-    // ── Age 1-3 & 4-6: validate DOB and derive milestone fields if applicable ─────────
-    if (['1-3', '4-6'].includes(formData.age_group)) {
+    // ── Age 1-3, 4-6 & 7-10: validate DOB and derive milestone fields ─────────
+    if (['1-3', '4-6', '7-10'].includes(formData.age_group)) {
       if (!formData.date_of_birth) {
         setError(`Please enter the date of birth for children in the ${formData.age_group} age group.`);
         return;
@@ -136,24 +148,28 @@ const ChildProfileManager = () => {
           setError('Date of birth indicates the child is older than 6 years. Please select the correct age group.');
           return;
         }
+      } else if (formData.age_group === '7-10') {
+        const ageMonths = (new Date() - dob) / (1000 * 60 * 60 * 24 * 30.44);
+        if (ageMonths > 108) { // Roughly 9 years — end of our Level 18 catalog
+          setError('Date of birth indicates the child is older than 9 years. Please select the correct age group.');
+          return;
+        }
       }
     }
 
     // ── Build payload ────────────────────────────────────
     let payload;
-    if (['1-3', '4-6'].includes(formData.age_group) && formData.date_of_birth) {
+    if (['1-3', '4-6', '7-10'].includes(formData.age_group) && formData.date_of_birth) {
       const dob = new Date(formData.date_of_birth);
       const ageMonths = Math.floor((new Date() - dob) / (1000 * 60 * 60 * 24 * 30.44));
-      
-      // Calculate milestoneLevel only if they fall under the 1-3 age group format (1 to 6)
-      let milestoneLevel = null;
-      if (formData.age_group === '1-3') {
-        milestoneLevel = Math.min(6, Math.floor(ageMonths / 6) + 1);
-      }
-      
+
+      // Milestone level (1-18) now computed for ALL three age groups, using
+      // the same full-range helper as getMilestoneInfo above.
+      const info = getMilestoneInfo(formData.date_of_birth);
+      const milestoneLevel = info ? info.milestoneLevel : null;
+
       payload = { ...formData, age_months: ageMonths, milestone_level: milestoneLevel };
     } else {
-      // Ensure milestone fields are explicitly cleared for other age groups (e.g. 7-10)
       payload = { ...formData, date_of_birth: null, age_months: null, milestone_level: null };
     }
 
@@ -389,8 +405,8 @@ const ChildProfileManager = () => {
             ))}
           </Box>
 
-          {/* Date of Birth — shown for Age 1-3 and 4-6 */}
-          {['1-3', '4-6'].includes(formData.age_group) && (() => {
+          {/* Date of Birth — shown for Age 1-3, 4-6, and 7-10 */}
+          {['1-3', '4-6', '7-10'].includes(formData.age_group) && (() => {
             const now = new Date();
             const toISO = (d) => d.toISOString().split('T')[0];
             let minDate, maxDate, helperMsg;
@@ -400,11 +416,16 @@ const ChildProfileManager = () => {
               minDate = toISO(new Date(now.getFullYear() - 3, now.getMonth(), now.getDate()));
               maxDate = toISO(new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()));
               helperMsg = "Used to auto-calculate the child's milestone level (1–6)";
-            } else {
+            } else if (formData.age_group === '4-6') {
               // Age 4-6: child must be 3–7 years old
               minDate = toISO(new Date(now.getFullYear() - 7, now.getMonth(), now.getDate()));
               maxDate = toISO(new Date(now.getFullYear() - 3, now.getMonth(), now.getDate()));
               helperMsg = "Helps personalize your child's learning journey (age 3–6)";
+            } else {
+              // Age 7-10: child must be 6–10 years old
+              minDate = toISO(new Date(now.getFullYear() - 10, now.getMonth(), now.getDate()));
+              maxDate = toISO(new Date(now.getFullYear() - 6, now.getMonth(), now.getDate()));
+              helperMsg = "Helps personalize your child's learning journey (age 6–9)";
             }
 
             return (
@@ -424,7 +445,7 @@ const ChildProfileManager = () => {
                     max: maxDate,
                     min: minDate,
                   }}
-                  helperText={helperMsg}
+                  helperText={helperMsg}  
                   sx={{ mt: 1 }}
                 />
               </>

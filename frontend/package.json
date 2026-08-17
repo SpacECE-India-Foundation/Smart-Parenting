@@ -28,6 +28,7 @@
     "react-router-dom": "^7.16.0",
     "react-to-print": "^3.3.0",
     "recharts": "^2.15.0",
+    "spaceece-smart-parenting": "file:..",
     "three": "^0.184.0"
   },
   "devDependencies": {

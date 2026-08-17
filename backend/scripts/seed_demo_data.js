@@ -80,7 +80,7 @@ async function seed() {
 
     const parentUser = await User.create({
       email: parentEmail,
-      password: passwordHash, // use prehashed password to save execution time
+      password: 'Parent@1234',// use prehashed password to save execution time
       displayName: parentName,
       role: 'parent',
       emailVerified: true,

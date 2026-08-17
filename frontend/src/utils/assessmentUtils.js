@@ -13,6 +13,9 @@
 
 import { QUESTION_CATALOG } from '../data/assessmentQuestions';
 import milestones3to6Raw from '../data/milestones_3_6.json';
+import milestones0to3Raw from '../data/milestones_0_3.json';
+import milestones6to9Raw from '../data/milestones_6_9.json';
+
 
 /* ──────────────────────────────────────────────────────
    MILESTONE 3–6 DATA
@@ -28,6 +31,20 @@ for (const item of milestones3to6Raw) {
   const lvl = item.level;
   if (!MILESTONE_3_6_BY_LEVEL[lvl]) MILESTONE_3_6_BY_LEVEL[lvl] = [];
   MILESTONE_3_6_BY_LEVEL[lvl].push(item);
+}
+
+const MILESTONE_0_3_BY_LEVEL = {};
+for (const item of milestones0to3Raw) {
+  const lvl = item.level;
+  if (!MILESTONE_0_3_BY_LEVEL[lvl]) MILESTONE_0_3_BY_LEVEL[lvl] = [];
+  MILESTONE_0_3_BY_LEVEL[lvl].push(item);
+}
+
+const MILESTONE_6_9_BY_LEVEL = {};
+for (const item of milestones6to9Raw) {
+  const lvl = item.level;
+  if (!MILESTONE_6_9_BY_LEVEL[lvl]) MILESTONE_6_9_BY_LEVEL[lvl] = [];
+  MILESTONE_6_9_BY_LEVEL[lvl].push(item);
 }
 
 /** Option emoji map for milestone responses */
@@ -102,20 +119,28 @@ function toDate(value) {
  * 36–72 months → milestone level keys (L7, L8, L9, L10, L11, L12)
  */
 function monthsToAgeGroupKey(months) {
-  // 0–3 years: existing catalog
-  if (months < 6)  return '0-6m';
-  if (months < 12) return '6-12m';
-  if (months < 18) return '1-1.5y';
-  if (months < 24) return '1.5-2y';
-  if (months < 30) return '2-2.5y';
-  if (months < 36) return '2.5-3y';
+  // 0–3 years: milestone levels (matches milestone_level 1-6 already
+  // computed in ChildProfileManager.jsx for the 'Age 1-3' group)
+  if (months < 6)  return 'L1';   // 0 – 6 months
+  if (months < 12) return 'L2';   // 6 – 12 months
+  if (months < 18) return 'L3';   // 1 – 1.5 years
+  if (months < 24) return 'L4';   // 1.5 – 2 years
+  if (months < 30) return 'L5';   // 2 – 2.5 years
+  if (months < 36) return 'L6';   // 2.5 – 3 years
   // 3–6 years: milestone levels
   if (months < 42) return 'L7';   // 3 – 3.5 years
   if (months < 48) return 'L8';   // 3.5 – 4 years
   if (months < 54) return 'L9';   // 4 – 4.5 years
   if (months < 60) return 'L10';  // 4.5 – 5 years
   if (months < 66) return 'L11';  // 5 – 5.5 years
-  return 'L12';                    // 5.5 – 6 years
+  if (months < 72) return 'L12';  // 5.5 – 6 years
+  // 6–9 years: milestone levels (PDF 3)
+  if (months < 78) return 'L13';  // 6 – 6.5 years
+  if (months < 84) return 'L14';  // 6.5 – 7 years
+  if (months < 90) return 'L15';  // 7 – 7.5 years
+  if (months < 96) return 'L16';  // 7.5 – 8 years
+  if (months < 102) return 'L17'; // 8 – 8.5 years
+  return 'L18';                  // 5.5 – 6 years
 }
 
 /**
@@ -123,10 +148,10 @@ function monthsToAgeGroupKey(months) {
  * most appropriate fine-grained catalog key.
  */
 const BROAD_GROUP_FALLBACK = {
-  '0-1':  '6-12m',
-  '1-3':  '2-2.5y',
+  '0-1':  'L2',
+  '1-3':  'L5',     // Default to Level 5 (2–2.5 years) for broad 1-3
   '4-6':  'L9',     // Default to Level 9 (4–4.5 years) for broad 4-6
-  '7-10': 'L12',    // Beyond our catalog range; use oldest bucket
+  '7-10': 'L15',    // Default to Level 15 (7–7.5 years) for broad 7-10
 };
 
 /**
@@ -246,13 +271,21 @@ function selectBalancedMilestoneQuestions(pool, seenIds = [], count = 7) {
  * @returns {{ questions: object[], resetOccurred: boolean }}
  */
 export function selectRandomQuestions(ageGroupKey, seenIds = [], count = 7) {
-  // ── 3–6 years: milestone-based system ──
+  // ── 0–9 years: milestone-based system (L1-L6=0-3y, L7-L12=3-6y, L13-L18=6-9y) ──
   if (isMilestoneAgeGroup(ageGroupKey)) {
     const levelNum = parseInt(ageGroupKey.replace('L', ''), 10);
-    const pool = MILESTONE_3_6_BY_LEVEL[levelNum];
+    let levelMap;
+    if (levelNum <= 6) levelMap = MILESTONE_0_3_BY_LEVEL;
+    else if (levelNum <= 12) levelMap = MILESTONE_3_6_BY_LEVEL;
+    else levelMap = MILESTONE_6_9_BY_LEVEL;
+
+    const pool = levelMap[levelNum];
+
     if (!pool || pool.length === 0) {
-      // Fallback: try adjacent level
-      const fallbackPool = MILESTONE_3_6_BY_LEVEL[levelNum - 1] || MILESTONE_3_6_BY_LEVEL[7] || [];
+      // Fallback: try an adjacent level within the same map, then L7 as a last resort
+      const minLevelForMap = levelNum <= 6 ? 1 : (levelNum <= 12 ? 7 : 13);
+      const fallbackLevel = Math.max(minLevelForMap, levelNum - 1);
+      const fallbackPool = levelMap[fallbackLevel] || MILESTONE_3_6_BY_LEVEL[7] || [];
       return selectBalancedMilestoneQuestions(fallbackPool, seenIds, count);
     }
     return selectBalancedMilestoneQuestions(pool, seenIds, count);

@@ -50,8 +50,14 @@ self.addEventListener('fetch', (e) => {
           cache.put(e.request, responseToCache);
         });
         return networkResponse;
-      }).catch(() => {
-        // Fallback for offline API/images if needed
+       }).catch(() => {
+        if (e.request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+        return new Response('Network error', {
+          status: 503,
+          statusText: 'Service Unavailable',
+        });
       });
     })
   );
